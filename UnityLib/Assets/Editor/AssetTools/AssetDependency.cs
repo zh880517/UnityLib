@@ -7,7 +7,7 @@ using UnityEngine;
 public class AssetDependency
 {
     public string Path { get; private set; }
-    public string[] Dependencies { get; private set; }
+    public HashSet<string> Dependencies { get; private set; }
     public string DependenciesHash { get; private set; }
 
     public AssetDependency(string path)
@@ -29,7 +29,17 @@ public class AssetDependency
         if (hash != DependenciesHash)
         {
             DependenciesHash = hash;
-            Dependencies = AssetDatabase.GetDependencies(Path);
+            var depen = AssetDatabase.GetDependencies(Path);
+            Dependencies = new HashSet<string>();
+            foreach (var file in depen)
+            {
+                if (file.EndsWith(".dll") 
+                    || file.EndsWith(".cs") 
+                    || file.Contains("unity_builtin_extra") 
+                    || file.Contains("unity default resources"))
+                    continue;
+                Dependencies.Add(file);
+            }
         }
         return true;
     }
