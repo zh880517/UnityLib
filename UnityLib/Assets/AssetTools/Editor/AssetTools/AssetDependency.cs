@@ -16,11 +16,6 @@ public class AssetDependency
         Update();
     }
 
-    public AssetDependency()
-    {
-         
-    }
-
     public bool Update()
     {
         if (!File.Exists(Path))

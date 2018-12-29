@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AssertBundleLoader
+public class AssetBundleLoader
 {
     public class LoaderBehaviour : MonoBehaviour
     { }
@@ -16,16 +16,16 @@ public class AssertBundleLoader
     }
 
     public bool CacheLoad { get; private set; }
-    private readonly Dictionary<AssertBundleInfo, List<CountYield>> loadCounterMap = new Dictionary<AssertBundleInfo, List<CountYield>>();
-    private readonly Queue<AssertBundleInfo> waiteQueue = new Queue<AssertBundleInfo>();
+    private readonly Dictionary<AssetBundleInfo, List<CountYield>> loadCounterMap = new Dictionary<AssetBundleInfo, List<CountYield>>();
+    private readonly Queue<AssetBundleInfo> waiteQueue = new Queue<AssetBundleInfo>();
     private readonly Loader[] loaderList;
-    public AssertBundleLoader(uint queueCount, bool useCache = true)
+    public AssetBundleLoader(uint queueCount, bool useCache = true)
     {
         loaderList = new Loader[queueCount];
         CacheLoad = useCache;
         if (loaderBehaviour == null)
         {
-            GameObject go = new GameObject("_AssertBundleLoader_");
+            GameObject go = new GameObject("_AssetBundleLoader_");
             loaderBehaviour = go.AddComponent<LoaderBehaviour>();
             Object.DontDestroyOnLoad(go);
         }
@@ -36,7 +36,7 @@ public class AssertBundleLoader
         CacheLoad = useCache;
     }
 
-    public void Load(ICollection<AssertBundleInfo> infoList, CountYield countYield)
+    public void Load(ICollection<AssetBundleInfo> infoList, CountYield countYield)
     {
         foreach (var info in infoList)
         {
@@ -57,7 +57,7 @@ public class AssertBundleLoader
         CheckLoad();
     }
     
-    public IEnumerator LoadYield(ICollection<AssertBundleInfo> infoList, CountYield countYield = null)
+    public IEnumerator LoadYield(ICollection<AssetBundleInfo> infoList, CountYield countYield = null)
     {
         if (countYield == null)
             countYield = new CountYield(infoList.Count);
@@ -128,8 +128,8 @@ public class AssertBundleLoader
                 yield return LoadByCache(info);
             if (!CacheLoad)
             {
-                if (info.Bundle == null && info.Stage == AssertBundleInfo.LoadStage.CacheLoaded)
-                    info.Stage = AssertBundleInfo.LoadStage.None;
+                if (info.Bundle == null && info.Stage == AssetBundleInfo.LoadStage.CacheLoaded)
+                    info.Stage = AssetBundleInfo.LoadStage.None;
                 yield return LoadNoneCache(info);
             }
             //清除crc信息，防止下次加载再进行crc校验
@@ -147,21 +147,21 @@ public class AssertBundleLoader
     }
     
     //通过缓存方式加载，会额外占用一部分存储空间
-    //适合android或者Assertbundle打包时候默认压缩方式（高压缩比）
-    private IEnumerator LoadByCache(AssertBundleInfo info)
+    //适合android或者Assetbundle打包时候默认压缩方式（高压缩比）
+    private IEnumerator LoadByCache(AssetBundleInfo info)
     {
-        if (info.Stage == AssertBundleInfo.LoadStage.None)
+        if (info.Stage == AssetBundleInfo.LoadStage.None)
         {
             /*
-             * 缓存方式加载Assertbundle，如果Hash128不对，但是目标文件存在，依然会加载
+             * 缓存方式加载Assetbundle，如果Hash128不对，但是目标文件存在，依然会加载
              * 并且在缓存中更新资源的Hash128为加载时候提供的Hash128
-             * 如果热更新提前更新了AssetBundleManifest，但是AssertBundle没有更新，那么下次更新了Assertbundle后
+             * 如果热更新提前更新了AssetBundleManifest，但是AssetBundle没有更新，那么下次更新了Assetbundle后
              * 加载的时候发现Hash128没有更新，就直接存缓存中加载，不会从提供的url中加载（除非url改变了）
-             * 所以这个时候需要加上crc参数（打包Assertbundle结束的时候获取然后记录下来）
+             * 所以这个时候需要加上crc参数（打包Assetbundle结束的时候获取然后记录下来）
              * crc方式加载速度比较慢，可以在crc加载一次就删除本地的crc数据，每次热更新后更新crc数据的时候再用crc方式加载一次
              */
-            string url = PathUtil.GetStreamAssertFileUrl(info.Name);
-            info.Stage = AssertBundleInfo.LoadStage.CacheLoading;
+            string url = PathUtil.GetStreamAssetFileUrl(info.Name);
+            info.Stage = AssetBundleInfo.LoadStage.CacheLoading;
             WWW download = WWW.LoadFromCacheOrDownload(url, info.Hash, info.Crc);
             yield return download;
             if (string.IsNullOrEmpty(download.error))
@@ -174,26 +174,25 @@ public class AssertBundleLoader
                 if (string.IsNullOrEmpty(download.error))
                     info.Bundle = download.assetBundle;
             }
-            info.Stage = AssertBundleInfo.LoadStage.CacheLoaded;
+            info.Stage = AssetBundleInfo.LoadStage.CacheLoaded;
             if (info.Bundle == null)
-                Debug.LogError("AssertBundle 加载失败 => " + info.Name);
+                Debug.LogError("AssetBundle 加载失败 => " + info.Name);
         }
-        yield return null;
     }
 
-    //非换缓存方式加载，适合非安卓平台并且在Assertbundle打包的时候选择不压缩或者LZ4M压缩方式的（默认压缩方式需要先解压再加载比较慢）
-    private IEnumerator LoadNoneCache(AssertBundleInfo info)
+    //非换缓存方式加载，适合非安卓平台并且在Assetbundle打包的时候选择不压缩或者LZ4压缩方式的（默认压缩方式需要先解压再加载比较慢）
+    private IEnumerator LoadNoneCache(AssetBundleInfo info)
     {
-        if (info.Stage == AssertBundleInfo.LoadStage.None)
+        if (info.Stage == AssetBundleInfo.LoadStage.None)
         {
-            info.Stage = AssertBundleInfo.LoadStage.NoneCacheLoading;
-            string path = PathUtil.GetStreamAssertFilePath(info.Name);
+            info.Stage = AssetBundleInfo.LoadStage.NoneCacheLoading;
+            string path = PathUtil.GetStreamAssetFilePath(info.Name);
             var request = AssetBundle.LoadFromFileAsync(path);
             yield return request;
             info.Bundle = request.assetBundle;
-            info.Stage = AssertBundleInfo.LoadStage.NoneCacheLoaded;
+            info.Stage = AssetBundleInfo.LoadStage.NoneCacheLoaded;
             if (info.Bundle == null)
-                Debug.LogError("AssertBundle 加载失败 => " + info.Name);
+                Debug.LogError("AssetBundle 加载失败 => " + info.Name);
         }
         
     }

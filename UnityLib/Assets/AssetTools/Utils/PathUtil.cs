@@ -4,48 +4,48 @@ using UnityEngine;
 public static class PathUtil
 {
     //资源WWW加载目录
-    private static string streamAssertUrl;
-    public static string StreamAssertUrl
+    private static string streamAssetUrl;
+    public static string StreamAssetUrl
     {
         get
         {
-            if (streamAssertUrl == null)
+            if (streamAssetUrl == null)
             {
                 switch (Application.platform)
                 {
                     case RuntimePlatform.Android:
-                        streamAssertUrl = "jar:file://" + Application.dataPath + "!/assets/";
+                        streamAssetUrl = "jar:file://" + Application.dataPath + "!/assets/";
                         break;
                     case RuntimePlatform.IPhonePlayer:
-                        streamAssertUrl = "file:///" + Application.dataPath + "/Raw/";
+                        streamAssetUrl = "file:///" + Application.dataPath + "/Raw/";
                         break;
                     default:
-                        streamAssertUrl = "file://" + Application.streamingAssetsPath + "/";
+                        streamAssetUrl = "file://" + Application.streamingAssetsPath + "/";
                         break;
                 }
             }
-            return streamAssertUrl;
+            return streamAssetUrl;
         }
     }
 
     //资源直接读取路径
-    private static string streamAssertPath;
-    public static string StreamAssertPath
+    private static string streamAssetPath;
+    public static string StreamAssetPath
     {
         get
         {
-            if (streamAssertPath == null)
+            if (streamAssetPath == null)
             {
                 if (Application.platform == RuntimePlatform.Android)
                 {
-                    streamAssertPath = Application.dataPath + "!assets/";
+                    streamAssetPath = Application.dataPath + "!assets/";
                 }
                 else
                 {
-                    streamAssertPath = Application.streamingAssetsPath + "/";
+                    streamAssetPath = Application.streamingAssetsPath + "/";
                 }
             }
-            return streamAssertPath;
+            return streamAssetPath;
         }
     }
 
@@ -77,19 +77,19 @@ public static class PathUtil
         }
     }
 
-    public static string GetStreamAssertFileUrl(string name)
+    public static string GetStreamAssetFileUrl(string name)
     {
         if (File.Exists(HotPatchPath + name))
             return HotPatchUrl + name;
-        return StreamAssertUrl + name;
+        return StreamAssetUrl + name;
     }
 
-    public static string GetStreamAssertFilePath(string name)
+    public static string GetStreamAssetFilePath(string name)
     {
         string hotPatchPath = HotPatchPath + name;
         if (File.Exists(hotPatchPath))
             return hotPatchPath;
-        return StreamAssertPath + name;
+        return StreamAssetPath + name;
     }
     
 }

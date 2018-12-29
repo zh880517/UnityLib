@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class AssertBundleInfo
+public class AssetBundleInfo
 {
     public enum LoadStage
     {
@@ -17,10 +17,10 @@ public class AssertBundleInfo
     public Hash128 Hash;
     public uint Crc;
     public LoadStage Stage;
-    public List<AssertBundleInfo> Dependencies = new List<AssertBundleInfo>();
-    public List<AssertBundleInfo> BeDependend = new List<AssertBundleInfo>();
+    public List<AssetBundleInfo> Dependencies = new List<AssetBundleInfo>();
+    public List<AssetBundleInfo> BeDependend = new List<AssetBundleInfo>();
 
-    public AssertBundleInfo(string name)
+    public AssetBundleInfo(string name)
     {
         Name = name;
     }
