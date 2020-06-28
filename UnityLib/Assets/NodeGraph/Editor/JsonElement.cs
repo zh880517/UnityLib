@@ -23,7 +23,7 @@ public static class JsonSerializer
 #if UNITY_EDITOR
         elem.JsonDatas = EditorJsonUtility.ToJson(obj);
 #else
-		elem.JsonDatas = JsonUtility.ToJson(obj);
+        elem.JsonDatas = UnityEngine.JsonUtility.ToJson(obj);
 #endif
 
         return elem;
@@ -38,7 +38,7 @@ public static class JsonSerializer
 #if UNITY_EDITOR
         EditorJsonUtility.FromJsonOverwrite(e.JsonDatas, obj);
 #else
-		JsonUtility.FromJsonOverwrite(e.JsonDatas, obj);
+		UnityEngine.JsonUtility.FromJsonOverwrite(e.JsonDatas, obj);
 #endif
 
         return obj;
@@ -62,7 +62,7 @@ public static class JsonSerializer
 #if UNITY_EDITOR
             EditorJsonUtility.FromJsonOverwrite(e.JsonDatas, node);
 #else
-			JsonUtility.FromJsonOverwrite(e.JsonDatas, node);
+			UnityEngine.JsonUtility.FromJsonOverwrite(e.JsonDatas, node);
 #endif
             return node;
         }

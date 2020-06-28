@@ -3,13 +3,12 @@ using UnityEngine;
 [System.Serializable]
 public class GraphNode : ISerializationCallbackReceiver
 {
-    public float Space;
     public Rect Bounds;
-    public Rect ChildrenArea;
     public bool Selected;
-    public bool FreeNode;
     public string GUID;
-
+    public Rect ChildrenArea { get; set; }
+    public float Space { get; set; }
+    public bool IsFreeNode { get { return !Parent && (NodeData == null || NodeData.IsRoot); } }
     [SerializeField]
     private JsonElement jsonData;
     public INodeData NodeData;
