@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,6 +11,97 @@ public class NodeGraph : ScriptableObject
     {
         return Nodes.Find(obj => obj.GUID == guid);
     }
+
+    public virtual bool CheckReplace(Type nodeType, Type replaceType)
+    {
+        return nodeType.IsSubclassOf(typeof(BaseNode)) && replaceType.IsSubclassOf(typeof(BaseNode));
+    }
+
+    public virtual bool Replace(GraphNode node, Type replaceType)
+    {
+        //默认根节点无法替换
+        if (node.IsRoot)
+            return false;
+        if (!replaceType.IsSubclassOf(typeof(BaseNode)))
+            return false;
+        Type nodeType = node.NodeData.GetType();
+        if (nodeType != replaceType && !CheckReplace(nodeType, replaceType))
+            return false;
+        BaseNode newNode;
+        try
+        {
+            newNode = (BaseNode)Activator.CreateInstance(replaceType);
+        }
+        catch (Exception )
+        {
+            return false;
+        }
+        Undo.RegisterCompleteObjectUndo(this, "replace node");
+        node.NodeData = newNode;
+        return true;
+    }
+
+    public virtual bool ChechInstert(GraphNode node, GraphNode parent, int index)
+    {
+        if (node.IsRoot)
+            return false;
+        if (parent != null && node.Parent == (GraphNodeRef)parent)
+            return true;
+        if (parent == null || parent.MaxChildrenCount <= 0 || parent.Children.Count >= parent.NodeData.MaxCount)
+            return false;
+
+        return true;
+    }
+
+    public virtual bool InsertNodeTo(GraphNode node, GraphNode parent, int index)
+    {
+        if (!ChechInstert(node, parent, index))
+            return false;
+        Undo.RegisterCompleteObjectUndo(this, "insert node");
+        if (node.Parent)
+        {
+            node.Parent.Node.Children.Remove(node);
+        }
+        node.Parent = parent;
+        parent.Children.Insert(index, node);
+        return true;
+    }
+
+    public virtual void FreeNode(GraphNode node, Vector2 pos)
+    {
+        if (node.IsFreeNode)
+        {
+            Undo.RegisterCompleteObjectUndo(this, "move node");
+            if (node.Parent)
+            {
+                node.Parent.Node.Children.Remove(node);
+                node.Parent = GraphNodeRef.Empty;
+            }
+        }
+        else
+        {
+            Undo.RegisterCompleteObjectUndo(this, "free node");
+        }
+        node.Bounds.center = pos;
+    }
+
+    public virtual bool DeleteNode(GraphNodeRef node)
+    {
+        if (!node || node.Node.Graph != this || node.Node.IsRoot)
+            return false;
+        Undo.RegisterCompleteObjectUndo(this, "delete node");
+        Nodes.RemoveAll(obj => obj.GUID == node.GUID);
+        if (node.Node.Parent)
+        {
+            node.Node.Parent.Node.Children.Remove(node);
+        }
+        foreach (var child in node.Node.Children)
+        {
+            child.Node.Parent = GraphNodeRef.Empty;
+        }
+        return true;
+    }
+
 
     protected virtual void OnCreate()
     {
@@ -28,7 +120,7 @@ public class NodeGraph : ScriptableObject
         return graph;
     }
 
-    public virtual void ToCollection<TNode>(NodeCollection<TNode> collection) where TNode : INodeData
+    public virtual void ToCollection<TNode>(NodeCollection<TNode> collection) where TNode : BaseNode
     {
 
     }

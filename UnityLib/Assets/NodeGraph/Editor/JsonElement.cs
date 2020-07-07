@@ -44,12 +44,12 @@ public static class JsonSerializer
         return obj;
     }
 
-    public static JsonElement SerializeNode(INodeData node)
+    public static JsonElement SerializeNode(BaseNode node)
     {
         return Serialize(node);
     }
 
-    public static INodeData DeserializeNode(JsonElement e)
+    public static BaseNode DeserializeNode(JsonElement e)
     {
         try
         {
@@ -58,7 +58,7 @@ public static class JsonSerializer
             if (e.JsonDatas == null)
                 return null;
 
-            var node = Activator.CreateInstance(baseNodeType) as INodeData;
+            var node = Activator.CreateInstance(baseNodeType) as BaseNode;
 #if UNITY_EDITOR
             EditorJsonUtility.FromJsonOverwrite(e.JsonDatas, node);
 #else
