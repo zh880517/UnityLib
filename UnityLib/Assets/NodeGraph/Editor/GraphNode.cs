@@ -4,19 +4,26 @@ using UnityEngine;
 [Serializable]
 public class GraphNode : ISerializationCallbackReceiver
 {
+    [HideInInspector]
     public Rect Bounds;
+    [HideInInspector]
     public bool Selected;
+    [HideInInspector]
     public string GUID;
-    public Rect ChildrenArea { get; set; }
-    public float Space { get; set; }
+    [HideInInspector]
+    public bool FoldChildren;
     public bool IsFreeNode { get { return !Parent && (NodeData == null || NodeData.IsRoot); } }
     public bool IsRoot => NodeData != null && NodeData.IsRoot;
     public int MaxChildrenCount { get { return NodeData == null ? 0 : NodeData.MaxCount; } }
     [SerializeField]
+    [HideInInspector]
     private JsonElement jsonData;
+    [HideInInspector]
     public NodeGraph Graph;
     public BaseNode NodeData;
+    [HideInInspector]
     public GraphNodeRef Parent;
+    [HideInInspector]
     public List<GraphNodeRef> Children = new List<GraphNodeRef>();
 
     public static GraphNode CreateByType(Type nodeType)
@@ -24,9 +31,11 @@ public class GraphNode : ISerializationCallbackReceiver
         try
         {
 
-            GraphNode node = new GraphNode();
-            node.GUID = Guid.NewGuid().ToString();
-            node.NodeData = (BaseNode)Activator.CreateInstance(nodeType);
+            GraphNode node = new GraphNode
+            {
+                GUID = Guid.NewGuid().ToString(),
+                NodeData = (BaseNode)Activator.CreateInstance(nodeType)
+            };
             return node;
         }
         catch (Exception)
@@ -50,5 +59,14 @@ public class GraphNode : ISerializationCallbackReceiver
         if (exists == null)
             return GraphNodeRef.Empty;
         return GraphNodeRef.CreateNodeRef(exists.Graph, exists.GUID);
+    }
+
+    public int IndexOfParent()
+    {
+        if (Parent)
+        {
+            return Parent.Node.Children.FindIndex(obj => obj.GUID == GUID);
+        }
+        return -1;
     }
 }
