@@ -15,6 +15,13 @@ public abstract class GraphAutoLayout : GraphLayout
         public GraphNodeRef Node;
         public GraphNodeRef Parent;
         public int Index;
+
+        public void Reset()
+        {
+            Node = GraphNodeRef.Empty;
+            Parent = GraphNodeRef.Empty;
+            Index = -1;
+        }
     }
     protected Dictionary<string, NodeArea> NodeAreas = new Dictionary<string, NodeArea>();
     public DragNode Draging;
@@ -47,10 +54,52 @@ public abstract class GraphAutoLayout : GraphLayout
         }
     }
 
+    public override void OnDraging(Vector2 mouseWorldPos, Vector2 delta)
+    {
+        if (!Draging.Node)
+            return;
+        var lastParent = Draging.Parent;
+        bool matched = false;
+        foreach (var node in Graph.Nodes)
+        {
+            if (!node.Parent)
+            {
+                if (MatchNodeDrag(node, mouseWorldPos))
+                {
+                    matched = true;
+                    break;
+                }
+            }
+        }
+        if (!matched)
+        {
+            Draging.Parent = GraphNodeRef.Empty;
+            Draging.Index = -1;
+        }
+        if (lastParent != Draging.Parent)
+            RefreshLayout();
+    }
+
+    public override void OnEndDrag(Vector2 mouseWorldPos)
+    {
+        var node = Draging.Node;
+        var parent = Draging.Parent;
+        int index = Draging.Index;
+        Draging.Reset();
+        RefreshLayout();
+        if (!parent)
+        {
+            Graph.InsertNodeTo(node.Node, parent.Node, index);
+        }
+        else
+        {
+            Graph.FreeNode(node.Node, mouseWorldPos);
+        }
+    }
+
     protected abstract void UpdateNodeSpace(GraphNode node);
-
     protected abstract void DrawLine(Rect from, Rect to, Color lineColor, float width);
-
+    protected abstract bool MatchNodeDrag(GraphNode node, Vector2 mouseWordDrag);
     protected abstract void UpdaeNodePos();
     public abstract Rect GetChildPlaceholderRect(GraphNode parent, int index);
 

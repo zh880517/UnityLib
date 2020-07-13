@@ -25,6 +25,6 @@ public abstract class GraphLayout : ScriptableObject
     public abstract void OnMouseDown(Event e, Vector2 mouseWorldPos);
     public abstract void OnMouseUp(Event e, Vector2 mouseWorldPos);
     public abstract void OnStartDrag(Vector2 mouseWorldPos);
-    public abstract void OnDraging(Vector2 mouseWorldPos);
+    public abstract void OnDraging(Vector2 mouseWorldPos, Vector2 delta);
     public abstract void OnEndDrag(Vector2 mouseWorldPos);
 }
