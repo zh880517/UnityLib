@@ -41,7 +41,12 @@ public class NodeGraph : ScriptableObject
         return true;
     }
 
-    public virtual bool ChechInstert(GraphNode node, GraphNode parent, int index)
+    public virtual bool CheckInstert(Type nodeType, Type parentType)
+    {
+        return true;
+    }
+
+    public virtual bool CheckInstert(GraphNode node, GraphNode parent, int index)
     {
         if (node.IsRoot)
             return false;
@@ -55,9 +60,8 @@ public class NodeGraph : ScriptableObject
 
     public virtual bool InsertNodeTo(GraphNode node, GraphNode parent, int index)
     {
-        if (!ChechInstert(node, parent, index))
+        if (!CheckInstert(node, parent, index))
             return false;
-        Undo.RegisterCompleteObjectUndo(this, "insert node");
         if (node.Parent)
         {
             node.Parent.Node.Children.Remove(node);
@@ -71,16 +75,11 @@ public class NodeGraph : ScriptableObject
     {
         if (node.IsFreeNode)
         {
-            Undo.RegisterCompleteObjectUndo(this, "move node");
             if (node.Parent)
             {
                 node.Parent.Node.Children.Remove(node);
                 node.Parent = GraphNodeRef.Empty;
             }
-        }
-        else
-        {
-            Undo.RegisterCompleteObjectUndo(this, "free node");
         }
         node.Bounds.center = pos;
     }

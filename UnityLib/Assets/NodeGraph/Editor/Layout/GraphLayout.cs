@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class GraphLayout : ScriptableObject
+public abstract class GraphLayout : ScriptableObject, IDragHandler
 {
     protected const float LineWidth = 3;
     protected NodeGraph Graph;
@@ -19,12 +19,11 @@ public abstract class GraphLayout : ScriptableObject
     {
         return SelectNodes.FindIndex(obj => obj.GUID == node.GUID) >= 0;
     }
-    public virtual bool EnableMultDrag => true;
     public abstract void RefreshLayout();
     public abstract void Draw(GUICamera camera);
-    public abstract void OnMouseDown(Event e, Vector2 mouseWorldPos);
-    public abstract void OnMouseUp(Event e, Vector2 mouseWorldPos);
-    public abstract void OnStartDrag(Vector2 mouseWorldPos);
+    //public abstract void OnMouseDown(Event e, Vector2 mouseWorldPos);
+    //public abstract void OnMouseUp(Event e, Vector2 mouseWorldPos);
+    public abstract bool OnStartDrag(Vector2 mouseWorldPos);
     public abstract void OnDraging(Vector2 mouseWorldPos, Vector2 delta);
     public abstract void OnEndDrag(Vector2 mouseWorldPos);
 }

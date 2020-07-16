@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public abstract class GraphAutoLayout : GraphLayout
@@ -10,22 +11,22 @@ public abstract class GraphAutoLayout : GraphLayout
         public float Space;
     }
     [System.Serializable]
-    public struct DragNode
+    public class DragNode
     {
-        public GraphNodeRef Node;
+        public List<GraphNodeRef> Nodes = new List<GraphNodeRef>();
         public GraphNodeRef Parent;
         public int Index;
 
         public void Reset()
         {
-            Node = GraphNodeRef.Empty;
+            Nodes.Clear();
             Parent = GraphNodeRef.Empty;
             Index = -1;
         }
     }
     protected Dictionary<string, NodeArea> NodeAreas = new Dictionary<string, NodeArea>();
     public DragNode Draging;
-    public override bool EnableMultDrag => false;
+    protected virtual bool AllowFreeNode => true;
     public override void RefreshLayout()
     {
         NodeAreas.Clear();
@@ -43,20 +44,44 @@ public abstract class GraphAutoLayout : GraphLayout
     {
         foreach (var node in Graph.Nodes)
         {
-            if (!node.Parent && Draging.Node.GUID != node.GUID)
+            if (!node.Parent && Draging.Nodes.Contains(node))
             {
                 DrawNode(camera, node);
             }
         }
-        if (Draging.Node)
+        if (Draging.Nodes.Count > 0)
         {
             DrawDragingNode(camera);
         }
     }
 
+    public override bool OnStartDrag(Vector2 mouseWorldPos)
+    {
+        Draging.Reset();
+        foreach (var node in SelectNodes)
+        {
+            if (!CheckNodeParentInList(node, SelectNodes))
+            {
+                Draging.Nodes.Add(node);
+            }
+        }
+        return Draging.Nodes.Count > 0;
+    }
+
+    protected bool CheckNodeParentInList(GraphNodeRef node, List<GraphNodeRef> nodes)
+    {
+        var parent = node.Node.Parent;
+        if (!parent)
+            return false;
+        if (nodes.Contains(parent))
+            return true;
+
+        return CheckNodeParentInList(parent, nodes);
+    }
+
     public override void OnDraging(Vector2 mouseWorldPos, Vector2 delta)
     {
-        if (!Draging.Node)
+        if (Draging.Nodes.Count == 0)
             return;
         var lastParent = Draging.Parent;
         bool matched = false;
@@ -82,30 +107,79 @@ public abstract class GraphAutoLayout : GraphLayout
 
     public override void OnEndDrag(Vector2 mouseWorldPos)
     {
-        var node = Draging.Node;
+        if (Draging.Nodes.Count == 0)
+            return;
+        var nodes = Draging.Nodes.ToArray(); ;
         var parent = Draging.Parent;
         int index = Draging.Index;
         Draging.Reset();
         RefreshLayout();
         if (!parent)
         {
-            Graph.InsertNodeTo(node.Node, parent.Node, index);
+
+            Undo.RegisterCompleteObjectUndo(this, "insert node");
+            foreach (var node in nodes)
+            {
+                Graph.InsertNodeTo(node.Node, parent.Node, index);
+            }
+            RefreshLayout();
+        }
+        else if(AllowFreeNode)
+        {
+            Undo.RegisterCompleteObjectUndo(this, "move node");
+            foreach (var node in nodes)
+            {
+                Graph.FreeNode(node.Node, mouseWorldPos);
+            }
+            RefreshLayout();
+        }
+    }
+    
+    protected bool MatchNodeDrag(GraphNode node, Vector2 mouseWordDrag)
+    {
+        if (node.Children.Count + Draging.Nodes.Count > node.MaxChildrenCount)
+            return false;
+        if (!NodeAreas.TryGetValue(node.GUID, out var areaInfo))
+            return false;
+        if (!DragAreaCheck(areaInfo.ChildrenArea, mouseWordDrag))
+            return false;
+        if (areaInfo.ChildrenArea.Contains(mouseWordDrag))
+        {
+            foreach (var rf in Draging.Nodes)
+            {
+                if (!Graph.CheckInstert(rf.Node.NodeData.GetType(), node.NodeData.GetType()))
+                    return false;
+            }
+            int index = GetInsertIndex(node, mouseWordDrag);
+            if (index == -1)
+                return false;
+            Draging.Parent = node;
+            Draging.Index = index;
+            return true;
         }
         else
         {
-            Graph.FreeNode(node.Node, mouseWorldPos);
+            foreach (var child in node.Children)
+            {
+                if (MatchNodeDrag(child.Node, mouseWordDrag))
+                {
+                    return true;
+                }
+            }
         }
+        return false;
     }
 
     protected abstract void UpdateNodeSpace(GraphNode node);
     protected abstract void DrawLine(Rect from, Rect to, Color lineColor, float width);
-    protected abstract bool MatchNodeDrag(GraphNode node, Vector2 mouseWordDrag);
     protected abstract void UpdaeNodePos();
+    protected abstract bool DragAreaCheck(Rect area, Vector2 mousInWorld);
+    protected abstract int GetInsertIndex(GraphNode node, Vector2 mousInWorld);
     public abstract Rect GetChildPlaceholderRect(GraphNode parent, int index);
 
     protected virtual void DrawNode(GUICamera camera, GraphNode node)
     {
-        if (Draging.Node.GUID == node.GUID)
+        if (Draging.Nodes.Contains(node))
             return;
         Rect selfInView = camera.WorldToScreen(node.Bounds);
         if (node.Parent)
@@ -121,14 +195,9 @@ public abstract class GraphAutoLayout : GraphLayout
         {
             if (Draging.Parent.GUID == node.GUID && Draging.Index >= 0)
             {
-                int index = Draging.Index;
-                if (Draging.Node.Node.Parent == Draging.Parent)
+                if (Draging.Nodes.Exists(obj=>obj.Node.Parent == Draging.Parent))
                 {
-                    if (index >= Draging.Node.Node.IndexOfParent())
-                    {
-                        index++;
-                    }
-                    Rect bounds = GetChildPlaceholderRect(node, index);
+                    Rect bounds = GetChildPlaceholderRect(node, Draging.Index);
                     Rect boundsInView = camera.WorldToScreen(bounds);
                     DrawLine(selfInView, boundsInView, Color.yellow, camera.Scale * LineWidth);
                     GUI.Box(boundsInView, "", AutoGraphStyles.NodePlaceholder);
