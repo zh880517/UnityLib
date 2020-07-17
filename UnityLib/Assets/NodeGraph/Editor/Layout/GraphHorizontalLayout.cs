@@ -2,6 +2,9 @@
 
 public class GraphHorizontalLayout : GraphAutoLayout
 {
+    public static readonly float NODE_SPACE_HEIGH = NODE_SIZE.y + 10f;
+    public static readonly float NODE_SPACE_WIDTH = NODE_SIZE.x + 30f;
+
     public override Rect GetChildPlaceholderRect(GraphNode parent, int index)
     {
         throw new System.NotImplementedException();
@@ -9,7 +12,11 @@ public class GraphHorizontalLayout : GraphAutoLayout
 
     protected override bool DragAreaCheck(Rect area, Vector2 mousInWorld)
     {
-        throw new System.NotImplementedException();
+        if (area.yMin > mousInWorld.y || area.yMax < mousInWorld.y || mousInWorld.x < area.xMin)
+        {
+            return false;
+        }
+        return true;
     }
 
     protected override void DrawLine(Rect from, Rect to, Color lineColor, float width)

@@ -9,7 +9,11 @@ public class GraphVerticalLayout : GraphAutoLayout
 
     protected override bool DragAreaCheck(Rect area, Vector2 mousInWorld)
     {
-        throw new System.NotImplementedException();
+        if (area.xMin > mousInWorld.x || area.xMax < mousInWorld.x || mousInWorld.y < area.yMin)
+        {
+            return false;
+        }
+        return true;
     }
 
     protected override void DrawLine(Rect from, Rect to, Color lineColor, float width)
