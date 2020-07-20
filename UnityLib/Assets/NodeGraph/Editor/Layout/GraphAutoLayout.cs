@@ -24,8 +24,8 @@ public abstract class GraphAutoLayout : GraphLayout
             Index = -1;
         }
     }
-    protected Dictionary<string, NodeArea> NodeAreas = new Dictionary<string, NodeArea>();
-    public DragNode Draging;
+    protected Dictionary<string, Rect> NodeAreas = new Dictionary<string, Rect>();
+    protected DragNode Draging;
     protected virtual bool AllowFreeNode => true;
     public override void RefreshLayout()
     {
@@ -37,7 +37,7 @@ public abstract class GraphAutoLayout : GraphLayout
                 UpdateNodeSpace(node);
             }
         }
-        UpdaeNodePos();
+        UpdateNodePos();
     }
 
     public override void Draw(GUICamera camera)
@@ -120,7 +120,7 @@ public abstract class GraphAutoLayout : GraphLayout
             Undo.RegisterCompleteObjectUndo(this, "insert node");
             foreach (var node in nodes)
             {
-                Graph.InsertNodeTo(node.Node, parent.Node, index);
+                Graph.InsertNodeTo(node.Node, parent.Node, index++);
             }
             RefreshLayout();
         }
@@ -141,16 +141,16 @@ public abstract class GraphAutoLayout : GraphLayout
             return false;
         if (!NodeAreas.TryGetValue(node.GUID, out var areaInfo))
             return false;
-        if (!DragAreaCheck(areaInfo.ChildrenArea, mouseWordDrag))
+        if (!DragAreaCheck(areaInfo, mouseWordDrag))
             return false;
-        if (areaInfo.ChildrenArea.Contains(mouseWordDrag))
+        if (areaInfo.Contains(mouseWordDrag))
         {
             foreach (var rf in Draging.Nodes)
             {
                 if (!Graph.CheckInstert(rf.Node.NodeData.GetType(), node.NodeData.GetType()))
                     return false;
             }
-            int index = GetInsertIndex(node, mouseWordDrag);
+            int index = GetInsertIndex(node, areaInfo, mouseWordDrag);
             if (index == -1)
                 return false;
             Draging.Parent = node;
@@ -170,12 +170,12 @@ public abstract class GraphAutoLayout : GraphLayout
         return false;
     }
 
-    protected abstract void UpdateNodeSpace(GraphNode node);
+    protected abstract float UpdateNodeSpace(GraphNode node);
     protected abstract void DrawLine(Rect from, Rect to, Color lineColor, float width);
-    protected abstract void UpdaeNodePos();
+    protected abstract void UpdateNodePos();
     protected abstract bool DragAreaCheck(Rect area, Vector2 mousInWorld);
-    protected abstract int GetInsertIndex(GraphNode node, Vector2 mousInWorld);
-    public abstract Rect GetChildPlaceholderRect(GraphNode parent, int index);
+    protected abstract int GetInsertIndex(GraphNode node, Rect areaInfo, Vector2 mousInWorld);
+    protected abstract Rect GetChildPlaceholderRect(GraphNode parent, int index);
 
     protected virtual void DrawNode(GUICamera camera, GraphNode node)
     {

@@ -12,6 +12,8 @@ public class GraphNode : ISerializationCallbackReceiver
     public string GUID;
     [HideInInspector]
     public bool FoldChildren;
+    [HideInInspector]
+    public float Space;
     public bool IsFreeNode { get { return !Parent && (NodeData == null || NodeData.IsRoot); } }
     public bool IsRoot => NodeData != null && NodeData.IsRoot;
     public int MaxChildrenCount { get { return NodeData == null ? 0 : NodeData.MaxCount; } }
