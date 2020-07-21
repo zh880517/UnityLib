@@ -58,7 +58,79 @@ public class GraphTreeListLayout : GraphAutoLayout
 
     protected override void UpdateNodePos()
     {
-        throw new System.NotImplementedException();
+        float startX = 0;
+        foreach (var node in Graph.Nodes)
+        {
+            if (!node.Parent)
+            {
+                if (node.IsRoot)
+                {
+                    Vector2 pos = new Vector2(startX, 0);
+                    node.Bounds = new Rect(pos, NODE_SIZE);
+                    startX += node.Space;
+                }
+                UpdateNodeChildPos(node);
+                float maxX = GetNodeMaxX(node, float.MinValue);
+                startX += (maxX + NODE_SIZE.x * 0.5f);
+            }
+        }
+    }
+
+    protected float GetNodeMaxX(GraphNode node, float maxX)
+    {
+        if (node.Bounds.xMax > maxX)
+        {
+            maxX = node.Bounds.xMax;
+        }
+        if (!node.FoldChildren)
+        {
+            foreach (var rf in node.Children)
+            {
+                if (!Draging.Nodes.Contains(rf))
+                {
+                    maxX = GetNodeMaxX(rf.Node, maxX);
+                }
+            }
+        }
+        return maxX;
+    }
+
+    protected void UpdateNodeChildPos(GraphNode node)
+    {
+        if (node.MaxChildrenCount == 0)
+            return;
+        if (node.FoldChildren)
+            return;
+        if (Draging.Nodes.Contains(node))
+            return;
+
+        Rect childrenArea = new Rect
+        {
+            position = node.Bounds.position + new Vector2(NODE_SIZE.x*0.5f, NODE_SPACE_HEIGH),
+            size = new Vector2(NODE_SPACE_WIDTH, node.Space)
+        };
+        NodeAreas.Add(node.GUID, childrenArea);
+        Vector2 startPos = childrenArea.position;
+        for (int i = 0; i < node.Children.Count; ++i)
+        {
+            var child = node.Children[i];
+            if (Draging.Parent.GUID == node.GUID)
+            {
+                if (i == Draging.Index)
+                {
+                    startPos.y += NODE_SPACE_HEIGH;
+                }
+            }
+            if (!Draging.Nodes.Contains(child))
+            {
+                Vector2 pos = startPos;
+                startPos.y += child.Node.Space;
+
+                pos.y += (child.Node.Space * 0.5f - NODE_SIZE.y * 0.5f);
+                child.Node.Bounds = new Rect(pos, NODE_SIZE);
+                UpdateNodeChildPos(child.Node);
+            }
+        }
     }
 
     protected override float UpdateNodeSpace(GraphNode node)
@@ -73,7 +145,7 @@ public class GraphTreeListLayout : GraphAutoLayout
                 space = NODE_SPACE_HEIGH;
                 break;
             }
-
+            space = NODE_SPACE_HEIGH;
             foreach (var child in node.Children)
             {
                 space += UpdateNodeSpace(child.Node);
