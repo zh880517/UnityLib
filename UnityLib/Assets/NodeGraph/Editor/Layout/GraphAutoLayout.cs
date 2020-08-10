@@ -55,28 +55,49 @@ public abstract class GraphAutoLayout : GraphLayout
         }
     }
 
+    public override void OnMouseDown(Event e, Vector2 mouseWorldPos)
+    {
+        if (e.button == 2)
+            return;
+
+        if (!e.control)
+        {
+            selectNodes.Clear();
+        }
+        for (int i=Graph.Nodes.Count - 1; i>=0; --i)
+        {
+            var node = Graph.Nodes[i];
+            if (node.Bounds.Contains(mouseWorldPos))
+            {
+                GraphNodeRef nodeRef = node;
+                if (!e.control)
+                {
+                    selectNodes.Add(nodeRef);
+                    break;
+                }
+                if (selectNodes.Contains(nodeRef))
+                {
+                    selectNodes.Remove(nodeRef);
+                }
+                else
+                {
+                    selectNodes.Add(nodeRef);
+                }
+            }
+        }
+    }
+
     public override bool OnStartDrag(Vector2 mouseWorldPos)
     {
         Draging.Reset();
-        foreach (var node in SelectNodes)
+        foreach (var node in selectNodes)
         {
-            if (!CheckNodeParentInList(node, SelectNodes))
+            if (!CheckNodeParentInList(node, selectNodes))
             {
                 Draging.Nodes.Add(node);
             }
         }
         return Draging.Nodes.Count > 0;
-    }
-
-    protected bool CheckNodeParentInList(GraphNodeRef node, List<GraphNodeRef> nodes)
-    {
-        var parent = node.Node.Parent;
-        if (!parent)
-            return false;
-        if (nodes.Contains(parent))
-            return true;
-
-        return CheckNodeParentInList(parent, nodes);
     }
 
     public override void OnDraging(Vector2 mouseWorldPos, Vector2 delta)
@@ -134,7 +155,18 @@ public abstract class GraphAutoLayout : GraphLayout
             RefreshLayout();
         }
     }
-    
+
+    protected bool CheckNodeParentInList(GraphNodeRef node, List<GraphNodeRef> nodes)
+    {
+        var parent = node.Node.Parent;
+        if (!parent)
+            return false;
+        if (nodes.Contains(parent))
+            return true;
+
+        return CheckNodeParentInList(parent, nodes);
+    }
+
     protected bool MatchNodeDrag(GraphNode node, Vector2 mouseWordDrag)
     {
         if (node.Children.Count + Draging.Nodes.Count > node.MaxChildrenCount)
