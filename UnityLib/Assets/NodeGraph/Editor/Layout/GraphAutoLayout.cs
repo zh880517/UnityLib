@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -32,7 +33,7 @@ public abstract class GraphAutoLayout : GraphLayout
         NodeAreas.Clear();
         foreach (var node in Graph.Nodes)
         {
-            if (!node.Parent)
+            if (!Graph.Links.Exists(obj=>obj.To.Node == node))
             {
                 UpdateNodeSpace(node);
             }
@@ -44,7 +45,7 @@ public abstract class GraphAutoLayout : GraphLayout
     {
         foreach (var node in Graph.Nodes)
         {
-            if (!node.Parent && Draging.Nodes.Contains(node))
+            if (!Graph.HasParent(node) && Draging.Nodes.Contains(node))
             {
                 DrawNode(camera, node);
             }
@@ -108,7 +109,7 @@ public abstract class GraphAutoLayout : GraphLayout
         bool matched = false;
         foreach (var node in Graph.Nodes)
         {
-            if (!node.Parent)
+            if (!Graph.HasParent(node))
             {
                 if (MatchNodeDrag(node, mouseWorldPos))
                 {
@@ -158,7 +159,7 @@ public abstract class GraphAutoLayout : GraphLayout
 
     protected bool CheckNodeParentInList(GraphNodeRef node, List<GraphNodeRef> nodes)
     {
-        var parent = node.Node.Parent;
+        var parent = Graph.GetParent(node.Node);
         if (!parent)
             return false;
         if (nodes.Contains(parent))
@@ -169,7 +170,7 @@ public abstract class GraphAutoLayout : GraphLayout
 
     protected bool MatchNodeDrag(GraphNode node, Vector2 mouseWordDrag)
     {
-        if (node.Children.Count + Draging.Nodes.Count > node.MaxChildrenCount)
+        if (node.ChildCount + Draging.Nodes.Count > node.MaxChildrenCount)
             return false;
         if (!NodeAreas.TryGetValue(node.GUID, out var areaInfo))
             return false;
@@ -191,13 +192,17 @@ public abstract class GraphAutoLayout : GraphLayout
         }
         else
         {
-            foreach (var child in node.Children)
+            foreach (var link in Graph.Links)
             {
-                if (MatchNodeDrag(child.Node, mouseWordDrag))
+                if (link.From.GUID == node.GUID)
                 {
-                    return true;
+                    if (MatchNodeDrag(link.To.Node, mouseWordDrag))
+                    {
+                        return true;
+                    }
                 }
             }
+            
         }
         return false;
     }
@@ -214,9 +219,9 @@ public abstract class GraphAutoLayout : GraphLayout
         if (Draging.Nodes.Contains(node))
             return;
         Rect selfInView = camera.WorldToScreen(node.Bounds);
-        if (node.Parent)
+        if (Graph.HasParent(node))
         {
-            Rect parentInView = camera.WorldToScreen(node.Parent.Node.Bounds);
+            Rect parentInView = camera.WorldToScreen(Graph.GetParent(node).Node.Bounds);
             DrawLine(parentInView, selfInView, Color.white, camera.Scale * LineWidth);
         }
         if (camera.ViewBounds.Overlaps(selfInView))
@@ -227,7 +232,7 @@ public abstract class GraphAutoLayout : GraphLayout
         {
             if (Draging.Parent.GUID == node.GUID && Draging.Index >= 0)
             {
-                if (Draging.Nodes.Exists(obj=>obj.Node.Parent == Draging.Parent))
+                if (Draging.Nodes.Exists(obj=> Graph.GetParent(obj.Node) == Draging.Parent))
                 {
                     Rect bounds = GetChildPlaceholderRect(node, Draging.Index);
                     Rect boundsInView = camera.WorldToScreen(bounds);
@@ -235,9 +240,11 @@ public abstract class GraphAutoLayout : GraphLayout
                     GUI.Box(boundsInView, "", AutoGraphStyles.NodePlaceholder);
                 }
             }
-            foreach (var child in node.Children)
+            foreach (var link in Graph.Links)
             {
-                DrawNode(camera, child.Node);
+                if (link.From.Node != node)
+                    continue;
+                DrawNode(camera, link.To.Node);
             }
         }
     }
@@ -255,11 +262,12 @@ public abstract class GraphAutoLayout : GraphLayout
     protected virtual GUIStyle GetNodeStyle(GraphNode node)
     {
         bool selected = IsSelecetd(node);
-        if (node.IsFreeNode && node.FoldChildren && selected)
+        bool isFreeNode = Graph.HasParent(node);
+        if (isFreeNode && node.FoldChildren && selected)
             return AutoGraphStyles.FoldFreeNodeSelect;
-        if (node.IsFreeNode && node.FoldChildren)
+        if (isFreeNode && node.FoldChildren)
             return AutoGraphStyles.FoldFreeNode;
-        if (node.IsFreeNode)
+        if (isFreeNode)
             return AutoGraphStyles.FreeNode;
         if (node.FoldChildren && selected)
             return AutoGraphStyles.FoldNodeSelecct;

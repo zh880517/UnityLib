@@ -11,12 +11,17 @@ public class GraphHorizontalLayout : GraphAutoLayout
         if (NodeAreas.TryGetValue(parent.GUID, out var area))
         {
             Vector2 position = area.position;
-            for (int i = 0; i < parent.Children.Count; ++i)
+            int idx = 0;
+            foreach (var link in Graph.Links)
             {
-                if (i == index)
+                if (link.From.Node != parent)
+                    continue;
+                if (idx == index)
                     break;
-                position.y += parent.Children[i].Node.Space;
+                position.y = link.To.Node.Space;
+                idx++;
             }
+            rect.position = position;
         }
         return rect;
     }
@@ -45,17 +50,21 @@ public class GraphHorizontalLayout : GraphAutoLayout
     protected override int GetInsertIndex(GraphNode node, Rect areaInfo, Vector2 mousInWorld)
     {
         float posy = (mousInWorld - areaInfo.position).y;
-        for (int i=0; i<node.Children.Count; ++i)
+        int index = 0;
+        foreach (var link in Graph.Links)
         {
-            var child = node.Children[i];
+            if (link.From.Node != node)
+                continue;
+            var child = link.To;
             if (Draging.Nodes.Contains(child))
                 continue;
             float spaceHeigh = child.Node.Space;
             if (posy < spaceHeigh * 0.5f)
-                return i;
+                return index;
             posy -= spaceHeigh;
+            ++index;
         }
-        return node.Children.Count;
+        return node.ChildCount;
     }
 
     protected override void UpdateNodePos()
@@ -71,7 +80,7 @@ public class GraphHorizontalLayout : GraphAutoLayout
         float startY = heigh * -0.5f;
         foreach (var node in Graph.Nodes)
         {
-            if (!node.Parent)
+            if (!Graph.HasParent(node))
             {
                 if (node.IsRoot)
                 {
@@ -100,12 +109,15 @@ public class GraphHorizontalLayout : GraphAutoLayout
         };
         NodeAreas.Add(node.GUID, childrenArea);
         Vector2 startPos = childrenArea.position;
-        for (int i=0; i<node.Children.Count; ++i)
+        int index = 0;
+        foreach (var link in Graph.Links)
         {
-            var child = node.Children[i];
+            if (link.From.Node != node)
+                continue;
+            var child = link.To;
             if (Draging.Parent.GUID == node.GUID)
             {
-                if (i == Draging.Index)
+                if (index == Draging.Index)
                 {
                     startPos.y += NODE_SPACE_HEIGH;
                 }
@@ -115,10 +127,11 @@ public class GraphHorizontalLayout : GraphAutoLayout
                 Vector2 pos = startPos;
                 startPos.y += child.Node.Space;
 
-                pos.y += (child.Node.Space * 0.5f - NODE_SIZE.y*0.5f);
+                pos.y += (child.Node.Space * 0.5f - NODE_SIZE.y * 0.5f);
                 child.Node.Bounds = new Rect(pos, NODE_SIZE);
                 UpdateNodeChildPos(child.Node);
             }
+            ++index;
         }
     }
 
@@ -129,15 +142,16 @@ public class GraphHorizontalLayout : GraphAutoLayout
         {
             if (Draging.Nodes.Contains(node))
                 break;
-            if (node.FoldChildren || node.Children.Count == 0)
+            if (node.FoldChildren || node.ChildCount == 0)
             {
                 space = NODE_SPACE_HEIGH;
                 break;
             }
-
-            foreach (var child in node.Children)
+            foreach (var link in Graph.Links)
             {
-                space += UpdateNodeSpace(child.Node);
+                if (link.From.Node != node)
+                    continue;
+                space += UpdateNodeSpace(link.To.Node);
             }
             if (Draging.Parent == (GraphNodeRef)node)
             {

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 [Serializable]
 public class GraphNode : ISerializationCallbackReceiver
@@ -14,7 +13,6 @@ public class GraphNode : ISerializationCallbackReceiver
     public bool FoldChildren;
     [HideInInspector]
     public float Space;
-    public bool IsFreeNode { get { return !Parent && (NodeData == null || NodeData.IsRoot); } }
     public bool IsRoot => NodeData != null && NodeData.IsRoot;
     public int MaxChildrenCount { get { return NodeData == null ? 0 : NodeData.MaxCount; } }
     [SerializeField]
@@ -23,10 +21,7 @@ public class GraphNode : ISerializationCallbackReceiver
     [HideInInspector]
     public NodeGraph Graph;
     public BaseNode NodeData;
-    [HideInInspector]
-    public GraphNodeRef Parent;
-    [HideInInspector]
-    public List<GraphNodeRef> Children = new List<GraphNodeRef>();
+    public int ChildCount;
 
     public static GraphNode CreateByType(Type nodeType)
     {
@@ -63,12 +58,4 @@ public class GraphNode : ISerializationCallbackReceiver
         return GraphNodeRef.CreateNodeRef(exists.Graph, exists.GUID);
     }
 
-    public int IndexOfParent()
-    {
-        if (Parent)
-        {
-            return Parent.Node.Children.FindIndex(obj => obj.GUID == GUID);
-        }
-        return -1;
-    }
 }
