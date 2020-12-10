@@ -28,7 +28,7 @@ public class StateGraph : ScriptableObject, ISerializationCallbackReceiver
         return node;
     }
 
-    public void AddLink(StateNodeRef from, StateNodeRef to)
+    public void AddLink(StateNodeRef from, StateNodeRef to, bool isChild)
     {
         if (!from || !to || from != to)
             return;
@@ -41,39 +41,16 @@ public class StateGraph : ScriptableObject, ISerializationCallbackReceiver
         {
             Links.Add(new StateNodeLink { From = from, To = to });
         }
+        link.IsChild = isChild; 
         from.Node.Parent = StateNodeRef.Empty;
-        to.Node.Parent = StateNodeRef.Empty;
-    }
-
-    public void AddChild(StateNodeRef parent, StateNodeRef child, int index)
-    {
-        var link = Links.Find(item => item.From == parent && item.To == child);
-        if (link != null)
+        if (isChild)
         {
-            Links.Remove(link);
+            to.Node.Parent = from;
         }
         else
         {
-            link = new StateNodeLink { From = parent, To = child };
+            to.Node.Parent = StateNodeRef.Empty;
         }
-        link.IsChild = true;
-        int insertIndex = Links.Count;
-        for (int i=0; i<Links.Count; ++i)
-        {
-            var item = Links[i];
-            if (item.IsChild && item.From == parent)
-            {
-                if (index == 0)
-                {
-                    insertIndex = i;
-                    break; ;
-                }
-                index--;
-            }
-        }
-        Links.Insert(insertIndex, link);
-        parent.Node.Parent = StateNodeRef.Empty;
-        child.Node.Parent = parent;
     }
 
     public void BreakLink(StateNodeRef from, StateNodeRef to)
@@ -90,9 +67,38 @@ public class StateGraph : ScriptableObject, ISerializationCallbackReceiver
     public void OnAfterDeserialize()
     {
         SerializeVersion++;
-        for (int i=0; i<Nodes.Count; ++i)
+        for (int i = 0; i < Nodes.Count; ++i)
         {
             Nodes[i].SortIndex = i;
         }
     }
+
+    public virtual Vector2 GetOutputPin(StateNode node)
+    {
+        return node.Bounds.position + new Vector2(0, 25);
+    }
+
+    public virtual Vector2 GetInputPin(StateNode node)
+    {
+        return node.Bounds.max - new Vector2(0, 25);
+    }
+
+    public virtual bool IsChildNode(StateNode node)
+    {
+        if (node.NodeData != null && (node.NodeData is IStateAction) || (node.NodeData is IStateBranch))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public virtual bool CheckLink(StateNode from, StateNode to, bool isChild)
+    {
+        if (Links.Exists(obj=>obj.From == from && obj.To == to && obj.IsChild == isChild))
+        {
+            return false;
+        }
+        return true;
+    }
+
 }

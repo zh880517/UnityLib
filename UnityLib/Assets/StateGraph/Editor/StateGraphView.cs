@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class StateGraphView : ScriptableObject
@@ -11,38 +12,48 @@ public class StateGraphView : ScriptableObject
 
     public StateGraph Graph;
     public List<StateNodeRef> Selecteds = new List<StateNodeRef>();
-    private int selectIndex;//
+    public GUICanvas Canvas = new GUICanvas();
+    public int SelectIndex { get; set; }
+    private IViewDragMode DragMode;
 
     public void Init(StateGraph graph)
     {
         Graph = graph;
-        selectIndex = 0;
+        SelectIndex = 0;
         if (graph.Nodes.Count > 0)
         {
-            selectIndex = graph.Nodes.Last().SortIndex;
+            SelectIndex = graph.Nodes.Last().SortIndex;
         }
     }
 
-    protected virtual void UpdateBounds()
+    public bool OnDraw(Rect viewArea)
     {
-        for (int i=Graph.Nodes.Count-1; i>=0; --i)
+        Event e = Canvas.OnGUI(viewArea);
+        DrawLinkLins();
+        DrawNodes();
+        if (DragMode != null)
         {
-            var node = Graph.Nodes[i];
-            if (!node.Parent)
+            DragMode.Draw(this);
+        }
+        return e.type == EventType.Used;
+    }
+
+    protected virtual void UpdateBounds(StateNode node)
+    {
+        if (!node.Parent)
+        {
+            Vector2 size = NODE_SIZE;
+            Vector2 pos = node.Bounds.position + CHILD_OFFSET;
+            foreach (var link in Graph.Links)
             {
-                Vector2 size = NODE_SIZE;
-                Vector2 pos = node.Bounds.position + CHILD_OFFSET;
-                foreach (var link in Graph.Links)
+                if (link.IsChild && link.From.Node == node)
                 {
-                    if (link.IsChild && link.From.Node == node)
-                    {
-                        link.To.Node.Bounds = new Rect(pos, CHILD_NODE_SIZE);
-                        size.y += CHILD_NODE_SIZE.y;
-                        pos.y += (CHILD_NODE_SIZE.y + CHILD_INTERVAL);
-                    }
+                    link.To.Node.Bounds = new Rect(pos, CHILD_NODE_SIZE);
+                    size.y += CHILD_NODE_SIZE.y;
+                    pos.y += (CHILD_NODE_SIZE.y + CHILD_INTERVAL);
                 }
-                node.Bounds.size = size;
             }
+            node.Bounds.size = size;
         }
     }
 
@@ -59,23 +70,54 @@ public class StateGraphView : ScriptableObject
         return null;
     }
 
-    public void RectSelect(Rect bounds)
+    private void DrawLinkLins()
     {
-        foreach (var node in Graph.Nodes )
+        foreach (var link in Graph.Links)
         {
-            if (node.Bounds.Overlaps(bounds) && !Selecteds.Contains(node))
+            if (!link.IsChild)
             {
-                Selecteds.Add(node);
-                node.SortIndex = selectIndex++;
-                foreach (var link in Graph.Links)
-                {
-                    if (link.IsChild && link.From == node)
-                    {
-                        link.To.Node.SortIndex = selectIndex++;
-                    }
-                }
+                Vector2 from = Graph.GetOutputPin(link.From.Node);
+                Vector2 to = Graph.GetInputPin(link.To.Node);
+                Canvas.DrawLinkLines(from, to, Color.white, 5);
             }
         }
     }
 
+    private void DrawNodes()
+    {
+        foreach (var node in Graph.Nodes)
+        {
+
+        }
+    }
+
+    private void OnEvent(Event e)
+    {
+        
+    }
+
+    public void CreateLink(StateNode from, StateNode to, bool isChild)
+    {
+        if (Graph.CheckLink(from, to, isChild))
+        {
+            RegistUndo("link");
+            var oldLink = Graph.Links.Find(obj => obj.From == from && obj.To == to);
+            Graph.AddLink(from, to, isChild);
+            if (isChild)
+            {
+                UpdateBounds(from);
+            }
+            if (oldLink != null && oldLink.IsChild && oldLink.From != from)
+            {
+                UpdateBounds(oldLink.From.Node);
+            }
+        }
+    }
+
+    public void RegistUndo(string name)
+    {
+        Undo.RegisterCompleteObjectUndo(Graph, name);
+        Undo.RegisterCompleteObjectUndo(this, name);
+        EditorUtility.SetDirty(Graph);
+    }
 }
