@@ -5,27 +5,41 @@ public class ViewLinkMode : IViewDragMode
     private Vector2 startPos;
     private Vector2 currentPos;
     private StateNodeRef node;
-    private bool isOut;
-    private bool isChild;
+    private readonly bool isOut;
+    private readonly bool isChild;
 
-    public ViewLinkMode(StateGraphView view, StateNodeRef node, bool isOut, bool isChild)
+    public ViewLinkMode(StateGraphView view, StateNodeRef node, bool isOut, bool isChild, Vector2 pos)
     {
         this.node = node;
         this.isOut = isOut;
         this.isChild = isChild;
-        if (isOut)
-        {
-            startPos = view.Graph.GetOutputPin(node.Node);
-        }
-        else
-        {
-            startPos = view.Graph.GetInputPin(node.Node);
-        }
+        startPos = pos;
     }
 
     public void Draw(StateGraphView view)
     {
         view.Canvas.DrawLinkLines(startPos, currentPos, Color.yellow, 5);
+
+        var currNode = view.HitTest(currentPos);
+        if (currNode != null && currNode != node)
+        {
+            StateNode from;
+            StateNode to;
+            if (isOut)
+            {
+                from = node.Node;
+                to = currNode;
+            }
+            else
+            {
+                to = node.Node;
+                from = currNode;
+            }
+            if (view.Graph.CheckLink(from, to, isChild))
+            {
+                view.Canvas.DrawArea(currNode.Bounds, Color.yellow);
+            }
+        }
     }
 
     public void OnDrag(StateGraphView view, Vector2 ptInWorld)
@@ -36,6 +50,8 @@ public class ViewLinkMode : IViewDragMode
     public void OnDragEnd(StateGraphView view, Vector2 ptInWorld)
     {
         var currNode = view.HitTest(ptInWorld);
+        if (currNode == node)
+            return;
         if (currNode != null)
         {
             StateNode from;

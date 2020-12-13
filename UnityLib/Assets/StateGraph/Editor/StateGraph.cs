@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class StateGraph : ScriptableObject, ISerializationCallbackReceiver
@@ -15,7 +16,7 @@ public class StateGraph : ScriptableObject, ISerializationCallbackReceiver
         return Nodes.Find(obj => obj.ID == id);
     }
 
-    public StateNode AddNode<T>(T nodeData, Rect bounds) where T : IStateNode
+    public StateNode AddNode(IStateNode nodeData, Rect bounds)
     {
         StateNode node = new StateNode
         {
@@ -32,16 +33,12 @@ public class StateGraph : ScriptableObject, ISerializationCallbackReceiver
     {
         if (!from || !to || from != to)
             return;
-        var link = Links.Find(item => item.From == from && item.To == to);
-        if (link != null)
+        if (!IsStack(from.Node))
         {
-            link.IsChild = false;
+            Links.RemoveAll(it => it.From == from);
         }
-        else
-        {
-            Links.Add(new StateNodeLink { From = from, To = to });
-        }
-        link.IsChild = isChild; 
+        Links.RemoveAll(item => item.To == to && item.From == from);
+        Links.Add(new StateNodeLink { From = from, To = to, IsChild = isChild });
         from.Node.Parent = StateNodeRef.Empty;
         if (isChild)
         {
@@ -53,10 +50,24 @@ public class StateGraph : ScriptableObject, ISerializationCallbackReceiver
         }
     }
 
-    public void BreakLink(StateNodeRef from, StateNodeRef to)
+    public void DeleteNode(StateNodeRef node)
     {
-        Links.RemoveAll(item => item.From == from && item.To == to);
-        to.Node.Parent = StateNodeRef.Empty;
+        for (int i=Links.Count-1; i>=0; --i)
+        {
+            var link = Links[i];
+            if (link.From == node)
+            {
+                link.To.Node.Parent = StateNodeRef.Empty;
+                Links.RemoveAt(i);
+                continue;
+            }
+            if (link.To == node)
+            {
+                Links.RemoveAt(i);
+                continue;
+            }
+        }
+        Nodes.Remove(node.Node);
     }
 
     public void OnBeforeSerialize()
@@ -73,32 +84,37 @@ public class StateGraph : ScriptableObject, ISerializationCallbackReceiver
         }
     }
 
-    public virtual Vector2 GetOutputPin(StateNode node)
-    {
-        return node.Bounds.position + new Vector2(0, 25);
-    }
-
-    public virtual Vector2 GetInputPin(StateNode node)
-    {
-        return node.Bounds.max - new Vector2(0, 25);
-    }
-
-    public virtual bool IsChildNode(StateNode node)
-    {
-        if (node.NodeData != null && (node.NodeData is IStateAction) || (node.NodeData is IStateBranch))
-        {
-            return true;
-        }
-        return false;
-    }
-
     public virtual bool CheckLink(StateNode from, StateNode to, bool isChild)
     {
-        if (Links.Exists(obj=>obj.From == from && obj.To == to && obj.IsChild == isChild))
+        if (from == to || Links.Exists(obj=>obj.From == from && obj.To == to && obj.IsChild == isChild))
         {
             return false;
         }
         return true;
     }
 
+    public virtual bool DeleteCheck(StateNodeRef node)
+    {
+        return node.Id > 1;
+    }
+
+    public virtual bool CopyCheck(StateNodeRef node)
+    {
+        return node.Id > 1;
+    }
+
+    public virtual bool IsStack(StateNode node)
+    {
+        return false;
+    }
+
+    public virtual bool CheckTypeValid(Type type)
+    {
+        return false;
+    }
+
+    public virtual bool CheckReplace(Type src, Type dst)
+    {
+        return false;
+    }
 }

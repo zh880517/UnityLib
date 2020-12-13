@@ -1,14 +1,42 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class ViewNormalMoveMode : IViewDragMode
 {
     private Vector2 Start;
+    private List<StateNodeRef> movedNodes = new List<StateNodeRef>();
 
     public ViewNormalMoveMode(StateGraphView view, Vector2 ptInWorld)
     {
         view.RegistUndo("move");
         Start = ptInWorld;
+        //如果选择的节点有父节点则记录父节点，否则记录自己，方便后续移动处理
+        foreach (var node in view.Selecteds)
+        {
+            AddNode(view, node);
+        }
+    }
+
+    private void AddNode(StateGraphView view, StateNodeRef nodeRef)
+    {
+        if (movedNodes.Contains(nodeRef))
+            return;
+        movedNodes.Add(nodeRef);
+        if (nodeRef.Node.Parent)
+        {
+            AddNode(view, nodeRef.Node.Parent);
+        }
+        else
+        {
+            foreach (var link in view.Graph.Links)
+            {
+                if (link.IsChild && link.From == nodeRef)
+                {
+                    if (!movedNodes.Contains(link.To))
+                        movedNodes.Add(link.To);
+                }
+            }
+        }
     }
 
     public void Draw(StateGraphView view)
@@ -20,18 +48,9 @@ public class ViewNormalMoveMode : IViewDragMode
     {
         Vector2 offset = ptInWorld - Start;
 
-        //先移动选择的节点
-        foreach (var node in view.Selecteds)
+        foreach (var node in movedNodes)
         {
             node.Node.Bounds.position += offset;
-        }
-        //再移动选择节点的子节点
-        foreach (var node in view.Graph.Nodes)
-        {
-            if (node.Parent && view.Selecteds.Contains(node.Parent))
-            {
-                node.Bounds.position += offset;
-            }
         }
     }
 

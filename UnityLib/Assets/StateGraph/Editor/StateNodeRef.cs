@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 [Serializable]
-public struct StateNodeRef : IEquatable<StateNodeRef>
+public struct StateNodeRef : IEquatable<StateNodeRef>, ISerializationCallbackReceiver
 {
     [SerializeField]
     private ulong id;
@@ -29,6 +29,8 @@ public struct StateNodeRef : IEquatable<StateNodeRef>
         }
     }
 
+    public ulong Id => id;
+
     public bool Equals(StateNodeRef other)
     {
         return other.graph == graph && other.id == id;
@@ -46,6 +48,15 @@ public struct StateNodeRef : IEquatable<StateNodeRef>
     public override int GetHashCode()
     {
         return id.GetHashCode();
+    }
+
+    public void OnBeforeSerialize()
+    {
+    }
+
+    public void OnAfterDeserialize()
+    {
+        node = null;
     }
 
     public static bool operator == (StateNodeRef lhs, StateNodeRef rhs)

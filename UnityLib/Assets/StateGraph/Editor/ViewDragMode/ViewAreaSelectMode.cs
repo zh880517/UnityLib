@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class ViewAreaSelectMode : IViewDragMode
 {
@@ -36,23 +37,38 @@ public class ViewAreaSelectMode : IViewDragMode
             if (node.Bounds.Overlaps(Area))
             {
                 view.Selecteds.Add(node);
-                if (!node.Parent)
-                {
-                    node.SortIndex = view.SelectIndex++;
-                    foreach (var link in view.Graph.Links)
-                    {
-                        if (link.IsChild && link.From == node)
-                        {
-                            link.To.Node.SortIndex = view.SelectIndex++;
-                        }
-                    }
-                }
             }
         }
     }
 
     public void OnDragEnd(StateGraphView view, Vector2 ptInWorld)
     {
+        HashSet<ulong> handleNodes = new HashSet<ulong>();
+        foreach (var node in view.Selecteds)
+        {
+            var parent = node.Node.Parent;
+            if (!parent)
+            {
+                handleNodes.Add(node.Id);
+                node.Node.SortIndex = ++view.SelectIndex;
+            }
+            else if (!handleNodes.Contains(parent.Id))
+            {
+                handleNodes.Add(parent.Id);
+                parent.Node.SortIndex = ++view.SelectIndex;
+                foreach (var link in view.Graph.Links)
+                {
+                    if (link.IsChild && link.From == parent)
+                    {
+                        link.To.Node.SortIndex = ++view.SelectIndex;
+                    }
+                }
+            }
+        }
+        if (view.Selecteds.Count > 0)
+        {
+            view.SortNodes();
+        }
     }
 
 }

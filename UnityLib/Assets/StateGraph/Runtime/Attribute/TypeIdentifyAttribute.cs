@@ -1,9 +1,9 @@
 ﻿using System;
 
-public class TypeIdentify : Attribute
+public class TypeIdentifyAttribute : Attribute
 {
     public string GUID { get; private set; }
-    public TypeIdentify(string guid)
+    public TypeIdentifyAttribute(string guid)
     {
         GUID = guid;
     }

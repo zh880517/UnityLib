@@ -15,6 +15,8 @@ public class StateNode : ISerializationCallbackReceiver
     public StateGraph Graph;
     public int SortIndex;//用来做排序，方便处理渲染顺序
     public StateNodeRef Parent;//可为空，仅为被包含的节点
+    public string Name;
+    public string Comments;//注释
 
     public static implicit operator StateNodeRef(StateNode exists)
     {
@@ -30,6 +32,10 @@ public class StateNode : ISerializationCallbackReceiver
 
     public void OnBeforeSerialize()
     {
-        data = TypeSerializerHelper.Serialize(NodeData);
+        //容错处理，如果范序列化失败，说明类型有问题，防止修复后数据丢失
+        if (NodeData != null)
+        {
+            data = TypeSerializerHelper.Serialize(NodeData);
+        }
     }
 }

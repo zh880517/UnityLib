@@ -19,7 +19,7 @@ public static class TypeSerializerHelper
                     {
                         if (type.IsInterface || type.IsAbstract)
                             continue;
-                        TypeIdentify typeIdentify = type.GetCustomAttribute<TypeIdentify>();
+                        TypeIdentifyAttribute typeIdentify = type.GetCustomAttribute<TypeIdentifyAttribute>();
                         if (typeIdentify != null && !string.IsNullOrEmpty(typeIdentify.GUID))
                         {
                             if (_typeGUIDs.TryGetValue(typeIdentify.GUID, out Type exitType))
@@ -45,7 +45,7 @@ public static class TypeSerializerHelper
         {
             Type = obj.GetType().AssemblyQualifiedName
         };
-        TypeIdentify typeIdentify = obj.GetType().GetCustomAttribute<TypeIdentify>();
+        TypeIdentifyAttribute typeIdentify = obj.GetType().GetCustomAttribute<TypeIdentifyAttribute>();
         if (typeIdentify != null)
         {
             elem.TypeGUID = typeIdentify.GUID;
