@@ -27,7 +27,7 @@ public class StateNodeClipboard
 
     public bool CopyFrom(StateGraph graph, IEnumerable<StateNodeRef> copyNodes, Vector2 offset)
     {
-        List<StateNodeRef> nodes = copyNodes.Where(it => graph.CopyCheck(it)).ToList();
+        List<StateNodeRef> nodes = copyNodes.Where(it => graph.CheckCopy(it)).ToList();
         foreach (var node in nodes)
         {
             NodeData data = new NodeData 

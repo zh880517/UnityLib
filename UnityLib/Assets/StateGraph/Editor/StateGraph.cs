@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StateGraph : ScriptableObject, ISerializationCallbackReceiver
+public abstract class StateGraph : ScriptableObject, ISerializationCallbackReceiver
 {
     [SerializeField]
     [HideInInspector]
@@ -10,6 +10,7 @@ public class StateGraph : ScriptableObject, ISerializationCallbackReceiver
     public int SerializeVersion { get; private set; } = 1;
     public List<StateNode> Nodes = new List<StateNode>();
     public List<StateNodeLink> Links = new List<StateNodeLink>();
+    public StateGraphBlackboard Blackboard = new StateGraphBlackboard();
 
     public StateNode FindNode(ulong id)
     {
@@ -93,28 +94,21 @@ public class StateGraph : ScriptableObject, ISerializationCallbackReceiver
         return true;
     }
 
-    public virtual bool DeleteCheck(StateNodeRef node)
+    public virtual bool CheckDelete(StateNodeRef node)
     {
         return node.Id > 1;
     }
 
-    public virtual bool CopyCheck(StateNodeRef node)
+    public virtual bool CheckCopy(StateNodeRef node)
     {
         return node.Id > 1;
     }
 
-    public virtual bool IsStack(StateNode node)
-    {
-        return false;
-    }
+    public abstract bool IsStack(StateNode node);
 
-    public virtual bool CheckTypeValid(Type type)
-    {
-        return false;
-    }
+    public abstract bool CheckChildType(StateNode parent, Type childType);
 
-    public virtual bool CheckReplace(Type src, Type dst)
-    {
-        return false;
-    }
+    public abstract bool CheckTypeValid(Type type);
+
+    public abstract bool CheckReplace(Type src, Type dst);
 }

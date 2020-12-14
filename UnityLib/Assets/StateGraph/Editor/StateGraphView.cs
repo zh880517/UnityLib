@@ -10,6 +10,7 @@ public class StateGraphView : ScriptableObject
     public const float STACK_NODE_WIDTH = 140;
     public const float PIN_WIDTH = 20;
     public const float PIN_HEIGHT = 20;
+    public static readonly Vector2 BREAK_LINK_SIZE = new Vector2(10, 10);
     public static readonly Vector2 NODE_SIZE = new Vector2(100, 50);
     public static readonly Vector2 CHILD_OFFSET = new Vector2(10, 20);
     public static readonly Vector2 PIN_SIZE = new Vector2(PIN_WIDTH, PIN_HEIGHT);
@@ -49,9 +50,9 @@ public class StateGraphView : ScriptableObject
         }
     }
 
-    public bool OnDraw(Rect viewArea)
+    public bool OnDraw(Vector2 size)
     {
-        Event e = Canvas.OnGUI(viewArea);
+        Event e = Canvas.OnGUI(size);
         DrawLinkLins();
         DrawNodes();
         if (DragMode != null)
@@ -62,7 +63,7 @@ public class StateGraphView : ScriptableObject
         return e.type == EventType.Used;
     }
 
-    protected virtual void UpdateBounds(StateNode node)
+    public virtual void UpdateBounds(StateNode node)
     {
         if (!node.Parent)
         {
@@ -355,7 +356,7 @@ public class StateGraphView : ScriptableObject
         }
     }
 
-    public void CreateLink(StateNode from, StateNode to, bool isChild)
+    public void CreateLink(StateNode from, StateNode to, bool isChild, bool registUndo = true)
     {
         if (Graph.CheckLink(from, to, isChild))
         {
@@ -421,8 +422,8 @@ public class StateGraphView : ScriptableObject
 
     public bool DeleteSelectedNode()
     {
-        var deletes = Selecteds.Where(it => Graph.DeleteCheck(it)).ToArray();
-        Selecteds.RemoveAll(it => Graph.DeleteCheck(it));
+        var deletes = Selecteds.Where(it => Graph.CheckDelete(it)).ToArray();
+        Selecteds.RemoveAll(it => Graph.CheckDelete(it));
         if (deletes.Length > 0)
         {
             RegistUndo("delete select node");

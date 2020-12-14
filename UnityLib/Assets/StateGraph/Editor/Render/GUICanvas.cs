@@ -112,14 +112,12 @@ public class GUICanvas
     public Vector2 PointInWorld { get; private set; }
     public Rect ViewInWorld { get; private set; }
 
-    public Event OnGUI(Rect viewArea)
+    public Event OnGUI(Vector2 size)
     {
-        GUILayout.BeginArea(viewArea);
         Event e = Event.current;
         HandleInput(e);
         PointInWorld = ScreenToWorld(e.mousePosition);
-        ViewInWorld = ScreenToWorld(new Rect(Vector2.zero, viewArea.size));
-        GUILayout.EndArea();
+        ViewInWorld = ScreenToWorld(new Rect(Vector2.zero, size));
         return e;
     }
 

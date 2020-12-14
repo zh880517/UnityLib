@@ -6,19 +6,19 @@ using UnityEditor.IMGUI.Controls;
 
 public abstract class StateNodeTypeDropDown : AdvancedDropdown
 {
-    protected StateGraphView GraphView;
+    protected StateGraphView View;
     protected Dictionary<int, Type> TypeCache = new Dictionary<int, Type>();
     public StateNodeTypeDropDown(StateGraphView view) : base(new AdvancedDropdownState())
     {
-        GraphView = view;
+        View = view;
     }
 
     protected override AdvancedDropdownItem BuildRoot()
     {
         var root = new AdvancedDropdownItem("选择节点");
-        for (int i=0; i<GraphView.VaildTypes.Count; ++i)
+        for (int i=0; i<View.VaildTypes.Count; ++i)
         {
-            var type = GraphView.VaildTypes[i];
+            var type = View.VaildTypes[i];
             if (!CheckType(type))
                 continue;
             var dpName = type.GetCustomAttribute<DisaplayNameAttribute>();
@@ -63,9 +63,9 @@ public abstract class StateNodeTypeDropDown : AdvancedDropdown
     protected override void ItemSelected(AdvancedDropdownItem item)
     {
         int id = item.id;
-        if (id < GraphView.VaildTypes.Count)
+        if (id < View.VaildTypes.Count)
         {
-            OnSelectType(GraphView.VaildTypes[id]);
+            OnSelectType(View.VaildTypes[id]);
         }
     }
 
