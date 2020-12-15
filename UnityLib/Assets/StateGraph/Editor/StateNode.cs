@@ -18,6 +18,8 @@ public class StateNode : ISerializationCallbackReceiver
     public string Name;
     public string Comments;//注释
 
+    public Type NodeType => NodeData?.GetType();
+
     public static implicit operator StateNodeRef(StateNode exists)
     {
         if (exists == null)

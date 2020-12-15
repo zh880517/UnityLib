@@ -164,7 +164,7 @@ public class StateGraphView : ScriptableObject
             }
             if (e.button == 1)
             {
-                //TODO:右键菜单
+                OnMenu();
                 e.Use();
                 return;
             }
@@ -515,5 +515,36 @@ public class StateGraphView : ScriptableObject
     {
         Vector2 pos = new Vector2(node.Bounds.xMax - PIN_WIDTH, node.Bounds.yMin);
         return new Rect(pos, new Vector2(PIN_WIDTH, node.Bounds.height - PIN_HEIGHT));
+    }
+
+    protected virtual void OnMenu()
+    {
+        if (Selecteds.Count == 0)
+        {
+            var dropDown = new StateNodeCreatDropdown(this, StateNodeRef.Empty, false, false);
+            dropDown.Show(new Rect(Canvas.MouseInView, new Vector2(150, 20)));
+            return;
+        }
+        var menu = new GenericMenu();
+        int copyCount = Selecteds.Count(it => Graph.CheckCopy(it.Node));
+        menu.AddItem(new GUIContent("复制"), copyCount > 0, CopyNodes);
+        menu.AddItem(new GUIContent("粘贴"), StateNodeClipboard.Clipboard.ContainsKey(Graph.GetType()), PasteFromClipboard);
+        menu.AddItem(new GUIContent("Duplicate"), copyCount > 0, ()=>Duplicate());
+        menu.AddSeparator("");
+        menu.AddItem(new GUIContent("删除"), Graph.CheckDelete(Selecteds[0]), () => DeleteSelectedNode());
+        menu.AddSeparator("");
+        if (Selecteds.Count == 0)
+        {
+            var node = Selecteds[0];
+            menu.AddItem(new GUIContent("替换"), VaildTypes.Count(it => Graph.CheckReplace(node.Node.NodeType, it)) > 0, () =>
+            {
+                var dropDown = new StateNodeReplaceDropdown(this, node);
+                dropDown.Show(new Rect(Canvas.MouseInView, new Vector2(150, 20)));
+            });
+            if (Graph.IsStack(node.Node))
+            {
+                menu.AddItem(new GUIContent("清空组"), Graph.Links.Exists(it=>it.IsChild && it.From == node), ()=>BreakChildLink(node));
+            }
+        }
     }
 }

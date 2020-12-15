@@ -55,6 +55,7 @@ public class GUICanvas
         }
     }
     public Vector2 MouseInWorld { get; private set; }
+    public Vector2 MouseInView { get; private set; }
     public void Pan(Vector2 delta)
     {
         position += delta * zoomLevel;
@@ -106,7 +107,8 @@ public class GUICanvas
             position += originalGraphPosition - newGraphPosition;
             return true;
         }
-        MouseInWorld = ScreenToWorld(e.mousePosition);
+        MouseInView = e.mousePosition;
+        MouseInWorld = ScreenToWorld(MouseInView);
         return false;
     }
     public Vector2 PointInWorld { get; private set; }
