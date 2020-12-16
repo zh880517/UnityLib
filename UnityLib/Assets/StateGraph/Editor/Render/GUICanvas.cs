@@ -54,6 +54,11 @@ public class GUICanvas
             return _DefultRectStyle; 
         }
     }
+    private const float BOARD_RADIUS = 8;
+    private static readonly Vector4 FullBoardRadius = new Vector4(BOARD_RADIUS, BOARD_RADIUS, BOARD_RADIUS, BOARD_RADIUS);
+    private static readonly Vector4 TopBoardRadius = new Vector4(BOARD_RADIUS, BOARD_RADIUS, 0, 0);
+    private static readonly Vector4 BottomBoardRadius = new Vector4(0, 0, BOARD_RADIUS, BOARD_RADIUS);
+
     public Vector2 MouseInWorld { get; private set; }
     public Vector2 MouseInView { get; private set; }
     public void Pan(Vector2 delta)
@@ -128,7 +133,7 @@ public class GUICanvas
         if (rect.Overlaps(ViewInWorld))
         {
             color.a = 0.8f;
-            GUI.DrawTexture(rect, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, 0, 0);
+            GUI.DrawTexture(WorldToScreen(rect), Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, 0, 0);
         }
     }
 
@@ -148,6 +153,7 @@ public class GUICanvas
         GUI.Label(WorldToScreen(bounds), content, style.Style);
         return true;
     }
+
     private static void GetTangents(Vector2 start, Vector2 end, out Vector3[] points, out Vector3[] tangents)
     {
         points = new Vector3[] { start, end };
@@ -173,14 +179,17 @@ public class GUICanvas
         return true;
     }
 
-    public bool DrawRect(Rect rect, Color color)
+    public bool DrawRect(Rect rect, Color color, bool topCorner, bool bottomCorner)
     {
         if (!rect.Overlaps(ViewInWorld))
             return false;
-        var originalColor = GUI.color;
-        GUI.color = color;
-        GUI.Box(WorldToScreen(rect), "", DefultRectStyle);
-        GUI.color = originalColor;
+        Vector4 boardRadius = Vector4.zero;
+        if (topCorner)
+            boardRadius += TopBoardRadius;
+        if (bottomCorner)
+            boardRadius += BottomBoardRadius;
+        color.a = 0.4f;
+        GUI.DrawTexture(WorldToScreen(rect), Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, Vector4.zero, boardRadius*Scale);
         return true;
     }
 }

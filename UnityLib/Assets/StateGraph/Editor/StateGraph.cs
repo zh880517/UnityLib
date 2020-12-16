@@ -87,6 +87,8 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
 
     public virtual bool CheckLink(StateNode from, StateNode to, bool isChild)
     {
+        if (!CheckOutput(from) || !ChechInput(to))
+            return false;
         if (from == to || Links.Exists(obj=>obj.From == from && obj.To == to && obj.IsChild == isChild))
         {
             return false;
@@ -100,6 +102,16 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     }
 
     public virtual bool CheckCopy(StateNodeRef node)
+    {
+        return node.Id > 1;
+    }
+
+    public virtual bool CheckOutput(StateNodeRef node)
+    {
+        return true;
+    }
+
+    public virtual bool ChechInput(StateNodeRef node)
     {
         return node.Id > 1;
     }

@@ -252,17 +252,17 @@ public class StateGraphView : ScriptableObject
         {
             if (!isLeft)
             {
-                if (GetOutputPinRect(hitNode).Contains(Canvas.MouseInWorld))
+                if (Graph.CheckOutput(hitNode) && GetOutputPinRect(hitNode).Contains(Canvas.MouseInWorld))
                 {
                     BreakOutputLink(hitNode);
                     return;
                 }
-                if (GetInputPinRect(hitNode).Contains(Canvas.MouseInWorld))
+                if (Graph.ChechInput(hitNode) && GetInputPinRect(hitNode).Contains(Canvas.MouseInWorld))
                 {
                     BreakInputLink(hitNode);
                     return;
                 }
-                if (GetAddChildPinRect(hitNode).Contains(Canvas.MouseInWorld))
+                if (Graph.IsStack(hitNode) && GetAddChildPinRect(hitNode).Contains(Canvas.MouseInWorld))
                 {
                     BreakChildLink(hitNode);
                     return;
@@ -284,21 +284,21 @@ public class StateGraphView : ScriptableObject
                         if (!isLeft)
                             break;
                         Rect rect = GetAddChildPinRect(hitNode);
-                        if (rect.Contains(Canvas.MouseInWorld))
+                        if ( Graph.IsStack(hitNode) && rect.Contains(Canvas.MouseInWorld))
                         {
-                            DragMode = new ViewLinkMode(this, hitNode, true, true, rect.center);
+                            DragMode = new ViewLinkMode(hitNode, true, true, rect.center);
                             break;
                         }
                         rect = GetOutputPinRect(hitNode);
-                        if (rect.Contains(Canvas.MouseInWorld))
+                        if (Graph.CheckOutput(hitNode) && rect.Contains(Canvas.MouseInWorld))
                         {
-                            DragMode = new ViewLinkMode(this, hitNode, true, false, rect.center);
+                            DragMode = new ViewLinkMode(hitNode, true, false, rect.center);
                             break;
                         }
                         rect = GetInputPinRect(hitNode); 
-                        if (rect.Contains(Canvas.MouseInWorld))
+                        if (Graph.ChechInput(hitNode) && rect.Contains(Canvas.MouseInWorld))
                         {
-                            DragMode = new ViewLinkMode(this, hitNode, true, false, rect.center);
+                            DragMode = new ViewLinkMode(hitNode, true, false, rect.center);
                         }
                     } while (false);
                 }

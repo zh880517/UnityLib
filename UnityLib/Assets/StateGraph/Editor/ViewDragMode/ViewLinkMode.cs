@@ -8,7 +8,7 @@ public class ViewLinkMode : IViewDragMode
     private readonly bool isOut;
     private readonly bool isChild;
 
-    public ViewLinkMode(StateGraphView view, StateNodeRef node, bool isOut, bool isChild, Vector2 pos)
+    public ViewLinkMode(StateNodeRef node, bool isOut, bool isChild, Vector2 pos)
     {
         this.node = node;
         this.isOut = isOut;
