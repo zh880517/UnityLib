@@ -6,14 +6,22 @@ using UnityEngine;
 
 public class StateGraphView : ScriptableObject
 {
-    public const float CHILD_INTERVAL = 5;
-    public const float STACK_NODE_WIDTH = 140;
-    public const float PIN_WIDTH = 20;
-    public const float PIN_HEIGHT = 20;
-    public static readonly Vector2 BREAK_LINK_SIZE = new Vector2(10, 10);
-    public static readonly Vector2 NODE_SIZE = new Vector2(100, 50);
-    public static readonly Vector2 CHILD_OFFSET = new Vector2(10, 20);
-    public static readonly Vector2 PIN_SIZE = new Vector2(PIN_WIDTH, PIN_HEIGHT);
+    public const float CHILD_INTERVAL = 3;//容器节点的子节点空隙
+    public const float NODE_WIDTH = 100;//普通节点的宽度
+    public const float NODE_HEIGHT = 50;//普通节点的宽度
+    public const float STACK_TOP_HEIGHT = 20;//容器节点顶部预留高度
+    public const float STACK_BOTTOM_HEIGHT = 20;//容器节点底部预留高度
+    public const float STACK_LEFT_WIDTH = 10;//容器节点左侧预留宽度
+    public const float STACK_NODE_WIDTH = STACK_LEFT_WIDTH + CHILD_INTERVAL + NODE_WIDTH;//容器节点宽度
+    public const float PIN_WIDTH = 20;//连接点宽度
+    public static readonly Vector2 NODE_SIZE = new Vector2(NODE_WIDTH, NODE_HEIGHT);//普通节点的大小
+    public static readonly Vector2 PIN_SIZE = new Vector2(PIN_WIDTH, PIN_WIDTH);//连接点的大小
+    public static readonly Color NormalNodeColor = new Color(0.1f, 0.1f, 0.1f, 0.5f);
+    public static readonly Color StackNodeColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
+    public static readonly Color StackBoardColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
+    public static readonly Color CircleWireColor = new Color(0, 1, 1, 1);
+    public static readonly Color CircleSoldColor = new Color(0, 1, 0.74f, 1);
+    public static readonly GUIRenderFontStyle DefultFontStyle = new GUIRenderFontStyle(15, null, Color.white, false, TextAnchor.MiddleCenter);
 
     public StateGraph Graph;
     public List<StateNodeRef> Selecteds = new List<StateNodeRef>();
@@ -71,7 +79,8 @@ public class StateGraphView : ScriptableObject
             if (Graph.IsStack(node))
             {
                 size.x = STACK_NODE_WIDTH;
-                Vector2 pos = node.Bounds.position + CHILD_OFFSET;
+                size.y = STACK_TOP_HEIGHT + CHILD_INTERVAL + STACK_BOTTOM_HEIGHT;
+                Vector2 pos = node.Bounds.position + new Vector2(STACK_LEFT_WIDTH, STACK_TOP_HEIGHT + CHILD_INTERVAL);
                 foreach (var link in Graph.Links)
                 {
                     if (link.IsChild && link.From.Node == node)
@@ -130,20 +139,119 @@ public class StateGraphView : ScriptableObject
         }
     }
 
+    private static readonly List<StateNodeLink> childLinkTmp = new List<StateNodeLink>();
+
     protected virtual void DrawStackNode(StateNode node)
     {
+        if (!Canvas.DrawRect(node.Bounds, StackNodeColor, true, true, Selecteds.Contains(node)))
+            return;
+        Rect topBound = new Rect(node.Bounds.position, new Vector2(STACK_NODE_WIDTH, STACK_TOP_HEIGHT));
+        //画顶部区域，包含文字、输入、添加子节点
+        if (Canvas.DrawRect(topBound, StackBoardColor, true, false))
+        {
+            topBound.position += new Vector2(PIN_WIDTH, 0);
+            topBound.width -= PIN_WIDTH * 2;
+            Canvas.DrawText(topBound, node.Name, DefultFontStyle);
+            if (Graph.ChechInput(node))
+            {
+                Vector2 pos = GetInputPinRect(node).center;
+                Canvas.DrawCircle(pos, CircleWireColor, 6, true);
+                if (Graph.Links.Exists(it => it.To == node))
+                {
+                    Canvas.DrawCircle(pos, CircleSoldColor, 4, false);
+                }
+
+                Rect addRect = GetAddChildPinRect(node);
+                Canvas.DrawText(addRect, "+", DefultFontStyle);
+            }
+        }
+        childLinkTmp.Clear();
+        {//左侧区域
+            Rect centerLeftRect = node.Bounds;
+            centerLeftRect.position += new Vector2(STACK_TOP_HEIGHT, 0);
+            centerLeftRect.height -= (STACK_BOTTOM_HEIGHT + STACK_TOP_HEIGHT);
+            centerLeftRect.width = STACK_LEFT_WIDTH;
+            Canvas.DrawRect(centerLeftRect, StackBoardColor, false, false);
+        }
         foreach (var link in Graph.Links)
         {
             if (link.IsChild && link.From == node)
             {
-                DrawNormalNode(node);
+                childLinkTmp.Add(link);
+            }
+        }
+        for (int i=0; i<childLinkTmp.Count; ++i)
+        {
+            var link = childLinkTmp[i];
+            DrawNormalNode(link.To.Node);
+            if (childLinkTmp.Count > 1)
+            {
+                Rect btnSize = link.To.Node.Bounds;
+                btnSize.position -= new Vector2(STACK_LEFT_WIDTH + CHILD_INTERVAL, 0);
+                btnSize.width = STACK_LEFT_WIDTH;
+                btnSize.height = NODE_HEIGHT * 0.5f;
+                if (i > 0)
+                {
+                    //上移按钮
+                    if (GUI.Button(btnSize, "▲"))
+                    {
+                        ChildNodeMoveUp(link.To);
+                    }
+                }
+                if (i < childLinkTmp.Count - 1)
+                {
+                    btnSize.position += new Vector2(0, NODE_HEIGHT * 0.5f);
+                    //下移按钮
+                    if (GUI.Button(btnSize, "▼"))
+                    {
+                        ChildNodeMoveDown(link.To);
+                    }
+                }
+            }
+        }
+        Rect bottomRect = new Rect(node.Bounds.xMin, node.Bounds.yMax - STACK_BOTTOM_HEIGHT, STACK_NODE_WIDTH, STACK_BOTTOM_HEIGHT);
+        if (Canvas.DrawRect(bottomRect, StackBoardColor, false, true))
+        {
+            if (Graph.CheckOutput(node))
+            {
+                Vector2 pos = GetOutputPinRect(node).center;
+                Canvas.DrawCircle(pos, CircleWireColor, 6, true);
+                if (Graph.Links.Exists(it => !it.IsChild && it.From == node))
+                {
+                    Canvas.DrawCircle(pos, CircleSoldColor, 4, false);
+                }
             }
         }
     }
 
     protected virtual void DrawNormalNode(StateNode node)
     {
-        
+        bool isChildNode = node.Parent;
+        if (Canvas.DrawRect(node.Bounds, NormalNodeColor, !isChildNode, !isChildNode , Selecteds.Contains(node)))
+        {
+            Rect txtBound = node.Bounds;
+            txtBound.width -= PIN_WIDTH * 2;
+            txtBound.center = node.Bounds.center;
+            Canvas.DrawText(node.Bounds, node.Name, DefultFontStyle);
+            if (Graph.ChechInput(node))
+            {
+                Vector2 pos = GetInputPinRect(node).center;
+                Canvas.DrawCircle(pos, CircleWireColor, 6, true);
+                if (isChildNode || Graph.Links.Exists(it => it.To == node))
+                {
+                    Canvas.DrawCircle(pos, CircleSoldColor, 4, false);
+                }
+            }
+            if (Graph.CheckOutput(node))
+            {
+                Vector2 pos = GetOutputPinRect(node).center;
+                Canvas.DrawCircle(pos, CircleWireColor, 6, true);
+                if (isChildNode || Graph.Links.Exists(it => it.From == node))
+                {
+                    Canvas.DrawCircle(pos, CircleSoldColor, 4, false);
+                }
+            }
+        }
     }
 
     private void OnEvent(Event e)
@@ -207,7 +315,7 @@ public class StateGraphView : ScriptableObject
                 }
                 return;
             }
-            bool control = e.control || (UnityEngine.Application.platform == RuntimePlatform.OSXEditor && e.command);
+            bool control = e.control || (Application.platform == RuntimePlatform.OSXEditor && e.command);
             if (control && e.keyCode == KeyCode.D)
             {
                 if (Duplicate())
@@ -464,6 +572,56 @@ public class StateGraphView : ScriptableObject
         StateNodeClipboard.Clipboard.Add(Graph.GetType(), clipboard);
     }
 
+    public void ChildNodeMoveUp(StateNodeRef childNode)
+    {
+        int oldIndex = Graph.Links.FindIndex(it => it.IsChild && it.To == childNode);
+        if (oldIndex > 0)
+        {
+            int swapIndex = -1;
+            for (int i = oldIndex - 1; i >= 0; --i)
+            {
+                var link = Graph.Links[i];
+                if (link.IsChild && link.From == childNode.Node.Parent)
+                {
+                    swapIndex = i;
+                    break;
+                }
+            }
+            if (swapIndex >= 0)
+            {
+                RegistUndo("move child node up");
+                var link = Graph.Links[swapIndex];
+                Graph.Links[swapIndex] = Graph.Links[oldIndex];
+                Graph.Links[oldIndex] = link;
+            }
+        }
+    }
+
+    public void ChildNodeMoveDown(StateNodeRef childNode)
+    {
+        int oldIndex = Graph.Links.FindIndex(it => it.IsChild && it.To == childNode);
+        if (oldIndex >= 0)
+        {
+            int swapIndex = -1;
+            for (int i = oldIndex + 1; i < Graph.Links.Count; ++i)
+            {
+                var link = Graph.Links[i];
+                if (link.IsChild && link.From == childNode.Node.Parent)
+                {
+                    swapIndex = i;
+                    break;
+                }
+            }
+            if (swapIndex >= 0)
+            {
+                RegistUndo("move child node down");
+                var link = Graph.Links[swapIndex];
+                Graph.Links[swapIndex] = Graph.Links[oldIndex];
+                Graph.Links[oldIndex] = link;
+            }
+        }
+    }
+
     public void PasteFromClipboard()
     {
         if (StateNodeClipboard.Clipboard.TryGetValue(Graph.GetType(), out var clipboard))
@@ -514,7 +672,7 @@ public class StateGraphView : ScriptableObject
     public Rect GetAddChildPinRect(StateNode node)
     {
         Vector2 pos = new Vector2(node.Bounds.xMax - PIN_WIDTH, node.Bounds.yMin);
-        return new Rect(pos, new Vector2(PIN_WIDTH, node.Bounds.height - PIN_HEIGHT));
+        return new Rect(pos, new Vector2(PIN_WIDTH, PIN_WIDTH));
     }
 
     protected virtual void OnMenu()

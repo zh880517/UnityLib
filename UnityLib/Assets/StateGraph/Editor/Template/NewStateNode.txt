@@ -1,0 +1,5 @@
+
+[TypeIdentify("#GUID#")]
+public class #ClassName# : IStateNode
+{
+}

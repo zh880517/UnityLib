@@ -10,7 +10,7 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     public int SerializeVersion { get; private set; } = 1;
     public List<StateNode> Nodes = new List<StateNode>();
     public List<StateNodeLink> Links = new List<StateNodeLink>();
-    public StateGraphBlackboard Blackboard = new StateGraphBlackboard();
+    public StateBlackboard Blackboard = new StateBlackboard();
 
     public StateNode FindNode(ulong id)
     {

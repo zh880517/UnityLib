@@ -21,7 +21,7 @@ public class BlackboardEditor
                 else
                 {
                     view.RegistUndo("add variable");
-                    view.Graph.Blackboard.Variables.Add(new StateGraphBlackboard.Variable { Name = InputName, DefultValue = 0 });
+                    view.Graph.Blackboard.Variables.Add(new BlackboardVariable { Name = InputName, DefultValue = 0 });
                 }
             }
         }

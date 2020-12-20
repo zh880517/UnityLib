@@ -58,7 +58,6 @@ public class GUICanvas
     private static readonly Vector4 FullBoardRadius = new Vector4(BOARD_RADIUS, BOARD_RADIUS, BOARD_RADIUS, BOARD_RADIUS);
     private static readonly Vector4 TopBoardRadius = new Vector4(BOARD_RADIUS, BOARD_RADIUS, 0, 0);
     private static readonly Vector4 BottomBoardRadius = new Vector4(0, 0, BOARD_RADIUS, BOARD_RADIUS);
-
     public Vector2 MouseInWorld { get; private set; }
     public Vector2 MouseInView { get; private set; }
     public void Pan(Vector2 delta)
@@ -121,6 +120,7 @@ public class GUICanvas
 
     public Event OnGUI(Vector2 size)
     {
+        GUI.DrawTexture(new Rect(Vector2.zero, size), Texture2D.blackTexture, ScaleMode.ScaleToFit);
         Event e = Event.current;
         HandleInput(e);
         PointInWorld = ScreenToWorld(e.mousePosition);
@@ -179,7 +179,7 @@ public class GUICanvas
         return true;
     }
 
-    public bool DrawRect(Rect rect, Color color, bool topCorner, bool bottomCorner)
+    public bool DrawRect(Rect rect, Color color, bool topCorner, bool bottomCorner, bool outLine = false)
     {
         if (!rect.Overlaps(ViewInWorld))
             return false;
@@ -189,7 +189,36 @@ public class GUICanvas
         if (bottomCorner)
             boardRadius += BottomBoardRadius;
         color.a = 0.4f;
-        GUI.DrawTexture(WorldToScreen(rect), Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, Vector4.zero, boardRadius*Scale);
+        Rect realRect = WorldToScreen(rect);
+        GUI.DrawTexture(realRect, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, Vector4.zero, boardRadius*Scale);
+        if (outLine)
+        {
+            using (new Handles.DrawingScope(new Color(0, 1, 0.74f, 0.8f)))
+            {
+                float offset = 2;
+                Vector2 pt1 = new Vector2(realRect.xMin - offset, realRect.yMin - offset);
+                Vector2 pt2 = new Vector2(realRect.xMax + offset, realRect.yMin - offset);
+                Vector2 pt3 = new Vector2(realRect.xMax + offset, realRect.yMax + offset);
+                Vector2 pt4 = new Vector2(realRect.xMin - offset, realRect.yMax + offset);
+                Handles.DrawAAPolyLine(1, pt1, pt2, pt3, pt4);
+            }
+        }
         return true;
+    }
+
+    public void DrawCircle(Vector2 pos, Color color, float radius, bool wire)
+    {
+        using (new Handles.DrawingScope(color))
+        {
+            if (wire)
+            {
+                Handles.DrawWireDisc(WorldToScreen(pos), new Vector3(0, 0, 1), radius * scale);
+            }
+            else
+            {
+                Handles.DrawSolidDisc(WorldToScreen(pos), new Vector3(0, 0, 1), radius * scale);
+            }
+
+        }
     }
 }

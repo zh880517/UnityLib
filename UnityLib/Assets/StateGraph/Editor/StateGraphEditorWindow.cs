@@ -51,6 +51,7 @@ public class StateGraphEditorWindow : EditorWindow
         if (NeedRepaint)
         {
             NeedRepaint = false;
+            GUI.FocusControl("");
             Repaint();
         }
     }
