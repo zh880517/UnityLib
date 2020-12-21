@@ -52,7 +52,7 @@ public class StateGraphView : ScriptableObject
     {
         Graph = graph;
         SelectIndex = 0;
-        if (graph.Nodes.Count > 0)
+        if (graph.Nodes.Count > 1)
         {
             SelectIndex = graph.Nodes.Last().SortIndex;
         }

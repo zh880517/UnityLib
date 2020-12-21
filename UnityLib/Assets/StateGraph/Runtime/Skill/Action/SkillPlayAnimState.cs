@@ -1,0 +1,10 @@
+﻿
+[TypeIdentify("aa2b5d4f-75e9-44e2-b18a-cfd9b3d145cb")]
+public class SkillPlayAnimState : SkillAction
+{
+    public string StateName;
+    public override void Execute(SkillContext context)
+    {
+        
+    }
+}

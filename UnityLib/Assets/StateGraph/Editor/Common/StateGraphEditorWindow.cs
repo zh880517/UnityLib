@@ -9,14 +9,14 @@ public class StateGraphEditorWindow : EditorWindow
     public bool HideLeftArea;
     public bool HideRightArea;
     public StateGraphView View;
-    public BlackboardEditor Blackboard;
+    public BlackboardEditor Blackboard = new BlackboardEditor();
     public bool NeedRepaint { get; set; }
     private void OnGUI()
     {
         Vector2 size = position.size;
         using (new GUILayout.AreaScope(new Rect(Vector2.zero, new Vector2(size.x, TOOL_BAR_HEIGHT))))
         {
-            using(new GUILayout.HorizontalScope())
+            using(new GUILayout.HorizontalScope(EditorStyles.toolbar))
             {
                 DrawToolBar();
             }

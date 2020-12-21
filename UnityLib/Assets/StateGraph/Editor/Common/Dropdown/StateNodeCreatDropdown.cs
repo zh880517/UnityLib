@@ -12,6 +12,7 @@ public class StateNodeCreatDropdown : StateNodeTypeDropDown
         this.node = node;
         this.isChild = isChild;
         this.isOut = isChild? true : isOut;
+        pos = view.Canvas.MouseInWorld;
     }
 
     protected override bool CheckType(Type type)

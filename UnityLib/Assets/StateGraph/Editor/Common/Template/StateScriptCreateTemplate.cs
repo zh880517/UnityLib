@@ -51,7 +51,7 @@ public class StateScriptCreateTemplate
             ScriptableObject.CreateInstance<CreateStateScriptAction>(),
             GetSelectedPathOrFallBack() + "/NewStateNode.cs",
             EditorGUIUtility.IconContent("cs Script Icon").image as Texture2D,
-            "Assets/StateGraph/Editor/Template/NewStateNode.txt"
+            "Assets/StateGraph/Editor/Common/Template/NewStateNode.txt"
             );
     }
 }

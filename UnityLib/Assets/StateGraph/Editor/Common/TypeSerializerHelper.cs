@@ -5,6 +5,12 @@ using UnityEngine;
 
 public static class TypeSerializerHelper
 {
+    [UnityEditor.MenuItem("Tools/生成GUID到剪切板")]
+    static void GenGUID()
+    {
+        GUIUtility.systemCopyBuffer = string.Format("\"{0}\"",Guid.NewGuid().ToString());
+    }
+
     private static Dictionary<string, Type> _typeGUIDs;
     public static Dictionary<string, Type> TypeGUIDs
     {
@@ -24,7 +30,7 @@ public static class TypeSerializerHelper
                         {
                             if (_typeGUIDs.TryGetValue(typeIdentify.GUID, out Type exitType))
                             {
-                                Debug.LogErrorFormat("类型 {0} 和 {1} 的GUID重复，将被跳过", type.AssemblyQualifiedName, exitType.AssemblyQualifiedName);
+                                Debug.LogErrorFormat("类型 {0} 和 {1} 的GUID重复，将被跳过", type.FullName, exitType.FullName);
                                 continue;
                             }
                             else
@@ -43,12 +49,13 @@ public static class TypeSerializerHelper
     {
         SerializationData elem = new SerializationData
         {
-            Type = obj.GetType().AssemblyQualifiedName
+            Type = obj.GetType().FullName
         };
         TypeIdentifyAttribute typeIdentify = obj.GetType().GetCustomAttribute<TypeIdentifyAttribute>();
         if (typeIdentify != null)
         {
             elem.TypeGUID = typeIdentify.GUID;
+            Debug.LogErrorFormat("序列化类型 {0} 缺少TypeIdentify 属性，类重名将会丢失数据", elem.Type);
         }
 #if UNITY_EDITOR
         elem.JsonDatas = UnityEditor.EditorJsonUtility.ToJson(obj);
@@ -68,7 +75,10 @@ public static class TypeSerializerHelper
                 type = Type.GetType(e.Type);
         }
         if (type == null)
-            throw new ArgumentException("Deserializing type is not the same than Json element type");
+        {
+            Debug.LogErrorFormat("反序列化失败，缺少类型 {0}, json数据:\n {1}", e.Type, e.JsonDatas);
+            return null;
+        }
 
         var obj = Activator.CreateInstance(type);
 #if UNITY_EDITOR

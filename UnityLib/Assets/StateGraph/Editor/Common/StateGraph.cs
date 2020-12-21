@@ -123,4 +123,26 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     public abstract bool CheckTypeValid(Type type);
 
     public abstract bool CheckReplace(Type src, Type dst);
+
+    protected abstract void OnCreat();
+
+#if UNITY_EDITOR
+    public static T LoadOrCreat<T>(string path) where T : StateGraph
+    {
+        var graph = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(path);
+        if (graph == null)
+        {
+            if (System.IO.File.Exists(path))
+            {
+                Debug.LogErrorFormat("打开文件 {0} 失败，已经存在的文件类型和目标类型 {1} 不匹配", path, typeof(T).FullName);
+                return null;
+            }
+            graph = CreateInstance<T>();
+            graph.OnCreat();
+            UnityEditor.AssetDatabase.CreateAsset(graph, path);
+        }
+
+        return graph;
+    }
+#endif
 }
