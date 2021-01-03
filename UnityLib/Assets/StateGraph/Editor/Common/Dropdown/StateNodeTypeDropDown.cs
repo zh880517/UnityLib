@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 
 public abstract class StateNodeTypeDropDown : AdvancedDropdown
 {
@@ -11,6 +12,7 @@ public abstract class StateNodeTypeDropDown : AdvancedDropdown
     public StateNodeTypeDropDown(StateGraphView view) : base(new AdvancedDropdownState())
     {
         View = view;
+        minimumSize = new Vector2(150, 300);
     }
 
     protected override AdvancedDropdownItem BuildRoot()
@@ -19,7 +21,7 @@ public abstract class StateNodeTypeDropDown : AdvancedDropdown
         for (int i=0; i<View.VaildTypes.Count; ++i)
         {
             var type = View.VaildTypes[i];
-            if (!CheckType(type))
+            if (type.GetCustomAttribute<HiddenInTypeCreaterAttribute>() != null || !CheckType(type))
                 continue;
             var dpName = type.GetCustomAttribute<DisaplayNameAttribute>();
             string name = dpName == null ? type.Name : string.Format("{0}(1)", dpName, type.Name);

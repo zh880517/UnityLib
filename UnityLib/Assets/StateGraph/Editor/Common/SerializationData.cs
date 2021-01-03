@@ -1,4 +1,5 @@
-﻿public struct SerializationData
+﻿[System.Serializable]
+public struct SerializationData
 {
     public string Type;
     public string TypeGUID;

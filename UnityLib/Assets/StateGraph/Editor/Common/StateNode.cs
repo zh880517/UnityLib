@@ -1,17 +1,15 @@
 ﻿using System;
 using UnityEngine;
 [Serializable]
-public class StateNode : ISerializationCallbackReceiver 
+public class StateNode
 {
-    [HideInInspector]
     public Rect Bounds;
     [HideInInspector]
     public ulong ID;
-    [SerializeField]
+    public SerializationData data;
+    public IStateNode NodeData { get; set; }
     [HideInInspector]
-    private SerializationData data;
-    public IStateNode NodeData;
-    [HideInInspector]
+    [SerializeReference]
     public StateGraph Graph;
     public int SortIndex;//用来做排序，方便处理渲染顺序
     public StateNodeRef Parent;//可为空，仅为被包含的节点
@@ -24,20 +22,6 @@ public class StateNode : ISerializationCallbackReceiver
     {
         if (exists == null)
             return StateNodeRef.Empty;
-        return StateNodeRef.CreateNodeRef(exists.Graph, exists.ID);
-    }
-
-    public void OnAfterDeserialize()
-    {
-        NodeData = TypeSerializerHelper.Deserialize(data) as IStateNode;
-    }
-
-    public void OnBeforeSerialize()
-    {
-        //容错处理，如果范序列化失败，说明类型有问题，防止修复后数据丢失
-        if (NodeData != null)
-        {
-            data = TypeSerializerHelper.Serialize(NodeData);
-        }
+        return StateNodeRef.CreateNodeRef(exists);
     }
 }

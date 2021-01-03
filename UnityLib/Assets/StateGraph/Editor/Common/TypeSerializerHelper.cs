@@ -55,6 +55,9 @@ public static class TypeSerializerHelper
         if (typeIdentify != null)
         {
             elem.TypeGUID = typeIdentify.GUID;
+        }
+        if (string.IsNullOrWhiteSpace(elem.TypeGUID))
+        {
             Debug.LogErrorFormat("序列化类型 {0} 缺少TypeIdentify 属性，类重名将会丢失数据", elem.Type);
         }
 #if UNITY_EDITOR

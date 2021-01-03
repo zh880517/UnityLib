@@ -47,7 +47,7 @@ public class ViewNormalMoveMode : IViewDragMode
     public void OnDrag(StateGraphView view, Vector2 ptInWorld)
     {
         Vector2 offset = ptInWorld - Start;
-
+        Start = ptInWorld;
         foreach (var node in movedNodes)
         {
             node.Node.Bounds.position += offset;

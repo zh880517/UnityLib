@@ -1,19 +1,21 @@
 ﻿using System;
 using UnityEngine;
 [Serializable]
-public struct StateNodeRef : IEquatable<StateNodeRef>, ISerializationCallbackReceiver
+public struct StateNodeRef : IEquatable<StateNodeRef>
 {
     [SerializeField]
     private ulong id;
     [SerializeField]
+    [SerializeReference]
     private StateGraph graph;
     private int version;
-    private StateNode node;
+    [NonSerialized]
+    public StateNode node;
     public static StateNodeRef Empty = new StateNodeRef();
     
-    public static StateNodeRef CreateNodeRef(StateGraph graph, ulong id)
+    public static StateNodeRef CreateNodeRef(StateNode node)
     {
-        return new StateNodeRef { graph = graph, id = id };
+        return new StateNodeRef { graph = node.Graph, id = node.ID, node = node };
     }
 
     public StateNode Node
@@ -50,15 +52,6 @@ public struct StateNodeRef : IEquatable<StateNodeRef>, ISerializationCallbackRec
         return id.GetHashCode();
     }
 
-    public void OnBeforeSerialize()
-    {
-    }
-
-    public void OnAfterDeserialize()
-    {
-        node = null;
-    }
-
     public static bool operator == (StateNodeRef lhs, StateNodeRef rhs)
     {
         return lhs.Equals(rhs);
@@ -69,6 +62,6 @@ public struct StateNodeRef : IEquatable<StateNodeRef>, ISerializationCallbackRec
     }
     public static implicit operator bool(StateNodeRef exists)
     {
-        return exists.Node != null;
+        return exists.Id != 0;
     }
 }

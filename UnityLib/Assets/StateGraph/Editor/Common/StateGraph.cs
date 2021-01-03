@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 public abstract class StateGraph : ScriptableObject, ISerializationCallbackReceiver
@@ -8,6 +9,8 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     [HideInInspector]
     private ulong IdIndex;
     public int SerializeVersion { get; private set; } = 1;
+    [SerializeField]
+    private List<SerializationData> NodeDatas = new List<SerializationData>();
     public List<StateNode> Nodes = new List<StateNode>();
     public List<StateNodeLink> Links = new List<StateNodeLink>();
     public StateBlackboard Blackboard = new StateBlackboard();
@@ -19,26 +22,34 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
 
     public StateNode AddNode(IStateNode nodeData, Rect bounds)
     {
+        string name = nodeData.GetType().Name;
+        DisaplayNameAttribute disaplayName = nodeData.GetType().GetCustomAttribute<DisaplayNameAttribute>();
+        if (disaplayName != null && !string.IsNullOrWhiteSpace(disaplayName.Name))
+        {
+            name = disaplayName.Name;
+        }
         StateNode node = new StateNode
         {
             Bounds = bounds,
             ID = ++IdIndex,
             NodeData = nodeData,
             Graph = this,
+            Name = name
         };
 
+        Nodes.Add(node);
         return node;
     }
 
     public void AddLink(StateNodeRef from, StateNodeRef to, bool isChild)
     {
-        if (!from || !to || from != to)
+        if (!from || !to || from == to)
             return;
         if (!IsStack(from.Node))
         {
             Links.RemoveAll(it => it.From == from);
         }
-        Links.RemoveAll(item => item.To == to && item.From == from);
+        Links.RemoveAll(item => item.To == to);
         Links.Add(new StateNodeLink { From = from, To = to, IsChild = isChild });
         from.Node.Parent = StateNodeRef.Empty;
         if (isChild)
@@ -70,10 +81,28 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
         }
         Nodes.Remove(node.Node);
     }
-
     public void OnBeforeSerialize()
     {
-        
+        NodeDatas.Clear();
+        for (int i=0; i<Nodes.Count; ++i)
+        {
+            var data = TypeSerializerHelper.Serialize(Nodes[i].NodeData);
+            NodeDatas.Add(data);
+        }
+    }
+
+    public void Deserialize()
+    {
+        for (int i = 0; i < Nodes.Count; ++i)
+        {
+            IStateNode data = TypeSerializerHelper.Deserialize(NodeDatas[i]) as IStateNode;
+            Nodes[i].NodeData = data;
+        }
+    }
+
+    private void OnEnable()
+    {
+        Deserialize();
     }
 
     public void OnAfterDeserialize()
@@ -88,6 +117,8 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     public virtual bool CheckLink(StateNode from, StateNode to, bool isChild)
     {
         if (!CheckOutput(from) || !ChechInput(to))
+            return false;
+        if (isChild && !CheckChildType(from, to.NodeType))
             return false;
         if (from == to || Links.Exists(obj=>obj.From == from && obj.To == to && obj.IsChild == isChild))
         {
@@ -136,6 +167,11 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
             {
                 Debug.LogErrorFormat("打开文件 {0} 失败，已经存在的文件类型和目标类型 {1} 不匹配", path, typeof(T).FullName);
                 return null;
+            }
+            string dir = System.IO.Path.GetDirectoryName(path);
+            if (!System.IO.Directory.Exists(dir))
+            {
+                System.IO.Directory.CreateDirectory(dir);
             }
             graph = CreateInstance<T>();
             graph.OnCreat();

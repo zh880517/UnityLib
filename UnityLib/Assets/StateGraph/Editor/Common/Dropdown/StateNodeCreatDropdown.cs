@@ -27,18 +27,21 @@ public class StateNodeCreatDropdown : StateNodeTypeDropDown
         View.RegistUndo("add node");
         StateNode newNode = View.Graph.AddNode(Activator.CreateInstance(type) as IStateNode, new Rect(pos, StateGraphView.NODE_SIZE));
         View.UpdateBounds(newNode);
-        StateNode from;
-        StateNode to;
-        if (isOut)
+        if (node)
         {
-            from = newNode;
-            to = node.Node;
+            StateNode from;
+            StateNode to;
+            if (isOut)
+            {
+                from = newNode;
+                to = node.Node;
+            }
+            else
+            {
+                to = node.Node;
+                from = newNode;
+            }
+            View.CreateLink(from, to, isChild, false);
         }
-        else
-        {
-            to = node.Node;
-            from = newNode;
-        }
-        View.CreateLink(from, to, isChild, false);
     }
 }

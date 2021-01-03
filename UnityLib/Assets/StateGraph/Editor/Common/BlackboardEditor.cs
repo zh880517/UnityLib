@@ -1,6 +1,6 @@
 ﻿using UnityEditor;
 using UnityEngine;
-
+[System.Serializable]
 public class BlackboardEditor
 {
     public string InputName;
@@ -12,7 +12,7 @@ public class BlackboardEditor
         {
             GUILayout.Label("Name");
             InputName = GUILayout.TextField(InputName);
-            if (GUILayout.Button("创建"))
+            if (!string.IsNullOrWhiteSpace(InputName) && GUILayout.Button("创建"))
             {
                 if (view.Graph.Blackboard.HasName(InputName))
                 {
@@ -29,7 +29,7 @@ public class BlackboardEditor
         {
             using (new GUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("x", EditorStyles.miniButton))
+                if (GUILayout.Button("", "SearchCancelButton"))
                 {
                     view.RegistUndo("remove variable");
                     view.Graph.Blackboard.Variables.RemoveAt(i);
@@ -42,6 +42,7 @@ public class BlackboardEditor
                 if (val != variable.DefultValue)
                 {
                     view.RegistUndo("modify variable defult value");
+                    variable.DefultValue = val;
                 }
             }
         }

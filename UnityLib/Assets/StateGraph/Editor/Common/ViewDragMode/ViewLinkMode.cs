@@ -18,7 +18,7 @@ public class ViewLinkMode : IViewDragMode
 
     public void Draw(StateGraphView view)
     {
-        view.Canvas.DrawLinkLines(startPos, currentPos, Color.yellow, 5);
+        view.Canvas.DrawLinkLines(startPos, currentPos, Color.yellow, 3);
 
         var currNode = view.HitTest(currentPos);
         if (currNode != null && currNode != node)
@@ -71,6 +71,8 @@ public class ViewLinkMode : IViewDragMode
         else
         {
             //此处弹出创建节点下拉窗口
+            StateNodeCreatDropdown dropDown = new StateNodeCreatDropdown(view, node, isOut, isChild);
+            dropDown.Show(new Rect(view.Canvas.MouseInView, new Vector2(250, 0)));
         }
     }
 }

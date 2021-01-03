@@ -1,7 +1,14 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using UnityEditor;
 
-public class SkillEditorWindow : StateGraphEditorWindow
+public class SkillEditorWindow : StateGraphEditorWindow<StateSkillGraph, StateGraphView>
 {
+    [MenuItem("Tools/StateEditor/技能编辑器")]
+    private static void OpenEditor()
+    {
+        GetWindow<SkillEditorWindow>();
+    }
+
     [UnityEditor.Callbacks.OnOpenAsset(3)]
     public static bool OpenAsset(int instanceID, int line)
     {
@@ -9,16 +16,19 @@ public class SkillEditorWindow : StateGraphEditorWindow
         if (obj is StateSkillGraph skillGraph)
         {
             var window = GetWindow<SkillEditorWindow>("技能编辑器");
-            if (window.View == null || window.View.Graph != skillGraph)
-            {
-                window.View = CreateInstance<StateGraphView>();
-                window.View.Init(skillGraph);
-                Undo.RecordObject(window, string.Format("open skill {0}", skillGraph.name));
-            }
+            window.Open(skillGraph);
             return true;
         }
         return false;
     }
 
+    protected override IReadOnlyCollection<StateSkillGraph> GetGraphs()
+    {
+        return SkillGraphCollector.Instance.Graphs;
+    }
 
+    protected override void OpenCreateWizard()
+    {
+        ScriptableWizard.DisplayWizard<SkillCreateWizard>("创建技能");
+    }
 }

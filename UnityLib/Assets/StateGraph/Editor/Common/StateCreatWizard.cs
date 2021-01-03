@@ -7,6 +7,10 @@ public abstract class StateCreatWizard<T> : ScriptableWizard  where T :StateGrap
     public T CopyFrom;
     private string lastCheckName;
     protected abstract string GetSaveDirectory();
+    /// <summary>
+    /// 检查文件名是否合法
+    /// </summary>
+    /// <returns>错误信息，没有错误返回null</returns>
     protected abstract string NameCheck();
 
     void OnWizardUpdate()
@@ -39,7 +43,7 @@ public abstract class StateCreatWizard<T> : ScriptableWizard  where T :StateGrap
         errorString = NameCheck();
     }
 
-    void OnWizardCreate()
+    public void OnWizardCreate()
     {
         do
         {

@@ -3,11 +3,12 @@ using UnityEngine;
 
 public class StateSkillGraph : StateGraph
 {
+    public const string SavePath = "Assets/Config/Skill/";
     public override bool CheckChildType(StateNode parent, Type childType)
     {
-        if (childType.IsSubclassOf(typeof(SkillAction)) && parent.NodeType.IsSubclassOf(typeof(SkillActionGroup)))
+        if (childType.IsSubclassOf(typeof(SkillAction)) && typeof(SkillActionGroup).IsAssignableFrom(parent.NodeType))
             return true;
-        if (childType.IsSubclassOf(typeof(SkillCondition)) && parent.NodeType.IsSubclassOf(typeof(SkillBranch)))
+        if (childType.IsSubclassOf(typeof(SkillCondition)) && typeof(SkillBranch).IsAssignableFrom(parent.NodeType))
             return true;
         return false;
     }

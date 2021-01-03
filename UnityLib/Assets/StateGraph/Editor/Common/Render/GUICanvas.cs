@@ -31,31 +31,8 @@ public class GUICanvas
             return scale;
         }
     }
-    private GUIStyle _DefultRectStyle;
-    public GUIStyle DefultRectStyle
-    {
-        get
-        {
-            if (_DefultRectStyle == null)
-            {
-                _DefultRectStyle = new GUIStyle
-                {
-                    normal =
-                    {
-                        background = Texture2D.whiteTexture,
-                        textColor = Color.black,
-                    },
-                    border = new RectOffset(10, 10, 10, 10),
-                    alignment = TextAnchor.MiddleCenter,
-                    wordWrap = true,
-                    clipping = TextClipping.Clip
-                };
-            }
-            return _DefultRectStyle; 
-        }
-    }
+
     private const float BOARD_RADIUS = 8;
-    private static readonly Vector4 FullBoardRadius = new Vector4(BOARD_RADIUS, BOARD_RADIUS, BOARD_RADIUS, BOARD_RADIUS);
     private static readonly Vector4 TopBoardRadius = new Vector4(BOARD_RADIUS, BOARD_RADIUS, 0, 0);
     private static readonly Vector4 BottomBoardRadius = new Vector4(0, 0, BOARD_RADIUS, BOARD_RADIUS);
     public Vector2 MouseInWorld { get; private set; }
@@ -120,7 +97,6 @@ public class GUICanvas
 
     public Event OnGUI(Vector2 size)
     {
-        GUI.DrawTexture(new Rect(Vector2.zero, size), Texture2D.blackTexture, ScaleMode.ScaleToFit);
         Event e = Event.current;
         HandleInput(e);
         PointInWorld = ScreenToWorld(e.mousePosition);
@@ -132,25 +108,17 @@ public class GUICanvas
     {
         if (rect.Overlaps(ViewInWorld))
         {
-            color.a = 0.8f;
+            color.a = 0.4f;
             GUI.DrawTexture(WorldToScreen(rect), Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, 0, 0);
         }
     }
 
-    public bool DrawImage(Rect bounds, GUIRenderImage img, Color color)
-    {
-        if (!bounds.Overlaps(ViewInWorld))
-            return false;
-        img.Draw(WorldToScreen(bounds), color);
-        return true;
-    }
-
-    public bool DrawText(Rect bounds, string content, GUIRenderFontStyle style)
+    public bool DrawText(Rect bounds, string content, string toolTip, GUIRenderFontStyle style)
     {
         if (!bounds.Overlaps(ViewInWorld))
             return false;
         style.Style.fontSize = Mathf.CeilToInt(style.FontSize * Scale);
-        GUI.Label(WorldToScreen(bounds), content, style.Style);
+        GUI.Label(WorldToScreen(bounds), new GUIContent(content, toolTip), style.Style);
         return true;
     }
 
@@ -198,9 +166,9 @@ public class GUICanvas
                 float offset = 2;
                 Vector2 pt1 = new Vector2(realRect.xMin - offset, realRect.yMin - offset);
                 Vector2 pt2 = new Vector2(realRect.xMax + offset, realRect.yMin - offset);
-                Vector2 pt3 = new Vector2(realRect.xMax + offset, realRect.yMax + offset);
-                Vector2 pt4 = new Vector2(realRect.xMin - offset, realRect.yMax + offset);
-                Handles.DrawAAPolyLine(1, pt1, pt2, pt3, pt4);
+                Vector2 pt3 = new Vector2(realRect.xMax + offset, realRect.yMax + offset + 1);
+                Vector2 pt4 = new Vector2(realRect.xMin - offset, realRect.yMax + offset + 1);
+                Handles.DrawAAPolyLine(1, pt1, pt2, pt3, pt4, pt1);
             }
         }
         return true;
@@ -210,13 +178,15 @@ public class GUICanvas
     {
         using (new Handles.DrawingScope(color))
         {
+            radius *= scale;
             if (wire)
             {
-                Handles.DrawWireDisc(WorldToScreen(pos), new Vector3(0, 0, 1), radius * scale);
+                Handles.DrawWireDisc(WorldToScreen(pos), new Vector3(0, 0, 1), radius);
+                //Handles.DrawWireDisc(WorldToScreen(pos), new Vector3(0, 0, 1), radius-1);
             }
             else
             {
-                Handles.DrawSolidDisc(WorldToScreen(pos), new Vector3(0, 0, 1), radius * scale);
+                Handles.DrawSolidDisc(WorldToScreen(pos), new Vector3(0, 0, 1), radius);
             }
 
         }

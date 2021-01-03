@@ -7,21 +7,21 @@ using UnityEngine;
 public class StateGraphView : ScriptableObject
 {
     public const float CHILD_INTERVAL = 3;//容器节点的子节点空隙
-    public const float NODE_WIDTH = 100;//普通节点的宽度
+    public const float NODE_WIDTH = 120;//普通节点的宽度
     public const float NODE_HEIGHT = 50;//普通节点的宽度
-    public const float STACK_TOP_HEIGHT = 20;//容器节点顶部预留高度
-    public const float STACK_BOTTOM_HEIGHT = 20;//容器节点底部预留高度
-    public const float STACK_LEFT_WIDTH = 10;//容器节点左侧预留宽度
+    public const float STACK_TOP_HEIGHT = NODE_HEIGHT*0.5f;//容器节点顶部预留高度
+    public const float STACK_BOTTOM_HEIGHT = STACK_TOP_HEIGHT;//容器节点底部预留高度
+    public const float STACK_LEFT_WIDTH = 20;//容器节点左侧预留宽度
     public const float STACK_NODE_WIDTH = STACK_LEFT_WIDTH + CHILD_INTERVAL + NODE_WIDTH;//容器节点宽度
     public const float PIN_WIDTH = 20;//连接点宽度
     public static readonly Vector2 NODE_SIZE = new Vector2(NODE_WIDTH, NODE_HEIGHT);//普通节点的大小
     public static readonly Vector2 PIN_SIZE = new Vector2(PIN_WIDTH, PIN_WIDTH);//连接点的大小
     public static readonly Color NormalNodeColor = new Color(0.1f, 0.1f, 0.1f, 0.5f);
     public static readonly Color StackNodeColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
-    public static readonly Color StackBoardColor = new Color(0.2f, 0.2f, 0.2f, 0.5f);
+    public static readonly Color StackBoardColor = new Color(0.4f, 0.4f, 0.4f, 0.8f);
     public static readonly Color CircleWireColor = new Color(0, 1, 1, 1);
     public static readonly Color CircleSoldColor = new Color(0, 1, 0.74f, 1);
-    public static readonly GUIRenderFontStyle DefultFontStyle = new GUIRenderFontStyle(15, null, Color.white, false, TextAnchor.MiddleCenter);
+    public static readonly GUIRenderFontStyle DefultFontStyle = new GUIRenderFontStyle(12, null, Color.white, false, TextAnchor.MiddleLeft);
 
     public StateGraph Graph;
     public List<StateNodeRef> Selecteds = new List<StateNodeRef>();
@@ -29,6 +29,9 @@ public class StateGraphView : ScriptableObject
     public int SelectIndex { get; set; }
     private IViewDragMode DragMode;
     private List<Type> _vaildTypes;
+    [SerializeField]
+    private EditorWindow editorWindow;//用来做Undo操作
+    private bool ignoreRightUp = false;
     public List<Type> VaildTypes
     {
         get
@@ -48,19 +51,40 @@ public class StateGraphView : ScriptableObject
         }
     }
 
-    public void Init(StateGraph graph)
+    public void Init(StateGraph graph, EditorWindow window)
     {
+        editorWindow = window;
         Graph = graph;
         SelectIndex = 0;
         if (graph.Nodes.Count > 1)
         {
             SelectIndex = graph.Nodes.Last().SortIndex;
         }
+        foreach (var node in Graph.Nodes)
+        {
+            UpdateBounds(node);
+        }
+        Undo.undoRedoPerformed += OnUndoRedo;
+    }
+
+    private void OnDestroy()
+    {
+        Undo.undoRedoPerformed -= OnUndoRedo;
+    }
+
+    private void OnUndoRedo()
+    {
+        Graph.Deserialize();
+        if (editorWindow)
+        {
+            editorWindow.Repaint();
+        }
     }
 
     public bool OnDraw(Vector2 size)
     {
         Event e = Canvas.OnGUI(size);
+        EventType eType = e.type;
         DrawLinkLins();
         DrawNodes();
         if (DragMode != null)
@@ -68,7 +92,10 @@ public class StateGraphView : ScriptableObject
             DragMode.Draw(this);
         }
         OnEvent(e);
-        return e.type == EventType.Used;
+        return e.type == EventType.Used 
+            && eType != EventType.Layout 
+            && eType != EventType.Repaint 
+            && eType != EventType.Used;
     }
 
     public virtual void UpdateBounds(StateNode node)
@@ -116,7 +143,7 @@ public class StateGraphView : ScriptableObject
             {
                 Vector2 from = GetOutputPinRect(link.From.Node).center;
                 Vector2 to = GetInputPinRect(link.To.Node).center;
-                Canvas.DrawLinkLines(from, to, Color.white, 5);
+                Canvas.DrawLinkLines(from, to, Color.white, 3);
             }
         }
     }
@@ -151,7 +178,7 @@ public class StateGraphView : ScriptableObject
         {
             topBound.position += new Vector2(PIN_WIDTH, 0);
             topBound.width -= PIN_WIDTH * 2;
-            Canvas.DrawText(topBound, node.Name, DefultFontStyle);
+            Canvas.DrawText(topBound, node.Name, node.Comments, DefultFontStyle);
             if (Graph.ChechInput(node))
             {
                 Vector2 pos = GetInputPinRect(node).center;
@@ -162,14 +189,14 @@ public class StateGraphView : ScriptableObject
                 }
 
                 Rect addRect = GetAddChildPinRect(node);
-                Canvas.DrawText(addRect, "+", DefultFontStyle);
+                Canvas.DrawText(addRect, "+", null, DefultFontStyle);
             }
         }
         childLinkTmp.Clear();
         {//左侧区域
             Rect centerLeftRect = node.Bounds;
-            centerLeftRect.position += new Vector2(STACK_TOP_HEIGHT, 0);
-            centerLeftRect.height -= (STACK_BOTTOM_HEIGHT + STACK_TOP_HEIGHT);
+            centerLeftRect.position += new Vector2(0, STACK_TOP_HEIGHT);
+            centerLeftRect.height -= (STACK_BOTTOM_HEIGHT + STACK_TOP_HEIGHT + 1);
             centerLeftRect.width = STACK_LEFT_WIDTH;
             Canvas.DrawRect(centerLeftRect, StackBoardColor, false, false);
         }
@@ -187,13 +214,13 @@ public class StateGraphView : ScriptableObject
             if (childLinkTmp.Count > 1)
             {
                 Rect btnSize = link.To.Node.Bounds;
-                btnSize.position -= new Vector2(STACK_LEFT_WIDTH + CHILD_INTERVAL, 0);
+                btnSize.position -= new Vector2(STACK_LEFT_WIDTH - 1, -3);
                 btnSize.width = STACK_LEFT_WIDTH;
                 btnSize.height = NODE_HEIGHT * 0.5f;
                 if (i > 0)
                 {
                     //上移按钮
-                    if (GUI.Button(btnSize, "▲"))
+                    if (GUI.Button(btnSize, "▲", StateGraphEditorStyles.TxtButtonStyle.GetStyle(Canvas.Scale)))
                     {
                         ChildNodeMoveUp(link.To);
                     }
@@ -202,7 +229,7 @@ public class StateGraphView : ScriptableObject
                 {
                     btnSize.position += new Vector2(0, NODE_HEIGHT * 0.5f);
                     //下移按钮
-                    if (GUI.Button(btnSize, "▼"))
+                    if (GUI.Button(btnSize, "▼", StateGraphEditorStyles.TxtButtonStyle.GetStyle(Canvas.Scale)))
                     {
                         ChildNodeMoveDown(link.To);
                     }
@@ -227,12 +254,12 @@ public class StateGraphView : ScriptableObject
     protected virtual void DrawNormalNode(StateNode node)
     {
         bool isChildNode = node.Parent;
-        if (Canvas.DrawRect(node.Bounds, NormalNodeColor, !isChildNode, !isChildNode , Selecteds.Contains(node)))
+        if (Canvas.DrawRect(node.Bounds, NormalNodeColor, true, true , Selecteds.Contains(node)))
         {
             Rect txtBound = node.Bounds;
             txtBound.width -= PIN_WIDTH * 2;
             txtBound.center = node.Bounds.center;
-            Canvas.DrawText(node.Bounds, node.Name, DefultFontStyle);
+            Canvas.DrawText(txtBound, node.Name, node.Comments, DefultFontStyle);
             if (Graph.ChechInput(node))
             {
                 Vector2 pos = GetInputPinRect(node).center;
@@ -258,7 +285,7 @@ public class StateGraphView : ScriptableObject
     {
         if (e.type == EventType.MouseDown && e.button <= 1 )
         {
-            OnClick(e.alt, e.button == 0);
+            OnClick(e.control, e.button == 0);
             e.Use();
             return;
         }
@@ -266,14 +293,19 @@ public class StateGraphView : ScriptableObject
         {
             if (DragMode != null && e.button == 0)
             {
+                DragMode.OnDragEnd(this, Canvas.MouseInWorld);
                 DragMode = null;
                 e.Use();
                 return;
             }
             if (e.button == 1)
             {
-                OnMenu();
                 e.Use();
+                if (!ignoreRightUp)
+                {
+                    OnMenu();
+                }
+                ignoreRightUp = false;
                 return;
             }
         }
@@ -290,9 +322,10 @@ public class StateGraphView : ScriptableObject
                 //移动View
                 Canvas.Pan(-e.delta);
                 e.Use();
+                ignoreRightUp = true;
                 return;
             }
-            if (e.button == 1)
+            if (e.button == 0)
             {
                 if (Selecteds.Count > 0)
                 {
@@ -349,7 +382,7 @@ public class StateGraphView : ScriptableObject
         }
     }
 
-    private void OnClick(bool isAlt, bool isLeft)
+    private void OnClick(bool isCtrl, bool isLeft)
     {
         var hitNode = HitTest(Canvas.MouseInWorld);
         if (hitNode == null)
@@ -363,16 +396,19 @@ public class StateGraphView : ScriptableObject
                 if (Graph.CheckOutput(hitNode) && GetOutputPinRect(hitNode).Contains(Canvas.MouseInWorld))
                 {
                     BreakOutputLink(hitNode);
+                    ignoreRightUp = true;
                     return;
                 }
                 if (Graph.ChechInput(hitNode) && GetInputPinRect(hitNode).Contains(Canvas.MouseInWorld))
                 {
                     BreakInputLink(hitNode);
+                    ignoreRightUp = true;
                     return;
                 }
                 if (Graph.IsStack(hitNode) && GetAddChildPinRect(hitNode).Contains(Canvas.MouseInWorld))
                 {
                     BreakChildLink(hitNode);
+                    ignoreRightUp = true;
                     return;
                 }
             }
@@ -380,7 +416,7 @@ public class StateGraphView : ScriptableObject
             if (hasSelected && !isLeft)
                 return;
 
-            if (!isAlt)
+            if (!isCtrl)
             {
                 if (hasSelected && Selecteds.Count > 0)
                 {
@@ -409,6 +445,15 @@ public class StateGraphView : ScriptableObject
                             DragMode = new ViewLinkMode(hitNode, true, false, rect.center);
                         }
                     } while (false);
+                }
+                else
+                {
+                    if (!hasSelected)
+                    {
+                        Selecteds.Clear();
+                        Selecteds.Add(hitNode);
+                        MoveNodeToBack(hitNode);
+                    }
                 }
             }
             else
@@ -593,6 +638,12 @@ public class StateGraphView : ScriptableObject
                 var link = Graph.Links[swapIndex];
                 Graph.Links[swapIndex] = Graph.Links[oldIndex];
                 Graph.Links[oldIndex] = link;
+                //重新排序， 刷新位置
+                int oldSortIndex = link.To.Node.SortIndex;
+                link.To.Node.SortIndex = Graph.Links[swapIndex].To.Node.SortIndex;
+                Graph.Links[swapIndex].To.Node.SortIndex = oldSortIndex;
+                SortNodes();
+                UpdateBounds(link.From.Node);
             }
         }
     }
@@ -618,6 +669,13 @@ public class StateGraphView : ScriptableObject
                 var link = Graph.Links[swapIndex];
                 Graph.Links[swapIndex] = Graph.Links[oldIndex];
                 Graph.Links[oldIndex] = link;
+
+                //重新排序， 刷新位置
+                int oldSortIndex = link.To.Node.SortIndex;
+                link.To.Node.SortIndex = Graph.Links[swapIndex].To.Node.SortIndex;
+                Graph.Links[swapIndex].To.Node.SortIndex = oldSortIndex;
+                SortNodes();
+                UpdateBounds(link.From.Node);
             }
         }
     }
@@ -656,6 +714,8 @@ public class StateGraphView : ScriptableObject
     {
         Undo.RegisterCompleteObjectUndo(Graph, name);
         Undo.RegisterCompleteObjectUndo(this, name);
+        if (editorWindow)
+            Undo.RegisterCompleteObjectUndo(editorWindow, name);
         EditorUtility.SetDirty(Graph);
     }
 
@@ -680,29 +740,43 @@ public class StateGraphView : ScriptableObject
         if (Selecteds.Count == 0)
         {
             var dropDown = new StateNodeCreatDropdown(this, StateNodeRef.Empty, false, false);
-            dropDown.Show(new Rect(Canvas.MouseInView, new Vector2(150, 20)));
+            dropDown.Show(new Rect(Canvas.MouseInView, new Vector2(250, 20)));
             return;
         }
         var menu = new GenericMenu();
         int copyCount = Selecteds.Count(it => Graph.CheckCopy(it.Node));
-        menu.AddItem(new GUIContent("复制"), copyCount > 0, CopyNodes);
-        menu.AddItem(new GUIContent("粘贴"), StateNodeClipboard.Clipboard.ContainsKey(Graph.GetType()), PasteFromClipboard);
-        menu.AddItem(new GUIContent("Duplicate"), copyCount > 0, ()=>Duplicate());
+
+        AddMenuItem(menu, "复制", copyCount > 0, CopyNodes);
+        AddMenuItem(menu, "粘贴", StateNodeClipboard.Clipboard.ContainsKey(Graph.GetType()), PasteFromClipboard);
+        AddMenuItem(menu, "Duplicate", copyCount > 0, ()=>Duplicate());
         menu.AddSeparator("");
-        menu.AddItem(new GUIContent("删除"), Graph.CheckDelete(Selecteds[0]), () => DeleteSelectedNode());
-        menu.AddSeparator("");
+        AddMenuItem(menu, "删除", Graph.CheckDelete(Selecteds[0]), () => DeleteSelectedNode());
         if (Selecteds.Count == 0)
         {
+            menu.AddSeparator("");
             var node = Selecteds[0];
-            menu.AddItem(new GUIContent("替换"), VaildTypes.Count(it => Graph.CheckReplace(node.Node.NodeType, it)) > 0, () =>
+            AddMenuItem(menu, "替换", VaildTypes.Count(it => Graph.CheckReplace(node.Node.NodeType, it)) > 0, () =>
             {
                 var dropDown = new StateNodeReplaceDropdown(this, node);
-                dropDown.Show(new Rect(Canvas.MouseInView, new Vector2(150, 20)));
+                dropDown.Show(new Rect(Canvas.MouseInView, new Vector2(250, 0)));
             });
             if (Graph.IsStack(node.Node))
             {
-                menu.AddItem(new GUIContent("清空组"), Graph.Links.Exists(it=>it.IsChild && it.From == node), ()=>BreakChildLink(node));
+                AddMenuItem(menu, "清空组", Graph.Links.Exists(it=>it.IsChild && it.From == node), ()=>BreakChildLink(node));
             }
+        }
+        menu.ShowAsContext();
+    }
+
+    protected void AddMenuItem(GenericMenu menu, string name, bool active, GenericMenu.MenuFunction func)
+    {
+        if (active)
+        {
+            menu.AddItem(new GUIContent(name), false, func);
+        }
+        else
+        {
+            menu.AddDisabledItem(new GUIContent(name));
         }
     }
 }
