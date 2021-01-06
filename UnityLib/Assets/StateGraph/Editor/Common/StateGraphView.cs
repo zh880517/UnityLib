@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class StateGraphView : ScriptableObject
 {
-    public const float CHILD_INTERVAL = 3;//容器节点的子节点空隙
+    public const float CHILD_INTERVAL = 2;//容器节点的子节点空隙
     public const float NODE_WIDTH = 120;//普通节点的宽度
     public const float NODE_HEIGHT = 50;//普通节点的宽度
     public const float STACK_TOP_HEIGHT = NODE_HEIGHT*0.5f;//容器节点顶部预留高度
@@ -15,10 +15,10 @@ public class StateGraphView : ScriptableObject
     public const float STACK_NODE_WIDTH = STACK_LEFT_WIDTH + CHILD_INTERVAL + NODE_WIDTH;//容器节点宽度
     public const float PIN_WIDTH = 20;//连接点宽度
     public static readonly Vector2 NODE_SIZE = new Vector2(NODE_WIDTH, NODE_HEIGHT);//普通节点的大小
-    public static readonly Vector2 PIN_SIZE = new Vector2(PIN_WIDTH, PIN_WIDTH);//连接点的大小
-    public static readonly Color NormalNodeColor = new Color(0.1f, 0.1f, 0.1f, 0.5f);
-    public static readonly Color StackNodeColor = new Color(0.3f, 0.3f, 0.3f, 0.5f);
-    public static readonly Color StackBoardColor = new Color(0.4f, 0.4f, 0.4f, 0.8f);
+    public static readonly Vector2 PIN_SIZE = new Vector2(PIN_WIDTH + 5, PIN_WIDTH + 5);//连接点的大小
+    public static readonly Color NormalNodeColor = new Color(0.1f, 0.1f, 0.1f, 0.8f);
+    public static readonly Color StackNodeColor = new Color(0.3f, 0.3f, 0.3f, 0.8f);
+    public static readonly Color StackBoardColor = new Color(0.35f, 0.35f, 0.35f, 0.7f);
     public static readonly Color CircleWireColor = new Color(0, 1, 1, 1);
     public static readonly Color CircleSoldColor = new Color(0, 1, 0.74f, 1);
     public static readonly GUIRenderFontStyle DefultFontStyle = new GUIRenderFontStyle(12, null, Color.white, false, TextAnchor.MiddleLeft);
@@ -83,8 +83,9 @@ public class StateGraphView : ScriptableObject
 
     public bool OnDraw(Vector2 size)
     {
-        Event e = Canvas.OnGUI(size);
+        Event e = Event.current;
         EventType eType = e.type;
+        Canvas.OnGUI(size, e);
         DrawLinkLins();
         DrawNodes();
         if (DragMode != null)
@@ -107,7 +108,7 @@ public class StateGraphView : ScriptableObject
             {
                 size.x = STACK_NODE_WIDTH;
                 size.y = STACK_TOP_HEIGHT + CHILD_INTERVAL + STACK_BOTTOM_HEIGHT;
-                Vector2 pos = node.Bounds.position + new Vector2(STACK_LEFT_WIDTH, STACK_TOP_HEIGHT + CHILD_INTERVAL);
+                Vector2 pos = node.Bounds.position + new Vector2(STACK_LEFT_WIDTH + CHILD_INTERVAL, STACK_TOP_HEIGHT + CHILD_INTERVAL);
                 foreach (var link in Graph.Links)
                 {
                     if (link.IsChild && link.From.Node == node)
@@ -160,7 +161,7 @@ public class StateGraphView : ScriptableObject
                 }
                 else
                 {
-                    DrawNormalNode(node);
+                    DrawNormalNode(node, false);
                 }
             }
         }
@@ -178,7 +179,7 @@ public class StateGraphView : ScriptableObject
         {
             topBound.position += new Vector2(PIN_WIDTH, 0);
             topBound.width -= PIN_WIDTH * 2;
-            Canvas.DrawText(topBound, node.Name, node.Comments, DefultFontStyle);
+            Canvas.DrawText(topBound, node.Name, node.Comments, StateGraphEditorStyles.NodeNameStyle);
             if (Graph.ChechInput(node))
             {
                 Vector2 pos = GetInputPinRect(node).center;
@@ -189,14 +190,15 @@ public class StateGraphView : ScriptableObject
                 }
 
                 Rect addRect = GetAddChildPinRect(node);
-                Canvas.DrawText(addRect, "+", null, DefultFontStyle);
+
+                Canvas.DrawText(addRect, "✚", null, StateGraphEditorStyles.TxtButtonStyle);
             }
         }
         childLinkTmp.Clear();
         {//左侧区域
             Rect centerLeftRect = node.Bounds;
-            centerLeftRect.position += new Vector2(0, STACK_TOP_HEIGHT);
-            centerLeftRect.height -= (STACK_BOTTOM_HEIGHT + STACK_TOP_HEIGHT + 1);
+            centerLeftRect.position += new Vector2(0, STACK_TOP_HEIGHT + CHILD_INTERVAL);
+            centerLeftRect.height -= (STACK_BOTTOM_HEIGHT + STACK_TOP_HEIGHT  + CHILD_INTERVAL*2);
             centerLeftRect.width = STACK_LEFT_WIDTH;
             Canvas.DrawRect(centerLeftRect, StackBoardColor, false, false);
         }
@@ -210,11 +212,11 @@ public class StateGraphView : ScriptableObject
         for (int i=0; i<childLinkTmp.Count; ++i)
         {
             var link = childLinkTmp[i];
-            DrawNormalNode(link.To.Node);
+            DrawNormalNode(link.To.Node, true);
             if (childLinkTmp.Count > 1)
             {
                 Rect btnSize = link.To.Node.Bounds;
-                btnSize.position -= new Vector2(STACK_LEFT_WIDTH - 1, -3);
+                btnSize.position -= new Vector2(STACK_LEFT_WIDTH + 1, -3);
                 btnSize.width = STACK_LEFT_WIDTH;
                 btnSize.height = NODE_HEIGHT * 0.5f;
                 if (i > 0)
@@ -251,15 +253,15 @@ public class StateGraphView : ScriptableObject
         }
     }
 
-    protected virtual void DrawNormalNode(StateNode node)
+    protected virtual void DrawNormalNode(StateNode node, bool isChild)
     {
         bool isChildNode = node.Parent;
-        if (Canvas.DrawRect(node.Bounds, NormalNodeColor, true, true , Selecteds.Contains(node)))
+        if (Canvas.DrawRect(node.Bounds, StackBoardColor, !isChild, !isChild, Selecteds.Contains(node)))
         {
             Rect txtBound = node.Bounds;
             txtBound.width -= PIN_WIDTH * 2;
             txtBound.center = node.Bounds.center;
-            Canvas.DrawText(txtBound, node.Name, node.Comments, DefultFontStyle);
+            Canvas.DrawText(txtBound, node.Name, node.Comments, StateGraphEditorStyles.NodeNameStyle);
             if (Graph.ChechInput(node))
             {
                 Vector2 pos = GetInputPinRect(node).center;
@@ -513,33 +515,35 @@ public class StateGraphView : ScriptableObject
     {
         if (Graph.CheckLink(from, to, isChild))
         {
-            RegistUndo("link");
+            if (registUndo)
+            {
+                RegistUndo("link");
+            }
             var oldLink = Graph.Links.Find(obj => obj.From == from && obj.To == to);
             Graph.AddLink(from, to, isChild);
-            if (isChild)
+            foreach (var node in Graph.Nodes)
             {
-                UpdateBounds(from);
-            }
-            if (oldLink != null && oldLink.IsChild && oldLink.From != from)
-            {
-                UpdateBounds(oldLink.From.Node);
+                UpdateBounds(node);
             }
             MoveNodeToBack(from);
         }
     }
 
-    public void BreakInputLink(StateNodeRef node)
+    public void BreakInputLink(StateNodeRef nodeRef)
     {
-        var link = Graph.Links.Find(it => it.To == node);
+        var link = Graph.Links.Find(it => it.To == nodeRef);
         if (link != null)
         {
             RegistUndo("break input link");
-            node.Node.Parent = StateNodeRef.Empty;
+            nodeRef.Node.Parent = StateNodeRef.Empty;
             Graph.Links.Remove(link);
-            UpdateBounds(link.From.Node);
             if (link.IsChild)
             {
-                node.Node.Bounds.position += new Vector2(link.From.Node.Bounds.width, 0);
+                nodeRef.Node.Bounds.position += new Vector2(link.From.Node.Bounds.width, 0);
+            }
+            foreach (var node in Graph.Nodes)
+            {
+                UpdateBounds(node);
             }
         }
     }

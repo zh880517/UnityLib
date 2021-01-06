@@ -33,6 +33,7 @@ public class GUICanvas
     }
 
     private const float BOARD_RADIUS = 8;
+    private const float LINK_LINE_OFFSET = 20;
     private static readonly Vector4 TopBoardRadius = new Vector4(BOARD_RADIUS, BOARD_RADIUS, 0, 0);
     private static readonly Vector4 BottomBoardRadius = new Vector4(0, 0, BOARD_RADIUS, BOARD_RADIUS);
     public Vector2 MouseInWorld { get; private set; }
@@ -95,13 +96,11 @@ public class GUICanvas
     public Vector2 PointInWorld { get; private set; }
     public Rect ViewInWorld { get; private set; }
 
-    public Event OnGUI(Vector2 size)
+    public void OnGUI(Vector2 size, Event e)
     {
-        Event e = Event.current;
         HandleInput(e);
         PointInWorld = ScreenToWorld(e.mousePosition);
         ViewInWorld = ScreenToWorld(new Rect(Vector2.zero, size));
-        return e;
     }
 
     public void DrawArea(Rect rect, Color color)
@@ -113,12 +112,11 @@ public class GUICanvas
         }
     }
 
-    public bool DrawText(Rect bounds, string content, string toolTip, GUIRenderFontStyle style)
+    public bool DrawText(Rect bounds, string content, string toolTip, GUIRenderStyle style)
     {
         if (!bounds.Overlaps(ViewInWorld))
             return false;
-        style.Style.fontSize = Mathf.CeilToInt(style.FontSize * Scale);
-        GUI.Label(WorldToScreen(bounds), new GUIContent(content, toolTip), style.Style);
+        GUI.Label(WorldToScreen(bounds), new GUIContent(content, toolTip), style.GetStyle(scale));
         return true;
     }
 
@@ -139,11 +137,30 @@ public class GUICanvas
     public bool DrawLinkLines(Vector2 from, Vector2 to, Color color, float width)
     {
         width *= Scale;
+        if (!ViewInWorld.Contains(from) && !ViewInWorld.Contains(to))
+            return false;
+        using (new Handles.DrawingScope(new Color(0, 1, 0.74f, 0.8f)))
+        {
+            if (Mathf.Abs(from.y - to.y) < 1)
+            {
+                Handles.DrawAAPolyLine(width, WorldToScreen(from), WorldToScreen(to));
+            }
+            else
+            {
+                from = WorldToScreen(from);
+                to = WorldToScreen(to);
+                Vector2 pt1 = from + new Vector2(LINK_LINE_OFFSET * Scale, 0);
+                Vector2 pt2 = to - new Vector2(LINK_LINE_OFFSET * Scale, 0);
+                Handles.DrawAAPolyLine(width, from, pt1, pt2, to);
+            }
+        }
+        /*
         Vector3[] points, tangents;
         from = WorldToScreen(from);
         to = WorldToScreen(to);
         GetTangents(from, to, out points, out tangents);
         Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], color, null, width);
+        */
         return true;
     }
 
@@ -156,7 +173,6 @@ public class GUICanvas
             boardRadius += TopBoardRadius;
         if (bottomCorner)
             boardRadius += BottomBoardRadius;
-        color.a = 0.4f;
         Rect realRect = WorldToScreen(rect);
         GUI.DrawTexture(realRect, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, Vector4.zero, boardRadius*Scale);
         if (outLine)
@@ -166,9 +182,9 @@ public class GUICanvas
                 float offset = 2;
                 Vector2 pt1 = new Vector2(realRect.xMin - offset, realRect.yMin - offset);
                 Vector2 pt2 = new Vector2(realRect.xMax + offset, realRect.yMin - offset);
-                Vector2 pt3 = new Vector2(realRect.xMax + offset, realRect.yMax + offset + 1);
-                Vector2 pt4 = new Vector2(realRect.xMin - offset, realRect.yMax + offset + 1);
-                Handles.DrawAAPolyLine(1, pt1, pt2, pt3, pt4, pt1);
+                Vector2 pt3 = new Vector2(realRect.xMax + offset, realRect.yMax + offset);
+                Vector2 pt4 = new Vector2(realRect.xMin - offset, realRect.yMax + offset);
+                Handles.DrawAAPolyLine(2, pt1, pt2, pt3, pt4, pt1);
             }
         }
         return true;

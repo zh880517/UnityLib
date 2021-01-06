@@ -27,7 +27,7 @@ public class ViewAreaSelectMode : IViewDragMode
     {
         view.Selecteds.Clear();
         Vector2 size = ptInWorld - Start;
-        Area.center = size * 0.5f;
+        Area.center = Start + size * 0.5f;
         size.x = Mathf.Abs(size.x);
         size.y = Mathf.Abs(size.y);
         Area.size = size;

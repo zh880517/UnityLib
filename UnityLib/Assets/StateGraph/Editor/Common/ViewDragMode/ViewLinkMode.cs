@@ -14,32 +14,36 @@ public class ViewLinkMode : IViewDragMode
         this.isOut = isOut;
         this.isChild = isChild;
         startPos = pos;
+        currentPos = pos;
     }
 
     public void Draw(StateGraphView view)
     {
-        view.Canvas.DrawLinkLines(startPos, currentPos, Color.yellow, 3);
-
-        var currNode = view.HitTest(currentPos);
-        if (currNode != null && currNode != node)
+        if (Vector2.Distance(startPos, currentPos) > 1)
         {
-            StateNode from;
-            StateNode to;
-            if (isOut)
+            view.Canvas.DrawLinkLines(startPos, currentPos, Color.yellow, 3);
+            var currNode = view.HitTest(currentPos);
+            if (currNode != null && currNode != node)
             {
-                from = node.Node;
-                to = currNode;
-            }
-            else
-            {
-                to = node.Node;
-                from = currNode;
-            }
-            if (view.Graph.CheckLink(from, to, isChild))
-            {
-                view.Canvas.DrawArea(currNode.Bounds, Color.yellow);
+                StateNode from;
+                StateNode to;
+                if (isOut)
+                {
+                    from = node.Node;
+                    to = currNode;
+                }
+                else
+                {
+                    to = node.Node;
+                    from = currNode;
+                }
+                if (view.Graph.CheckLink(from, to, isChild))
+                {
+                    view.Canvas.DrawArea(currNode.Bounds, Color.yellow);
+                }
             }
         }
+
     }
 
     public void OnDrag(StateGraphView view, Vector2 ptInWorld)
