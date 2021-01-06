@@ -4,11 +4,11 @@ using UnityEngine;
 public class StateNode
 {
     public Rect Bounds;
-    [HideInInspector]
     public ulong ID;
     public SerializationData data;
-    public IStateNode NodeData { get; set; }
-    [HideInInspector]
+    [NonSerialized]
+    public IStateNode NodeData;
+    public SerializationData SaveData;
     [SerializeReference]
     public StateGraph Graph;
     public int SortIndex;//用来做排序，方便处理渲染顺序
@@ -17,6 +17,16 @@ public class StateNode
     public string Comments;//注释
 
     public Type NodeType => NodeData?.GetType();
+
+    public void Serialize()
+    {
+        SaveData = TypeSerializerHelper.Serialize(NodeData);
+    }
+
+    public void Deserialize()
+    {
+        NodeData = TypeSerializerHelper.Deserialize(SaveData) as IStateNode;
+    }
 
     public static implicit operator StateNodeRef(StateNode exists)
     {

@@ -9,8 +9,6 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     [HideInInspector]
     private ulong IdIndex;
     public int SerializeVersion { get; private set; } = 1;
-    [SerializeField]
-    private List<SerializationData> NodeDatas = new List<SerializationData>();
     public List<StateNode> Nodes = new List<StateNode>();
     public List<StateNodeLink> Links = new List<StateNodeLink>();
     public StateBlackboard Blackboard = new StateBlackboard();
@@ -83,11 +81,9 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     }
     public void OnBeforeSerialize()
     {
-        NodeDatas.Clear();
         for (int i=0; i<Nodes.Count; ++i)
         {
-            var data = TypeSerializerHelper.Serialize(Nodes[i].NodeData);
-            NodeDatas.Add(data);
+            Nodes[i].Serialize();
         }
     }
 
@@ -95,8 +91,7 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     {
         for (int i = 0; i < Nodes.Count; ++i)
         {
-            IStateNode data = TypeSerializerHelper.Deserialize(NodeDatas[i]) as IStateNode;
-            Nodes[i].NodeData = data;
+            Nodes[i].Deserialize();
         }
     }
 
