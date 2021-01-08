@@ -152,7 +152,7 @@ public class GUICanvas
         {
             from = WorldToScreen(from);
             to = WorldToScreen(to);
-            if (Mathf.Abs(from.y - to.y) < 2)
+            if (Mathf.Abs(from.y - to.y) < 10)
             {
                 Handles.DrawAAPolyLine(width, from, to);
             }

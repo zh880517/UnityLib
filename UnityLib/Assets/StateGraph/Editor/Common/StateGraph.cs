@@ -30,7 +30,7 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
         {
             Bounds = bounds,
             ID = ++IdIndex,
-            NodeData = nodeData,
+            Data = nodeData,
             Graph = this,
             Name = name
         };

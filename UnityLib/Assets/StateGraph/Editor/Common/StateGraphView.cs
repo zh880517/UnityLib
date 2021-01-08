@@ -724,12 +724,12 @@ public class StateGraphView : ScriptableObject
 
     public void RepleaceNode(StateNode node, Type type)
     {
-        if (Graph.CheckReplace(node.NodeData.GetType(), type))
+        if (Graph.CheckReplace(node.Data.GetType(), type))
         {
             RegistUndo("replace node");
-            string json = EditorJsonUtility.ToJson(node.NodeData);
-            node.NodeData = Activator.CreateInstance(type) as IStateNode;
-            EditorJsonUtility.FromJsonOverwrite(json, node.NodeData);
+            string json = EditorJsonUtility.ToJson(node.Data);
+            node.Data = Activator.CreateInstance(type) as IStateNode;
+            EditorJsonUtility.FromJsonOverwrite(json, node.Data);
         }
     }
 

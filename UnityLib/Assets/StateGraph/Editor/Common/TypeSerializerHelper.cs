@@ -47,6 +47,10 @@ public static class TypeSerializerHelper
     }
     public static SerializationData Serialize(object obj)
     {
+        if (obj == null)
+        {
+            throw new Exception("序列化目标对象不能为null");
+        }
         SerializationData elem = new SerializationData
         {
             Type = obj.GetType().FullName

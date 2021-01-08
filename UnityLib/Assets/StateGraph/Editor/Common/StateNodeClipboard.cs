@@ -34,7 +34,7 @@ public class StateNodeClipboard
             { 
                 Id= node.Id,
                 Bounds = node.Node.Bounds,
-                Data = TypeSerializerHelper.Serialize(node.Node.NodeData),
+                Data = TypeSerializerHelper.Serialize(node.Node.Data),
                 Name = node.Node.Name,
                 Comments = node.Node.Comments,
             };

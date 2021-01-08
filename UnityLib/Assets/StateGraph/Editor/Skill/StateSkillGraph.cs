@@ -31,25 +31,25 @@ public class StateSkillGraph : StateGraph
 
     public override bool IsStack(StateNode node)
     {
-        return node.NodeData is SkillBranch || node.NodeData is SkillActionGroup;
+        return node.Data is SkillBranch || node.Data is SkillActionGroup;
     }
     public override bool ChechInput(StateNodeRef node)
     {
-        return !(node.Node.NodeData is SkillEntry);
+        return !(node.Node.Data is SkillEntry);
     }
 
     public override bool CheckOutput(StateNodeRef node)
     {
-        return !(node.Node.NodeData is SkillAction);
+        return !(node.Node.Data is SkillAction);
     }
     public override bool CheckCopy(StateNodeRef node)
     {
-        return !(node.Node.NodeData is SkillEntry);
+        return !(node.Node.Data is SkillEntry);
     }
 
     public override bool CheckDelete(StateNodeRef node)
     {
-        return !(node.Node.NodeData is SkillEntry);
+        return !(node.Node.Data is SkillEntry);
     }
 
     protected override void OnCreat()

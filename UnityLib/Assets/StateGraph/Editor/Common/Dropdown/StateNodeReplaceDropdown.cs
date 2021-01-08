@@ -11,7 +11,7 @@ public class StateNodeReplaceDropdown : StateNodeTypeDropDown
 
     protected override bool CheckType(Type type)
     {
-        return View.Graph.CheckReplace(node.Node.NodeData.GetType(), type);
+        return View.Graph.CheckReplace(node.Node.Data.GetType(), type);
     }
 
     protected override void OnSelectType(Type type)
