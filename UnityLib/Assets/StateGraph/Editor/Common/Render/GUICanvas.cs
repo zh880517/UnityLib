@@ -33,7 +33,7 @@ public class GUICanvas
     }
 
     private const float BOARD_RADIUS = 8;
-    private const float LINK_LINE_OFFSET = 20;
+    private const float LINK_LINE_OFFSET = 30;
     private static readonly Vector4 TopBoardRadius = new Vector4(BOARD_RADIUS, BOARD_RADIUS, 0, 0);
     private static readonly Vector4 BottomBoardRadius = new Vector4(0, 0, BOARD_RADIUS, BOARD_RADIUS);
     public Vector2 MouseInWorld { get; private set; }
@@ -87,6 +87,7 @@ public class GUICanvas
 
             var newGraphPosition = ScreenToWorld(e.mousePosition);
             position += originalGraphPosition - newGraphPosition;
+            e.Use();
             return true;
         }
         MouseInView = e.mousePosition;
@@ -120,6 +121,13 @@ public class GUICanvas
         return true;
     }
 
+    public bool DrawButton(Rect bounds, string content, GUIRenderStyle style)
+    {
+        if (!bounds.Overlaps(ViewInWorld))
+            return false;
+        return GUI.Button(WorldToScreen(bounds), content, style.GetStyle(scale));
+    }
+
     private static void GetTangents(Vector2 start, Vector2 end, out Vector3[] points, out Vector3[] tangents)
     {
         points = new Vector3[] { start, end };
@@ -139,28 +147,40 @@ public class GUICanvas
         width *= Scale;
         if (!ViewInWorld.Contains(from) && !ViewInWorld.Contains(to))
             return false;
-        using (new Handles.DrawingScope(new Color(0, 1, 0.74f, 0.8f)))
+        float offet = LINK_LINE_OFFSET * Scale;
+        using (new Handles.DrawingScope(color))
         {
-            if (Mathf.Abs(from.y - to.y) < 1)
+            from = WorldToScreen(from);
+            to = WorldToScreen(to);
+            if (Mathf.Abs(from.y - to.y) < 2)
             {
-                Handles.DrawAAPolyLine(width, WorldToScreen(from), WorldToScreen(to));
+                Handles.DrawAAPolyLine(width, from, to);
             }
             else
             {
-                from = WorldToScreen(from);
-                to = WorldToScreen(to);
-                Vector2 pt1 = from + new Vector2(LINK_LINE_OFFSET * Scale, 0);
-                Vector2 pt2 = to - new Vector2(LINK_LINE_OFFSET * Scale, 0);
-                Handles.DrawAAPolyLine(width, from, pt1, pt2, to);
+                
+                var p1 = from + new Vector2(offet, 0);
+                
+                var p3 = to - new Vector2(offet, 0);
+                var diff = p3 - p1;
+                var dir = diff.normalized;
+                var distance = diff.magnitude*0.5f;
+                if (offet > distance)
+                {
+                    offet = distance;
+                }
+                Vector2 p4 = p1 + dir * offet;
+                Vector2 p5 = p3 - dir * offet;
+                //出口
+                Handles.DrawBezier(from, p4, p1, p1, color, null, width);
+                //入口
+                Handles.DrawBezier(to, p5, p3, p3, color, null, width);
+
+                //单条线颜色太浅，和贝塞尔曲线的颜色不匹配
+                Handles.DrawAAPolyLine(width, p5, p4);
+                Handles.DrawAAPolyLine(width, p5, p4);
             }
         }
-        /*
-        Vector3[] points, tangents;
-        from = WorldToScreen(from);
-        to = WorldToScreen(to);
-        GetTangents(from, to, out points, out tangents);
-        Handles.DrawBezier(points[0], points[1], tangents[0], tangents[1], color, null, width);
-        */
         return true;
     }
 
@@ -177,34 +197,24 @@ public class GUICanvas
         GUI.DrawTexture(realRect, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, Vector4.zero, boardRadius*Scale);
         if (outLine)
         {
-            using (new Handles.DrawingScope(new Color(0, 1, 0.74f, 0.8f)))
-            {
-                float offset = 2;
-                Vector2 pt1 = new Vector2(realRect.xMin - offset, realRect.yMin - offset);
-                Vector2 pt2 = new Vector2(realRect.xMax + offset, realRect.yMin - offset);
-                Vector2 pt3 = new Vector2(realRect.xMax + offset, realRect.yMax + offset);
-                Vector2 pt4 = new Vector2(realRect.xMin - offset, realRect.yMax + offset);
-                Handles.DrawAAPolyLine(2, pt1, pt2, pt3, pt4, pt1);
-            }
+            
+            Color lineColor = new Color32(68, 192, 255, 200);
+            realRect.position -= new Vector2(2, 2);
+            realRect.size += new Vector2(4, 4);
+            float width = Mathf.Floor(2 * Scale);
+            GUI.DrawTexture(realRect, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, lineColor, Vector4.one* width, boardRadius * Scale);
         }
         return true;
     }
 
     public void DrawCircle(Vector2 pos, Color color, float radius, bool wire)
     {
-        using (new Handles.DrawingScope(color))
-        {
-            radius *= scale;
-            if (wire)
-            {
-                Handles.DrawWireDisc(WorldToScreen(pos), new Vector3(0, 0, 1), radius);
-                //Handles.DrawWireDisc(WorldToScreen(pos), new Vector3(0, 0, 1), radius-1);
-            }
-            else
-            {
-                Handles.DrawSolidDisc(WorldToScreen(pos), new Vector3(0, 0, 1), radius);
-            }
+        if (!ViewInWorld.Contains(pos))
+            return;
 
-        }
+        Vector2 halfSize = new Vector2(radius, radius);
+
+        Rect rect = new Rect(pos - halfSize, halfSize * 2);
+        GUI.DrawTexture(WorldToScreen(rect), Texture2D.whiteTexture, ScaleMode.ScaleToFit, true, 0, color, wire ? 1 : 0, radius * scale);
     }
 }

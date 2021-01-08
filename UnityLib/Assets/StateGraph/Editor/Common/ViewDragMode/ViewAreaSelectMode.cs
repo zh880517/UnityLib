@@ -26,11 +26,9 @@ public class ViewAreaSelectMode : IViewDragMode
     public void OnDrag(StateGraphView view, Vector2 ptInWorld)
     {
         view.Selecteds.Clear();
-        Vector2 size = ptInWorld - Start;
-        Area.center = Start + size * 0.5f;
-        size.x = Mathf.Abs(size.x);
-        size.y = Mathf.Abs(size.y);
-        Area.size = size;
+        Area.min = new Vector2(Mathf.Min(ptInWorld.x, Start.x), Mathf.Min(ptInWorld.y, Start.y));
+        Area.max = new Vector2(Mathf.Max(ptInWorld.x, Start.x), Mathf.Max(ptInWorld.y, Start.y));
+
         view.Selecteds.Clear();
         foreach (var node in view.Graph.Nodes)
         {

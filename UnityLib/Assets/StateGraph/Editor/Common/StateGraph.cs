@@ -47,7 +47,8 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
         {
             Links.RemoveAll(it => it.From == from);
         }
-        Links.RemoveAll(it => it.To == to || (it.From == to && it.To == from));
+
+        Links.RemoveAll(it => (it.From == from && it.To == to) || (it.From == to && it.To == from) || (it.To == to && it.IsChild));
         Links.Add(new StateNodeLink { From = from, To = to, IsChild = isChild });
         from.Node.Parent = StateNodeRef.Empty;
         if (isChild)

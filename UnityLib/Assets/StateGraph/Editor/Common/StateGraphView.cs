@@ -16,11 +16,11 @@ public class StateGraphView : ScriptableObject
     public const float PIN_WIDTH = 20;//连接点宽度
     public static readonly Vector2 NODE_SIZE = new Vector2(NODE_WIDTH, NODE_HEIGHT);//普通节点的大小
     public static readonly Vector2 PIN_SIZE = new Vector2(PIN_WIDTH + 5, PIN_WIDTH + 5);//连接点的大小
-    public static readonly Color NormalNodeColor = new Color(0.1f, 0.1f, 0.1f, 0.8f);
-    public static readonly Color StackNodeColor = new Color(0.3f, 0.3f, 0.3f, 0.8f);
-    public static readonly Color StackBoardColor = new Color(0.35f, 0.35f, 0.35f, 0.7f);
-    public static readonly Color CircleWireColor = new Color(0, 1, 1, 1);
-    public static readonly Color CircleSoldColor = new Color(0, 1, 0.74f, 1);
+    public static readonly Color NormalNodeColor = new Color32(80, 80, 80, 180);
+    public static readonly Color StackNodeColor = new Color32(80, 80, 80, 180);
+    public static readonly Color StackBackgroundColor = new Color32(57, 57, 57, 150);
+    public static readonly Color CircleWireColor = new Color32(132, 228, 231, 255);
+    public static readonly Color CircleSoldColor = new Color32(132, 228, 231, 255);
     public static readonly GUIRenderFontStyle DefultFontStyle = new GUIRenderFontStyle(12, null, Color.white, false, TextAnchor.MiddleLeft);
 
     public StateGraph Graph;
@@ -92,7 +92,8 @@ public class StateGraphView : ScriptableObject
         {
             DragMode.Draw(this);
         }
-        OnEvent(e);
+        if (e.type != EventType.Used)
+            OnEvent(e);
         return e.type == EventType.Used 
             && eType != EventType.Layout 
             && eType != EventType.Repaint 
@@ -144,7 +145,12 @@ public class StateGraphView : ScriptableObject
             {
                 Vector2 from = GetOutputPinRect(link.From.Node).center;
                 Vector2 to = GetInputPinRect(link.To.Node).center;
-                Canvas.DrawLinkLines(from, to, Color.white, 3);
+                Color color = Color.white;
+                if (Selecteds.Contains(link.From) || Selecteds.Contains(link.To))
+                {
+                    color = Color.green;
+                }
+                Canvas.DrawLinkLines(from, to, color, 4);
             }
         }
     }
@@ -171,11 +177,11 @@ public class StateGraphView : ScriptableObject
 
     protected virtual void DrawStackNode(StateNode node)
     {
-        if (!Canvas.DrawRect(node.Bounds, StackNodeColor, true, true, Selecteds.Contains(node)))
+        if (!Canvas.DrawRect(node.Bounds, StackBackgroundColor, true, true, Selecteds.Contains(node)))
             return;
         Rect topBound = new Rect(node.Bounds.position, new Vector2(STACK_NODE_WIDTH, STACK_TOP_HEIGHT));
         //画顶部区域，包含文字、输入、添加子节点
-        if (Canvas.DrawRect(topBound, StackBoardColor, true, false))
+        if (Canvas.DrawRect(topBound, StackNodeColor, true, false))
         {
             topBound.position += new Vector2(PIN_WIDTH, 0);
             topBound.width -= PIN_WIDTH * 2;
@@ -200,7 +206,7 @@ public class StateGraphView : ScriptableObject
             centerLeftRect.position += new Vector2(0, STACK_TOP_HEIGHT + CHILD_INTERVAL);
             centerLeftRect.height -= (STACK_BOTTOM_HEIGHT + STACK_TOP_HEIGHT  + CHILD_INTERVAL*2);
             centerLeftRect.width = STACK_LEFT_WIDTH;
-            Canvas.DrawRect(centerLeftRect, StackBoardColor, false, false);
+            Canvas.DrawRect(centerLeftRect, StackNodeColor, false, false);
         }
         foreach (var link in Graph.Links)
         {
@@ -222,7 +228,7 @@ public class StateGraphView : ScriptableObject
                 if (i > 0)
                 {
                     //上移按钮
-                    if (GUI.Button(btnSize, "▲", StateGraphEditorStyles.TxtButtonStyle.GetStyle(Canvas.Scale)))
+                    if (Canvas.DrawButton(btnSize, "▲", StateGraphEditorStyles.TxtButtonStyle))
                     {
                         ChildNodeMoveUp(link.To);
                     }
@@ -231,7 +237,7 @@ public class StateGraphView : ScriptableObject
                 {
                     btnSize.position += new Vector2(0, NODE_HEIGHT * 0.5f);
                     //下移按钮
-                    if (GUI.Button(btnSize, "▼", StateGraphEditorStyles.TxtButtonStyle.GetStyle(Canvas.Scale)))
+                    if (Canvas.DrawButton(btnSize, "▼", StateGraphEditorStyles.TxtButtonStyle))
                     {
                         ChildNodeMoveDown(link.To);
                     }
@@ -239,7 +245,7 @@ public class StateGraphView : ScriptableObject
             }
         }
         Rect bottomRect = new Rect(node.Bounds.xMin, node.Bounds.yMax - STACK_BOTTOM_HEIGHT, STACK_NODE_WIDTH, STACK_BOTTOM_HEIGHT);
-        if (Canvas.DrawRect(bottomRect, StackBoardColor, false, true))
+        if (Canvas.DrawRect(bottomRect, StackNodeColor, false, true))
         {
             if (Graph.CheckOutput(node))
             {
@@ -255,8 +261,7 @@ public class StateGraphView : ScriptableObject
 
     protected virtual void DrawNormalNode(StateNode node, bool isChild)
     {
-        bool isChildNode = node.Parent;
-        if (Canvas.DrawRect(node.Bounds, StackBoardColor, !isChild, !isChild, Selecteds.Contains(node)))
+        if (Canvas.DrawRect(node.Bounds, NormalNodeColor, !isChild, !isChild, Selecteds.Contains(node)))
         {
             Rect txtBound = node.Bounds;
             txtBound.width -= PIN_WIDTH * 2;
@@ -266,7 +271,7 @@ public class StateGraphView : ScriptableObject
             {
                 Vector2 pos = GetInputPinRect(node).center;
                 Canvas.DrawCircle(pos, CircleWireColor, 6, true);
-                if (isChildNode || Graph.Links.Exists(it => it.To == node))
+                if (isChild || Graph.Links.Exists(it => it.To == node))
                 {
                     Canvas.DrawCircle(pos, CircleSoldColor, 4, false);
                 }
@@ -275,7 +280,7 @@ public class StateGraphView : ScriptableObject
             {
                 Vector2 pos = GetOutputPinRect(node).center;
                 Canvas.DrawCircle(pos, CircleWireColor, 6, true);
-                if (isChildNode || Graph.Links.Exists(it => it.From == node))
+                if (Graph.Links.Exists(it => it.From == node))
                 {
                     Canvas.DrawCircle(pos, CircleSoldColor, 4, false);
                 }
@@ -368,6 +373,12 @@ public class StateGraphView : ScriptableObject
             if (control && e.keyCode == KeyCode.V)
             {
                 PasteFromClipboard();
+                e.Use();
+                return;
+            }
+            if (control && e.keyCode == KeyCode.S)
+            {
+                AssetDatabase.SaveAssets();
                 e.Use();
                 return;
             }
@@ -532,15 +543,22 @@ public class StateGraphView : ScriptableObject
 
     public void BreakInputLink(StateNodeRef nodeRef)
     {
-        var link = Graph.Links.Find(it => it.To == nodeRef);
-        if (link != null)
+        if (Graph.Links.Exists(it => it.To == nodeRef))
         {
             RegistUndo("break input link");
             nodeRef.Node.Parent = StateNodeRef.Empty;
-            Graph.Links.Remove(link);
-            if (link.IsChild)
+            for (int i=0; i<Graph.Links.Count; ++i)
             {
-                nodeRef.Node.Bounds.position += new Vector2(link.From.Node.Bounds.width, 0);
+                var link = Graph.Links[i];
+                if (link.To == nodeRef)
+                {
+                    Graph.Links.RemoveAt(i);
+                    --i;
+                    if (link.IsChild)
+                    {
+                        nodeRef.Node.Bounds.position += new Vector2(link.From.Node.Bounds.width, 0);
+                    }
+                }
             }
             foreach (var node in Graph.Nodes)
             {
@@ -726,12 +744,21 @@ public class StateGraphView : ScriptableObject
 
     public Rect GetOutputPinRect(StateNode node)
     {
-        return new Rect(node.Bounds.max - PIN_SIZE, PIN_SIZE);
+        if (Graph.IsStack(node))
+        {
+            return new Rect(node.Bounds.max - PIN_SIZE, PIN_SIZE);
+        }
+        else
+        {
+            return new Rect(node.Bounds.max - new Vector2(PIN_SIZE.x, node.Bounds.height*0.5f + PIN_SIZE .y* 0.5f), PIN_SIZE);
+        }
     }
 
     public Rect GetInputPinRect(StateNode node)
     {
-        return new Rect(node.Bounds.position, PIN_SIZE);
+        if (Graph.IsStack(node))
+            return new Rect(node.Bounds.position, PIN_SIZE);
+        return new Rect(node.Bounds.position + new Vector2(0, node.Bounds.height * 0.5f - PIN_SIZE.y * 0.5f), PIN_SIZE);
     }
 
     public Rect GetAddChildPinRect(StateNode node)
