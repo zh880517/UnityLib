@@ -24,7 +24,7 @@ public abstract class StateNodeTypeDropDown : AdvancedDropdown
             if (type.GetCustomAttribute<HiddenInTypeCreaterAttribute>() != null || !CheckType(type))
                 continue;
             var dpName = type.GetCustomAttribute<DisaplayNameAttribute>();
-            string name = dpName == null ? type.Name : string.Format("{0}(1)", dpName, type.Name);
+            string name = dpName == null ? type.Name : string.Format("{0}({1})", dpName.Name, type.Name);
             var item = new AdvancedDropdownItem(name) { id = i };
             GetRoot(type, root).AddChild(item);
         }

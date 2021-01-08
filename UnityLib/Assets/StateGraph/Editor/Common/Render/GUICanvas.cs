@@ -113,11 +113,11 @@ public class GUICanvas
         }
     }
 
-    public bool DrawText(Rect bounds, string content, string toolTip, GUIRenderStyle style)
+    public bool DrawText(Rect bounds, string content, Texture img, string toolTip, GUIRenderStyle style)
     {
         if (!bounds.Overlaps(ViewInWorld))
             return false;
-        GUI.Label(WorldToScreen(bounds), new GUIContent(content, toolTip), style.GetStyle(scale));
+        GUI.Label(WorldToScreen(bounds), new GUIContent(content, img, toolTip), style.GetStyle(scale));
         return true;
     }
 

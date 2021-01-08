@@ -60,10 +60,7 @@ public class StateGraphView : ScriptableObject
         {
             SelectIndex = graph.Nodes.Last().SortIndex;
         }
-        foreach (var node in Graph.Nodes)
-        {
-            UpdateBounds(node);
-        }
+        UpdateAllNodeBounds();
         Undo.undoRedoPerformed += OnUndoRedo;
     }
 
@@ -98,6 +95,14 @@ public class StateGraphView : ScriptableObject
             && eType != EventType.Layout 
             && eType != EventType.Repaint 
             && eType != EventType.Used;
+    }
+
+    public void UpdateAllNodeBounds()
+    {
+        foreach (var node in Graph.Nodes)
+        {
+            UpdateBounds(node);
+        }
     }
 
     public virtual void UpdateBounds(StateNode node)
@@ -185,7 +190,7 @@ public class StateGraphView : ScriptableObject
         {
             topBound.position += new Vector2(PIN_WIDTH, 0);
             topBound.width -= PIN_WIDTH * 2;
-            Canvas.DrawText(topBound, node.Name, node.Comments, StateGraphEditorStyles.NodeNameStyle);
+            Canvas.DrawText(topBound, node.Name, null, node.Comments, StateGraphEditorStyles.NodeNameStyle);
             if (Graph.ChechInput(node))
             {
                 Vector2 pos = GetInputPinRect(node).center;
@@ -197,7 +202,7 @@ public class StateGraphView : ScriptableObject
 
                 Rect addRect = GetAddChildPinRect(node);
 
-                Canvas.DrawText(addRect, "✚", null, StateGraphEditorStyles.TxtButtonStyle);
+                Canvas.DrawText(addRect, "✚", null, null, StateGraphEditorStyles.TxtButtonStyle);
             }
         }
         childLinkTmp.Clear();
@@ -266,7 +271,7 @@ public class StateGraphView : ScriptableObject
             Rect txtBound = node.Bounds;
             txtBound.width -= PIN_WIDTH * 2;
             txtBound.center = node.Bounds.center;
-            Canvas.DrawText(txtBound, node.Name, node.Comments, StateGraphEditorStyles.NodeNameStyle);
+            Canvas.DrawText(txtBound, node.Name, null, node.Comments, StateGraphEditorStyles.NodeNameStyle);
             if (Graph.ChechInput(node))
             {
                 Vector2 pos = GetInputPinRect(node).center;
@@ -533,10 +538,7 @@ public class StateGraphView : ScriptableObject
             }
             var oldLink = Graph.Links.Find(obj => obj.From == from && obj.To == to);
             Graph.AddLink(from, to, isChild);
-            foreach (var node in Graph.Nodes)
-            {
-                UpdateBounds(node);
-            }
+            UpdateAllNodeBounds();
             MoveNodeToBack(from);
         }
     }
@@ -560,10 +562,7 @@ public class StateGraphView : ScriptableObject
                     }
                 }
             }
-            foreach (var node in Graph.Nodes)
-            {
-                UpdateBounds(node);
-            }
+            UpdateAllNodeBounds();
         }
     }
 
@@ -574,7 +573,7 @@ public class StateGraphView : ScriptableObject
         {
             RegistUndo("break input link");
             Graph.Links.Remove(link);
-            UpdateBounds(node.Node);
+            UpdateAllNodeBounds();
         }
     }
 
@@ -592,7 +591,7 @@ public class StateGraphView : ScriptableObject
                     link.To.Node.Bounds.position += new Vector2(node.Node.Bounds.width, 0);
                 }
             }
-            UpdateBounds(node.Node);
+            UpdateAllNodeBounds();
         }
     }
 
@@ -607,6 +606,7 @@ public class StateGraphView : ScriptableObject
             {
                 Graph.DeleteNode(node);
             }
+            UpdateAllNodeBounds();
             return true;
         }
         return false;
