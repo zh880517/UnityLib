@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 [Serializable]
-public class StateNode
+public class StateNode: ISerializationCallbackReceiver
 {
     public Rect Bounds;
     public ulong ID;
@@ -17,10 +17,6 @@ public class StateNode
             }
             return nodeData;
         }
-        set
-        {
-            nodeData = value;
-        }
     }
     [SerializeField]
     private SerializationData serializeData;
@@ -33,21 +29,30 @@ public class StateNode
 
     public Type NodeType => Data?.GetType();
 
-    public void Serialize()
+    public void SetData(IStateNode nodeData)
     {
-        if (nodeData != null)
-            serializeData = TypeSerializerHelper.Serialize(nodeData);
-        else
-            Debug.LogErrorFormat("序列化时数据为空跳过 = >{0}", serializeData);
+        this.nodeData = nodeData;
+        OnBeforeSerialize();
     }
 
     public void Deserialize()
     {
         nodeData = TypeSerializerHelper.Deserialize(serializeData) as IStateNode;
-        if (Data == null)
+        if (nodeData == null)
         {
             Debug.LogErrorFormat("反序列化时数据为空 => {0}", serializeData);
         }
+    }
+
+    public void OnBeforeSerialize()
+    {
+        if (nodeData != null)
+            serializeData = TypeSerializerHelper.Serialize(nodeData);
+    }
+
+    public void OnAfterDeserialize()
+    {
+        nodeData = null;
     }
 
     public static implicit operator StateNodeRef(StateNode exists)

@@ -736,7 +736,7 @@ public class StateGraphView : ScriptableObject
         {
             RegistUndo("replace node");
             string json = EditorJsonUtility.ToJson(node.Data);
-            node.Data = Activator.CreateInstance(type) as IStateNode;
+            node.SetData(Activator.CreateInstance(type) as IStateNode);
             EditorJsonUtility.FromJsonOverwrite(json, node.Data);
         }
     }

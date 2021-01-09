@@ -30,11 +30,10 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
         {
             Bounds = bounds,
             ID = ++IdIndex,
-            Data = nodeData,
             Graph = this,
             Name = name
         };
-
+        node.SetData(nodeData);
         Nodes.Add(node);
         return node;
     }
@@ -53,7 +52,7 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
         }
         else
         {
-            Links.RemoveAll(it => (it.From == from && it.To == to) || (it.From == to && it.To == from) || (it.To == to && it.IsChild));
+            Links.RemoveAll(it => (it.From == from && !it.IsChild) || (it.From == to && it.To == from) || (it.To == to && it.IsChild));
         }
         Links.Add(new StateNodeLink { From = from, To = to, IsChild = isChild });
         from.Node.Parent = StateNodeRef.Empty;
@@ -88,21 +87,11 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     }
     public void OnBeforeSerialize()
     {
-        for (int i=0; i<Nodes.Count; ++i)
-        {
-            Nodes[i].Serialize();
-        }
     }
 
     public void OnAfterDeserialize()
     {
         SerializeVersion++;
-        for (int i = 0; i < Nodes.Count; ++i)
-        {
-            Nodes[i].SortIndex = i;
-            //强制设置为null，触发反序列化
-            Nodes[i].Data = null;
-        }
     }
 
     public virtual bool CheckLink(StateNode from, StateNode to, bool isChild)
