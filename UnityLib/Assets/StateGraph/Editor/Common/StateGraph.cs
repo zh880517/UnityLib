@@ -47,8 +47,14 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
         {
             Links.RemoveAll(it => it.From == from);
         }
-
-        Links.RemoveAll(it => (it.From == from && it.To == to) || (it.From == to && it.To == from) || (it.To == to && it.IsChild));
+        if (isChild)
+        {
+            Links.RemoveAll(it => it.To == to);
+        }
+        else
+        {
+            Links.RemoveAll(it => (it.From == from && it.To == to) || (it.From == to && it.To == from) || (it.To == to && it.IsChild));
+        }
         Links.Add(new StateNodeLink { From = from, To = to, IsChild = isChild });
         from.Node.Parent = StateNodeRef.Empty;
         if (isChild)
@@ -88,25 +94,14 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
         }
     }
 
-    public void Deserialize()
-    {
-        for (int i = 0; i < Nodes.Count; ++i)
-        {
-            Nodes[i].Deserialize();
-        }
-    }
-
-    private void OnEnable()
-    {
-        Deserialize();
-    }
-
     public void OnAfterDeserialize()
     {
         SerializeVersion++;
         for (int i = 0; i < Nodes.Count; ++i)
         {
             Nodes[i].SortIndex = i;
+            //强制设置为null，触发反序列化
+            Nodes[i].Data = null;
         }
     }
 

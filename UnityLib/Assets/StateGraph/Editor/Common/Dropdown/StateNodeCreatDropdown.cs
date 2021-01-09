@@ -33,13 +33,13 @@ public class StateNodeCreatDropdown : StateNodeTypeDropDown
             StateNode to;
             if (isOut)
             {
-                from = newNode;
-                to = node.Node;
+                from = node.Node;
+                to = newNode;
             }
             else
             {
-                to = node.Node;
                 from = newNode;
+                to = node.Node;
             }
             View.CreateLink(from, to, isChild, false);
         }

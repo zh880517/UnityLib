@@ -37,6 +37,8 @@ public class StateNode
     {
         if (nodeData != null)
             serializeData = TypeSerializerHelper.Serialize(nodeData);
+        else
+            Debug.LogErrorFormat("序列化时数据为空跳过 = >{0}", serializeData);
     }
 
     public void Deserialize()
@@ -44,7 +46,7 @@ public class StateNode
         nodeData = TypeSerializerHelper.Deserialize(serializeData) as IStateNode;
         if (Data == null)
         {
-            Debug.LogError("数据为空");
+            Debug.LogErrorFormat("反序列化时数据为空 => {0}", serializeData);
         }
     }
 

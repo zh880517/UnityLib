@@ -71,6 +71,7 @@ public class ViewLinkMode : IViewDragMode
                 from = currNode;
             }
             view.CreateLink(from, to, isChild);
+            view.SelectNode(currNode);
         }
         else
         {

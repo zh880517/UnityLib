@@ -71,7 +71,6 @@ public class StateGraphView : ScriptableObject
 
     private void OnUndoRedo()
     {
-        Graph.Deserialize();
         if (editorWindow)
         {
             editorWindow.Repaint();
@@ -469,9 +468,7 @@ public class StateGraphView : ScriptableObject
                 {
                     if (!hasSelected)
                     {
-                        Selecteds.Clear();
-                        Selecteds.Add(hitNode);
-                        MoveNodeToBack(hitNode);
+                        SelectNode(hitNode);
                     }
                 }
             }
@@ -489,6 +486,13 @@ public class StateGraphView : ScriptableObject
 
             }
         }
+    }
+
+    public void SelectNode(StateNodeRef node)
+    {
+        Selecteds.Clear();
+        Selecteds.Add(node);
+        MoveNodeToBack(node.Node);
     }
 
     private void MoveNodeToBack(StateNode node)
@@ -536,8 +540,12 @@ public class StateGraphView : ScriptableObject
             {
                 RegistUndo("link");
             }
-            var oldLink = Graph.Links.Find(obj => obj.From == from && obj.To == to);
+            var oldChildLink = Graph.Links.Find(obj => obj.IsChild && obj.To == to);
             Graph.AddLink(from, to, isChild);
+            if (oldChildLink != null)
+            {
+                to.Bounds.position += new Vector2(oldChildLink.From.Node.Bounds.width, 0);
+            }
             UpdateAllNodeBounds();
             MoveNodeToBack(from);
         }
