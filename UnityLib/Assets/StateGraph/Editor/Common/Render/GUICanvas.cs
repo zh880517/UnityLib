@@ -184,6 +184,16 @@ public class GUICanvas
         return true;
     }
 
+    public void DrawStraightLine(Vector2 from, Vector2 to, Color color, float width)
+    {
+        if (!ViewInWorld.Contains(from) && !ViewInWorld.Contains(to))
+            return ;
+        using (new Handles.DrawingScope(color))
+        {
+            Handles.DrawAAPolyLine(width, WorldToScreen(from), WorldToScreen(to));
+        }
+    }
+
     public bool DrawRect(Rect rect, Color color, bool topCorner, bool bottomCorner, bool outLine = false)
     {
         if (!rect.Overlaps(ViewInWorld))

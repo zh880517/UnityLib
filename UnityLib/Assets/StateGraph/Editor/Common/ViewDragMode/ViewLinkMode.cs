@@ -21,7 +21,7 @@ public class ViewLinkMode : IViewDragMode
     {
         if (Vector2.Distance(startPos, currentPos) > 1)
         {
-            view.Canvas.DrawLinkLines(startPos, currentPos, Color.yellow, 3);
+            view.Canvas.DrawStraightLine(startPos, currentPos, Color.yellow, 3);
             var currNode = view.HitTest(currentPos);
             if (currNode != null && currNode != node)
             {

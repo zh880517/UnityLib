@@ -454,7 +454,7 @@ public class StateGraphView : ScriptableObject
                             rect = GetInputPinRect(hitNode);
                             if (Graph.ChechInput(hitNode) && rect.Contains(Canvas.MouseInWorld))
                             {
-                                DragMode = new ViewLinkMode(hitNode, true, false, rect.center);
+                                DragMode = new ViewLinkMode(hitNode, false, false, rect.center);
                                 break;
                             }
                         }
