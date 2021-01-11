@@ -3,6 +3,9 @@ using UnityEngine;
 
 public static class StateGraphEditorStyles
 {
+    public static readonly Color DefultOutLineColor = new Color32(43, 43, 43, 200);
+    public static readonly Color SelectOutLineColor = new Color32(68, 192, 255, 200);
+
     public static readonly GUIRenderStyle FileNameStyle = new GUIRenderStyle(15, ()=> { return EditorStyles.label; }, (style)=> 
     {
         style.alignment = TextAnchor.LowerRight;

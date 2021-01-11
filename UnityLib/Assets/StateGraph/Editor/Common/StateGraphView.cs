@@ -181,7 +181,7 @@ public class StateGraphView : ScriptableObject
 
     protected virtual void DrawStackNode(StateNode node)
     {
-        if (!Canvas.DrawRect(node.Bounds, StackBackgroundColor, true, true, Selecteds.Contains(node)))
+        if (!Canvas.DrawRect(node.Bounds, StackBackgroundColor, true, true, true, Selecteds.Contains(node)))
             return;
         Rect topBound = new Rect(node.Bounds.position, new Vector2(STACK_NODE_WIDTH, STACK_TOP_HEIGHT));
         //画顶部区域，包含文字、输入、添加子节点
@@ -265,7 +265,7 @@ public class StateGraphView : ScriptableObject
 
     protected virtual void DrawNormalNode(StateNode node, bool isChild)
     {
-        if (Canvas.DrawRect(node.Bounds, NormalNodeColor, !isChild, !isChild, Selecteds.Contains(node)))
+        if (Canvas.DrawRect(node.Bounds, NormalNodeColor, !isChild, !isChild, !isChild, Selecteds.Contains(node)))
         {
             Rect txtBound = node.Bounds;
             txtBound.width -= PIN_WIDTH * 2;

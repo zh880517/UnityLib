@@ -194,7 +194,7 @@ public class GUICanvas
         }
     }
 
-    public bool DrawRect(Rect rect, Color color, bool topCorner, bool bottomCorner, bool outLine = false)
+    public bool DrawRect(Rect rect, Color color, bool topCorner, bool bottomCorner, bool outLine = false, bool select = false)
     {
         if (!rect.Overlaps(ViewInWorld))
             return false;
@@ -205,15 +205,16 @@ public class GUICanvas
             boardRadius += BottomBoardRadius;
         Rect realRect = WorldToScreen(rect);
         GUI.DrawTexture(realRect, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, color, Vector4.zero, boardRadius*Scale);
-        if (outLine)
+        if (outLine || select)
         {
-            
-            Color lineColor = new Color32(68, 192, 255, 200);
+            Color lineColor = select ? StateGraphEditorStyles.SelectOutLineColor : StateGraphEditorStyles.DefultOutLineColor;
+
             realRect.position -= new Vector2(2, 2);
             realRect.size += new Vector2(4, 4);
             float width = Mathf.Floor(2 * Scale);
-            GUI.DrawTexture(realRect, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, lineColor, Vector4.one* width, boardRadius * Scale);
+            GUI.DrawTexture(realRect, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, lineColor, Vector4.one * width, boardRadius * Scale);
         }
+
         return true;
     }
 
