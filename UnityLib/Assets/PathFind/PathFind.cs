@@ -35,13 +35,13 @@ public class PathFind
     private readonly Heap<PathNode> openList = new Heap<PathNode>();
     private readonly Dictionary<int, PathNode> nodeCache = new Dictionary<int, PathNode>();
     private readonly List<Vector2Int> findResult = new List<Vector2Int>();
-    private readonly BitGrid grid;
+    public  BitGrid Grid { get; private set; }
 
     public IReadOnlyList<Vector2Int> Result { get { return findResult.AsReadOnly(); } }
     
     public PathFind(BitGrid grid)
     {
-        this.grid = grid;
+        Grid = grid;
     }
     
     public bool FindPath(Vector2Int start, Vector2Int end)
@@ -69,12 +69,12 @@ public class PathFind
             {
                 break;
             }
-            Vector2Int currPos = new Vector2Int(grid.GetX(currentNode.Index), grid.GetY(currentNode.Index));
+            Vector2Int currPos = new Vector2Int(Grid.GetX(currentNode.Index), Grid.GetY(currentNode.Index));
             for (int i=0; i<SurroundOffSet.Length; ++i)
             {
                 var offset = SurroundOffSet[i];
                 Vector2Int pos = offset + currPos;
-                if (!grid.Get(pos.x, pos.y))
+                if (!Grid.Get(pos.x, pos.y))
                     continue;
                 var neighbour = GetNode(pos.x, pos.y);
                 if (closeSet.Contains(neighbour.Index))
@@ -101,14 +101,14 @@ public class PathFind
         if (endNode.Parent != null)
         {
             findResult.Add(end);
-            var prePos = grid.ToPos(endNode.Parent.Index);
+            var prePos = Grid.ToPos(endNode.Parent.Index);
             findResult.Add(prePos);
             Vector2Int normal = prePos - end;
             var preNode = endNode.Parent.Parent;
             //平滑路径处理
             while (preNode != null)
             {
-                Vector2Int curPos = grid.ToPos(preNode.Index);
+                Vector2Int curPos = Grid.ToPos(preNode.Index);
                 Vector2Int newNormal = curPos - prePos;
                 if (newNormal == normal)
                 {
@@ -166,7 +166,7 @@ public class PathFind
             int increY = offset.y / absY;
             for (int i=1; i< absY; ++i)
             {
-                if (!grid.Get(from.x, from.y + increY*i))
+                if (!Grid.Get(from.x, from.y + increY*i))
                     return false;
             }
         }
@@ -176,7 +176,7 @@ public class PathFind
             int increX = offset.x / absX;
             for (int i = 1; i < absX; ++i)
             {
-                if (!grid.Get(from.x + increX*i, from.y))
+                if (!Grid.Get(from.x + increX*i, from.y))
                     return false;
             }
         }
@@ -196,10 +196,10 @@ public class PathFind
             {
                 int x = from.x + increX * i;
                 int y = Mathf.CeilToInt(k * x + b);
-                if (!grid.Get(x, y))
+                if (!Grid.Get(x, y))
                     return false;
                 int offsetY = y + increY;
-                if (offsetY <= maxY && offsetY >= minY && !grid.Get(x, offsetY))
+                if (offsetY <= maxY && offsetY >= minY && !Grid.Get(x, offsetY))
                     return false;
             }
             int minX = System.Math.Min(from.x, to.x);
@@ -208,10 +208,10 @@ public class PathFind
             {
                 int y = from.y + increY * i;
                 int x = Mathf.CeilToInt((y-b)/k);
-                if (!grid.Get(x, y))
+                if (!Grid.Get(x, y))
                     return false;
                 int offsetX = x + increX;
-                if (offsetX <= maxX && offsetX >= minX && !grid.Get(offsetX, y))
+                if (offsetX <= maxX && offsetX >= minX && !Grid.Get(offsetX, y))
                     return false;
             }
 
@@ -229,7 +229,7 @@ public class PathFind
 
     private void Reset()
     {
-        openList.Reset(grid.ValidCount);
+        openList.Reset(Grid.ValidCount);
         closeSet.Clear();
         findResult.Clear();
         foreach (var kv in nodeCache)
@@ -240,7 +240,7 @@ public class PathFind
 
     private PathNode GetNode(int x, int y)
     {
-        return GetNode(grid.ToIndex(x, y));
+        return GetNode(Grid.ToIndex(x, y));
     }
 
     private PathNode GetNode(int idx)

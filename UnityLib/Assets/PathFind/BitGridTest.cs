@@ -62,11 +62,11 @@ public class BitGridTest : MonoBehaviour
         if (Grid != null)
         {
             Gizmos.color = new Color(0, 0.9f, 1, 0.5f);
-            DrawGird();
+            PathFindDrawer.DrawGrid(Grid);
             if (ShowTestGrid)
             {
                 Gizmos.color = new Color(0.9f, 0, 0, 0.5f);
-                DrawFindTestGrid();
+                PathFindDrawer.DrawFindTestGrid(Finder);
             }
             Gizmos.color = Color.green;
             Gizmos.DrawSphere(ToPos(StartPos), Grid.Scale * 0.5f);
@@ -77,12 +77,12 @@ public class BitGridTest : MonoBehaviour
                 if (ShowPath)
                 {
                     Gizmos.color = Color.blue;
-                    DrawPoints(Finder.Result);
+                    PathFindDrawer.DrawPathPoint(Finder.Result, Grid.Scale, Vector3.zero);
                 }
                 if (ShowSmooth)
                 {
                     Gizmos.color = Color.cyan;
-                    DrawPoints(SmoothPoints);
+                    PathFindDrawer.DrawPathPoint(SmoothPoints, Grid.Scale, Vector3.zero);
                 }
             }
             if (ShowLink)
@@ -94,48 +94,10 @@ public class BitGridTest : MonoBehaviour
         Gizmos.color = color;
     }
 
-    private void DrawPoints(IReadOnlyList<Vector2Int> result)
-    {
-        for (int i = 1; i < result.Count; ++i)
-        {
-            Vector2Int point = result[i];
-            Vector3 pos = ToPos(point);
-            Gizmos.DrawLine(ToPos(result[i - 1]), pos);
-
-            Gizmos.DrawSphere(pos, Grid.Scale * 0.25f);
-        }
-    }
 
     private Vector3 ToPos(Vector2Int gridPos)
     {
         return new Vector3((gridPos.x + 0.5f) * Grid.Scale, 0.2f, (gridPos.y + 0.5f) * Grid.Scale);
     }
 
-    private void DrawGird()
-    {
-        for (int i = 0; i < Grid.Width; ++i)
-        {
-            for (int j = 0; j < Grid.Height; ++j)
-            {
-                if (Grid.Get(i, j))
-                {
-                    Gizmos.DrawCube(new Vector3(Scale * (i + 0.5f), 0.2f, Scale * (j + 0.5f)), new Vector3(Scale, 0.2f, Scale));
-                }
-            }
-        }
-    }
-
-    private void DrawFindTestGrid()
-    {
-        for (int i = 0; i < Grid.Width; ++i)
-        {
-            for (int j = 0; j < Grid.Height; ++j)
-            {
-                if (Grid.Get(i, j) && Finder.HasTest(Grid.ToIndex(i, j)))
-                {
-                    Gizmos.DrawCube(new Vector3(Scale * (i + 0.5f), 0.2f, Scale * (j + 0.5f)), new Vector3(Scale, 0.2f, Scale));
-                }
-            }
-        }
-    }
 }
