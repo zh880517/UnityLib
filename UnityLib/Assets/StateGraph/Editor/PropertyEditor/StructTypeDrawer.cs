@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor;
 using UnityEngine;
 
 namespace PropertyEditor
@@ -10,13 +11,18 @@ namespace PropertyEditor
         public IDrawer BaseTypeDrawer;
         public List<FiledDrawer> Fields = new List<FiledDrawer>();
         private object value;
+        private bool foldout = true;
 
         public StructTypeDrawer(Type type)
         {
             BaseTypeDrawer = DrawerCollector.CreateDrawer(type.BaseType);
-            foreach (var field in type.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Public))
+            foreach (var field in type.GetFields())
             {
-                Fields.Add(new FiledDrawer(field));
+                if (field.DeclaringType != type)
+                    continue;
+                var fieldDrawer = FiledDrawer.Create(field);
+                if (fieldDrawer != null)
+                    Fields.Add(fieldDrawer);
             }
         }
 
@@ -24,7 +30,9 @@ namespace PropertyEditor
         {
             if (content != null)
             {
-                GUILayout.Label(content);
+                foldout = EditorGUILayout.Foldout(foldout, content);
+                if (!foldout)
+                    return false;
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Space(10);

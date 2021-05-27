@@ -39,35 +39,32 @@ namespace PropertyEditor
                         continue;
                     if (!typeof(IDrawer).IsAssignableFrom(type))
                         continue;
-                    var customDrawer = type.GetCustomAttribute<PropertyCustomDrawerAttribute>();
-                    if (customDrawer != null)
+                    var baseType = type.BaseType;
+                    while (baseType != null)
                     {
-                        drawerTypes[customDrawer.GetType()] = type;
-                    }
-                    else
-                    {
-                        var baseType = type.BaseType;
-                        while(baseType != null)
+                        if (baseType.IsGenericType)
                         {
-                            if (baseType.IsGenericType)
-                            {
-                                drawerTypes[baseType.GenericTypeArguments[0]] = type;
-                                break;
-                            }
-                            baseType = baseType.BaseType;
+                            drawerTypes[baseType.GenericTypeArguments[0]] = type;
+                            break;
                         }
+                        baseType = baseType.BaseType;
                     }
                 }
             }
         }
 
-        public static IDrawer CreateDrawer(Type type)
+        public static IDrawer CreateDrawer(Type type, PropertyCustomDrawerAttribute attribute = null)
         {
             if (Instance.drawerTypes.TryGetValue(type, out Type drawerType))
             {
-                return Activator.CreateInstance(drawerType) as IDrawer;
+                var drawer = Activator.CreateInstance(drawerType) as IDrawer;
+                if (attribute != null && drawer is CustomDrawerBase customDrawer)
+                {
+                    customDrawer.SetAttribute(attribute);
+                }
+                return drawer;
             }
-            if(type == null || type == typeof(object) || type.GetFields().Length == 0)
+            if(type == null || type == typeof(object))
                 return null;
             if (type.IsEnum)
             {

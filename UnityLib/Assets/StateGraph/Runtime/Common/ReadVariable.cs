@@ -1,24 +1,18 @@
-﻿using System;
-using UnityEngine;
+using System;
 
 [Serializable]
 public struct ReadVariable
 {
-    [SerializeField]
-    private float fixedValue;
-    [SerializeField]
-    private string keyName;
-    [Newtonsoft.Json.JsonIgnore]
-    public string Key { get { return keyName; } set { keyName = value; } }
-    [Newtonsoft.Json.JsonIgnore]
-    public float Value { get { return fixedValue; } set { fixedValue = value; } }
+    public float Value;
+    public string Key;
+    public bool UseBlackBoard;
 
     public float GetValue(RuntimeBlackboard blackboard)
     {
-        if (string.IsNullOrEmpty(keyName))
+        if (!UseBlackBoard)
         {
-            return fixedValue;
+            return Value;
         }
-        return blackboard.GetValue(keyName);
+        return blackboard.GetValue(Key);
     }
 }

@@ -12,7 +12,7 @@ namespace PropertyEditor
         public List<IDrawer> Drawers = new List<IDrawer>();
         private bool foldout = true;
         private static readonly GUIContent empty = new GUIContent();
-
+        public static readonly GUIContent iconToolbarPlusMore = EditorGUIUtility.TrIconContent("Toolbar Plus More", "Choose to add to list");
         public ListDrawer(Type type)
         {
             Type = type;
@@ -27,7 +27,7 @@ namespace PropertyEditor
                 if (!foldout)
                     return false;
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button("+", "RL FooterButton"))
+                if (GUILayout.Button(iconToolbarPlusMore, "RL FooterButton"))
                 {
                     DrawerCollector.OnPropertyModify(context);
                     var list = val as IList;
@@ -50,7 +50,7 @@ namespace PropertyEditor
             }
             for (int i = 0; i < list.Count; ++i)
             {
-                using (new GUILayout.HorizontalScope())
+                using (new GUILayout.HorizontalScope("Box"))
                 {
                     var drawer = Drawers[i];
                     if (GUILayout.Button("", "RL DragHandle"))

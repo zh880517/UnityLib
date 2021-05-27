@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
+using UnityEditor;
 namespace PropertyEditor
 {
     public class ClassTypeDrawer : IDrawer
@@ -9,14 +10,19 @@ namespace PropertyEditor
         public IDrawer BaseTypeDrawer;
         public List<FiledDrawer> Fields = new List<FiledDrawer>();
         private Type Type;
-
+        private bool foldout = true;
         public ClassTypeDrawer(Type type)
         {
             Type = type;
             BaseTypeDrawer = DrawerCollector.CreateDrawer(type.BaseType);
-            foreach (var field in type.GetFields(BindingFlags.DeclaredOnly | BindingFlags.Public))
+            var fields = type.GetFields();
+            foreach (var field in fields)
             {
-                Fields.Add(new FiledDrawer(field));
+                if (field.DeclaringType != type)
+                    continue;
+                var fieldDrawer = FiledDrawer.Create(field);
+                if (fieldDrawer != null)
+                    Fields.Add(fieldDrawer);
             }
         }
 
@@ -24,7 +30,9 @@ namespace PropertyEditor
         {
             if (content != null)
             {
-                GUILayout.Label(content);
+                foldout = EditorGUILayout.Foldout(foldout, content);
+                if (!foldout)
+                    return false;
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Space(10);

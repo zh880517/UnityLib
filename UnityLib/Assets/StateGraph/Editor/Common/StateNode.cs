@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 [Serializable]
 public class StateNode: ISerializationCallbackReceiver
@@ -29,8 +29,22 @@ public class StateNode: ISerializationCallbackReceiver
 
     public Type NodeType => Data?.GetType();
 
+    private StateNodeEditor editor;
+    public StateNodeEditor Editor
+    {
+        get
+        {
+            if (editor == null)
+            {
+                editor = new StateNodeEditor(this);
+            }
+            return editor;
+        }
+    }
+
     public void SetData(IStateNode nodeData)
     {
+        editor = null;
         this.nodeData = nodeData;
         OnBeforeSerialize();
     }

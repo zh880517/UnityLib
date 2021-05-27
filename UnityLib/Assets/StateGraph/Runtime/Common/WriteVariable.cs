@@ -1,15 +1,9 @@
-﻿using UnityEngine;
-
 public struct WriteVariable
 {
-    [SerializeField]
-    private string keyName;
-
-    [Newtonsoft.Json.JsonIgnore]
-    public string Key { get { return keyName; } set { keyName = value; } }
+    public string Key;
 
     public void SetValue(RuntimeBlackboard blackboard, float val)
     {
-        blackboard.SetValue(keyName, val);
+        blackboard.SetValue(Key, val);
     }
 }

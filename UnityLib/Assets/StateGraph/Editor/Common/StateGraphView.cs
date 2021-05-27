@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -89,7 +89,7 @@ public class StateGraphView : ScriptableObject
             DragMode.Draw(this);
         }
         if (e.type != EventType.Used)
-            OnEvent(e);
+            OnEvent(e, size);
         return e.type == EventType.Used 
             && eType != EventType.Layout 
             && eType != EventType.Repaint 
@@ -292,7 +292,7 @@ public class StateGraphView : ScriptableObject
         }
     }
 
-    private void OnEvent(Event e)
+    private void OnEvent(Event e, Vector2 size)
     {
         if (e.type == EventType.MouseDown && e.button <= 1 )
         {
@@ -322,6 +322,7 @@ public class StateGraphView : ScriptableObject
         }
         if (e.type == EventType.MouseDrag)
         {
+
             if (DragMode != null && e.button == 0)
             {
                 DragMode.OnDrag(this, Canvas.MouseInWorld);
@@ -338,13 +339,17 @@ public class StateGraphView : ScriptableObject
             }
             if (e.button == 0)
             {
-                if (Selecteds.Count > 0)
+                Rect rect = new Rect(Vector2.zero, size);
+                if (rect.Contains(e.mousePosition))
                 {
-                    DragMode = new ViewNormalMoveMode(this, Canvas.PointInWorld);
-                }
-                else
-                {
-                    DragMode = new ViewAreaSelectMode(this, Canvas.PointInWorld);
+                    if (Selecteds.Count > 0)
+                    {
+                        DragMode = new ViewNormalMoveMode(this, Canvas.PointInWorld);
+                    }
+                    else
+                    {
+                        DragMode = new ViewAreaSelectMode(this, Canvas.PointInWorld);
+                    }
                 }
             }
         }

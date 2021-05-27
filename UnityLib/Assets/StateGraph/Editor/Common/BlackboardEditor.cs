@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 [System.Serializable]
 public class BlackboardEditor
@@ -21,7 +21,7 @@ public class BlackboardEditor
                 else
                 {
                     view.RegistUndo("add variable");
-                    view.Graph.Blackboard.Variables.Add(new BlackboardVariable { Name = InputName, DefultValue = 0 });
+                    view.Graph.Blackboard.Add(InputName);
                 }
             }
         }
@@ -32,7 +32,7 @@ public class BlackboardEditor
                 if (GUILayout.Button("", "SearchCancelButton"))
                 {
                     view.RegistUndo("remove variable");
-                    view.Graph.Blackboard.Variables.RemoveAt(i);
+                    view.Graph.Blackboard.RemoveAt(i);
                     i--;
                     continue;
                 }

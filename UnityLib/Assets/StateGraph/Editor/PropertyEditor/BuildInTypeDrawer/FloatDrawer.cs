@@ -1,14 +1,11 @@
 using UnityEditor;
-using UnityEngine;
 namespace PropertyEditor
 {
     public class FloatDrawer : ValueDrawer<float>
     {
-        public override bool Draw(GUIContent content, object val, StateGraph context)
+        public override void DoDraw(object val, StateGraph context)
         {
-            EditorGUI.BeginChangeCheck();
-            Value = EditorGUILayout.FloatField(content, (float)val);
-            return EditorGUI.EndChangeCheck();
+            Value = EditorGUILayout.FloatField((float)val);
         }
     }
 

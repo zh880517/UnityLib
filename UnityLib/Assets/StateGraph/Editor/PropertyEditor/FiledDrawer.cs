@@ -10,14 +10,10 @@ namespace PropertyEditor
         private readonly GUIContent Content;
         private readonly MethodInfo ValidMethod;
 
-        public FiledDrawer(FieldInfo info)
+        public FiledDrawer(FieldInfo info, IDrawer drawer)
         {
             Info = info;
-            var custom = info.GetCustomAttribute<PropertyCustomDrawerAttribute>();
-            if (custom != null)
-                Drawer = DrawerCollector.CreateDrawer(custom.GetType());
-            if (Drawer != null)
-                Drawer = DrawerCollector.CreateDrawer(info.FieldType);
+            Drawer = drawer;
             var display = info.GetCustomAttribute<DisaplayNameAttribute>();
             Content = new GUIContent(display == null ? info.Name : display.Name);
             var validFunc = info.GetCustomAttribute<ValidFuncAttribute>();
@@ -29,8 +25,8 @@ namespace PropertyEditor
 
         public bool Draw(object data, StateGraph context)
         {
-            if (!(bool)ValidMethod.Invoke(data, null))
-                return true;
+            if (Drawer == null || ValidMethod != null && !(bool)ValidMethod.Invoke(data, null))
+                return false;
             if (Drawer.Draw(Content, Info.GetValue(data), context))
             {
                 DrawerCollector.OnPropertyModify(context);
@@ -38,6 +34,21 @@ namespace PropertyEditor
                 return true;
             }
             return false;
+        }
+
+        public static FiledDrawer Create(FieldInfo info)
+        {
+            if (info.IsStatic || !info.IsPublic || info.GetCustomAttribute<HideInInspector>() != null)
+                return null;
+            var custom = info.GetCustomAttribute<PropertyCustomDrawerAttribute>();
+            IDrawer drawer = null;
+            if (custom != null)
+                drawer = DrawerCollector.CreateDrawer(custom.GetType(), custom);
+            if (drawer == null)
+                drawer = DrawerCollector.CreateDrawer(info.FieldType);
+            if (drawer == null)
+                return null;
+            return new FiledDrawer(info, drawer);
         }
     }
 

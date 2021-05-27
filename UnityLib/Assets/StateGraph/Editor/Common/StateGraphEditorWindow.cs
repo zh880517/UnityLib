@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where TGraph :StateGraph where TView:StateGraphView
 {
     public const float LEFT_AREA_WIDTH = 200;
-    public const float RIGHT_AREA_WIDTH = 200;
+    public const float RIGHT_AREA_WIDTH = 300;
     public const float TOOL_BAR_HEIGHT = 20;
     public bool HideLeftArea;
     public bool HideRightArea;
@@ -38,6 +38,14 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
             SelectedView = OpenList[0];
         }
         Vector2 size = position.size;
+        if (!EditorUtility.IsDirty(SelectedView.Graph))
+        {
+            titleContent.text = $"技能:{SelectedView.Graph.name}";
+        }
+        else
+        {
+            titleContent.text = $"技能:{SelectedView.Graph.name}*";
+        }
         using (new GUILayout.AreaScope(new Rect(Vector2.zero, new Vector2(size.x, TOOL_BAR_HEIGHT))))
         {
             using(new GUILayout.HorizontalScope(EditorStyles.toolbar))
@@ -68,11 +76,17 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
         {
             DrawCenterArea(rect.size);
         }
-        using (new GUILayout.AreaScope(new Rect(new Vector2(size.x - RIGHT_AREA_WIDTH, TOOL_BAR_HEIGHT), new Vector2(RIGHT_AREA_WIDTH, size.y - TOOL_BAR_HEIGHT))))
+        if (!HideRightArea)
         {
-            DrawRightArea();
+            Rect rightRect = new Rect(new Vector2(size.x - RIGHT_AREA_WIDTH, TOOL_BAR_HEIGHT), new Vector2(RIGHT_AREA_WIDTH, size.y - TOOL_BAR_HEIGHT));
+            //GUI.DrawTexture(rightRect, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, new Color(0.17f, 0.17f, 0.17f, 1), 0, 0);
+            using (new GUILayout.AreaScope(rightRect))
+            {
+                DrawRightArea();
+            }
         }
-        if (NeedRepaint)
+
+        if (NeedRepaint || Event.current.type == EventType.KeyUp)
         {
             NeedRepaint = false;
             GUI.FocusControl("");
@@ -101,7 +115,10 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
 
     protected virtual void DrawRightArea()
     {
-        
+        foreach (var nodeRef in SelectedView.Selecteds)
+        {
+            nodeRef.Node.Editor.OnInspectorGUI();
+        }
     }
 
     protected virtual void DrawCenterArea(Vector2 size)
