@@ -11,8 +11,11 @@ namespace PropertyEditor
         private Type Type;
         public List<IDrawer> Drawers = new List<IDrawer>();
         private bool foldout = true;
+        private int selectIndex = -1;
+
         private static readonly GUIContent empty = new GUIContent();
-        public static readonly GUIContent iconToolbarPlusMore = EditorGUIUtility.TrIconContent("Toolbar Plus More", "Choose to add to list");
+        public static readonly GUIContent iconToolbarPlusMore = EditorGUIUtility.TrIconContent("Toolbar Plus", "Choose to add to list");
+        public static readonly GUIContent iconToolbarMinus = EditorGUIUtility.TrIconContent("Toolbar Minus", "Remove selection from list");
         public ListDrawer(Type type)
         {
             Type = type;
@@ -23,18 +26,80 @@ namespace PropertyEditor
         {
             using (new GUILayout.HorizontalScope("RL Header"))
             {
-                foldout = EditorGUILayout.Foldout(foldout, content ?? empty);
+                foldout = EditorGUILayout.Foldout(foldout, content ?? empty, true);
                 if (!foldout)
                     return false;
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(iconToolbarPlusMore, "RL FooterButton"))
-                {
-                    DrawerCollector.OnPropertyModify(context);
-                    var list = val as IList;
-                    list.Add(CreatNew());
-                }
             }
-            return Draw(val, context);
+            bool modify = false;
+            using(new GUILayout.VerticalScope("RL Background"))
+            {
+                modify = Draw(val, context);
+            }
+            int btnWidth = 25;
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                IList list = val as IList;
+                using (new GUILayout.HorizontalScope("RL Footer"))
+                {
+                    if (selectIndex >= 0)
+                    {
+                        using (new EditorGUI.DisabledScope(selectIndex > 0))
+                        {
+                            if (GUILayout.Button("▲", "RL FooterButton", GUILayout.Width(btnWidth)))
+                            {
+                                int idx = selectIndex;
+                                DrawerCollector.OnPropertyModify(context);
+                                GUI.FocusControl(null);
+                                var old = list[idx];
+                                list[idx] = list[idx - 1];
+                                list[idx - 1] = old;
+                                var oldDrawer = Drawers[idx];
+                                Drawers[idx] = Drawers[idx - 1];
+                                Drawers[idx - 1] = oldDrawer;
+                                selectIndex--;
+                            }
+                        }
+                        using (new EditorGUI.DisabledScope(selectIndex < list.Count - 1))
+                        {
+                            if (GUILayout.Button("▼", "RL FooterButton", GUILayout.Width(btnWidth)))
+                            {
+                                int idx = selectIndex;
+                                DrawerCollector.OnPropertyModify(context);
+                                GUI.FocusControl(null);
+                                var old = list[idx];
+                                list[idx] = list[idx + 1];
+                                list[idx + 1] = old;
+                                var oldDrawer = Drawers[idx];
+                                Drawers[idx] = Drawers[idx + 1];
+                                Drawers[idx + 1] = oldDrawer;
+                                selectIndex++;
+                            }
+                        }
+                    }
+                    if (GUILayout.Button(iconToolbarPlusMore, "RL FooterButton", GUILayout.Width(btnWidth)))
+                    {
+                        DrawerCollector.OnPropertyModify(context);
+                        list.Add(CreatNew());
+                        selectIndex = list.Count - 1;
+                    }
+                    using (new EditorGUI.DisabledScope(selectIndex < 0))
+                    {
+                        if (GUILayout.Button(iconToolbarMinus, "RL FooterButton", GUILayout.Width(btnWidth)))
+                        {
+                            DrawerCollector.OnPropertyModify(context);
+                            list.RemoveAt(selectIndex);
+                            Drawers.RemoveAt(selectIndex);
+                            if (selectIndex >= list.Count)
+                            {
+                                selectIndex--;
+                            }
+                        }
+                    }
+                }
+                GUILayout.Space(10);
+            }
+            return modify;
         }
 
         private bool Draw(object val, StateGraph context)
@@ -50,51 +115,13 @@ namespace PropertyEditor
             }
             for (int i = 0; i < list.Count; ++i)
             {
-                using (new GUILayout.HorizontalScope("Box"))
+                string style = selectIndex == i ? "MeTransitionSelect" : "RL Element";
+                using (new GUILayout.HorizontalScope(style))
                 {
                     var drawer = Drawers[i];
-                    if (GUILayout.Button("", "RL DragHandle"))
+                    if (GUILayout.Button("", "RL DragHandle", GUILayout.ExpandHeight(true)))
                     {
-                        GenericMenu menu = new GenericMenu();
-                        menu.AddItem(new GUIContent("删除"), false, (obj) =>
-                        {
-                            int idx = (int)obj;
-                            DrawerCollector.OnPropertyModify(context);
-                            GUI.FocusControl(null);
-                            Drawers.RemoveAt(idx);
-                            list.RemoveAt(idx);
-                        }, i);
-                        if (i > 0)
-                        {
-                            menu.AddItem(new GUIContent("上移"), false, (obj) =>
-                            {
-                                int idx = (int)obj;
-                                DrawerCollector.OnPropertyModify(context);
-                                GUI.FocusControl(null);
-                                var old = list[idx];
-                                list[idx] = list[idx - 1];
-                                list[idx - 1] = old;
-                                var oldDrawer = Drawers[idx];
-                                Drawers[idx] = Drawers[idx - 1];
-                                Drawers[idx - 1] = oldDrawer;
-                            }, i);
-                        }
-                        if (i < list.Count - 1)
-                        {
-                            menu.AddItem(new GUIContent("下移"), false, (obj) =>
-                            {
-                                int idx = (int)obj;
-                                DrawerCollector.OnPropertyModify(context);
-                                GUI.FocusControl(null);
-                                var old = list[idx];
-                                list[idx] = list[idx + 1];
-                                list[idx + 1] = old;
-                                var oldDrawer = Drawers[idx];
-                                Drawers[idx] = Drawers[idx + 1];
-                                Drawers[idx + 1] = oldDrawer;
-                            }, i);
-                        }
-                        menu.ShowAsContext();
+                        selectIndex = i;
                     }
                     using (new GUILayout.VerticalScope())
                     {
@@ -106,6 +133,7 @@ namespace PropertyEditor
 
                     }
                 }
+                GUILayout.Space(1);
             }
             return false;
         }

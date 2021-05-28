@@ -40,7 +40,11 @@ namespace PropertyEditor
                     Value.Key = context.Blackboard.Names[idx];
                 }
             }
-            Value.UseBlackBoard = EditorGUILayout.Toggle(Value.UseBlackBoard);
+            Value.UseBlackBoard = EditorGUILayout.Toggle(Value.UseBlackBoard, GUILayout.Width(15));
+            if (Value.UseBlackBoard && string.IsNullOrEmpty(Value.Key) && context.Blackboard.Names.Length > 0)
+            {
+                Value.Key = context.Blackboard.Names[0];
+            }
         }
     }
 

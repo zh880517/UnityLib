@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 public enum NumberCompareType
 {
@@ -11,9 +11,12 @@ public enum NumberCompareType
 [Serializable]
 public struct VariableCompare
 {
+    [DisaplayName("左")]
     public ReadVariable Left;
-    public ReadVariable Right;
+    [DisaplayName("比较类型")]
     public NumberCompareType CompareType;
+    [DisaplayName("右")]
+    public ReadVariable Right;
 
     public bool Compare(RuntimeBlackboard blackboard)
     {

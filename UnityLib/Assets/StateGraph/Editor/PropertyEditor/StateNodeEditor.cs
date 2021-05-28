@@ -17,14 +17,23 @@ public class StateNodeEditor
         var dpName = type.GetCustomAttribute<DisaplayNameAttribute>();
         typeName = dpName != null ? dpName.Name : type.Name;
     }
-
+    public static GUIStyle backGrountStyle;
     public void OnInspectorGUI()
     {
-        using (new GUILayout.VerticalScope("Box"))
+        if (backGrountStyle == null)
         {
-            foldout = EditorGUILayout.Foldout(foldout, $"{typeName} - {Node.Name}");
-            if (!foldout)
-                return;
+            backGrountStyle = new GUIStyle("OL box NoExpand");
+            backGrountStyle.padding = new RectOffset(0, 0, 0, 0);
+        }
+        using (new GUILayout.VerticalScope(backGrountStyle))
+        {
+            using(new GUILayout.HorizontalScope("ContentToolbar"))
+            {
+                foldout = EditorGUILayout.Foldout(foldout, $"{typeName} - {Node.Name}", true);
+                if (!foldout)
+                    return;
+
+            }
             using (new GUILayout.HorizontalScope())
             {
                 GUILayout.Space(20);

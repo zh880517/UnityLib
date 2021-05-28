@@ -25,6 +25,7 @@ public class BlackboardEditor
                 }
             }
         }
+        EditorGUIUtility.labelWidth = 50;
         for (int i=0; i<view.Graph.Blackboard.Variables.Count; ++i)
         {
             using (new GUILayout.HorizontalScope())
@@ -37,8 +38,8 @@ public class BlackboardEditor
                     continue;
                 }
                 var variable = view.Graph.Blackboard.Variables[i];
-                GUILayout.Label(variable.Name);
-                float val = EditorGUILayout.FloatField(variable.DefultValue);
+                //GUILayout.Label(variable.Name);
+                float val = EditorGUILayout.FloatField(variable.Name,variable.DefultValue);
                 if (val != variable.DefultValue)
                 {
                     view.RegistUndo("modify variable defult value");

@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 [System.Serializable]
 public class GUICanvas
@@ -99,9 +99,12 @@ public class GUICanvas
 
     public void OnGUI(Vector2 size, Event e)
     {
+        Rect rect = new Rect(Vector2.zero, size);
+        if (!rect.Contains(e.mousePosition))
+            return;
         HandleInput(e);
+        ViewInWorld = ScreenToWorld(rect);
         PointInWorld = ScreenToWorld(e.mousePosition);
-        ViewInWorld = ScreenToWorld(new Rect(Vector2.zero, size));
     }
 
     public void DrawArea(Rect rect, Color color)
