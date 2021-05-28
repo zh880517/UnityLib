@@ -76,6 +76,19 @@ namespace PropertyEditor
             }
             if (type.IsValueType)
             {
+                if (type == typeof(short)  || type == typeof(long))
+                {
+                    return new IntDrawer();
+                }
+                else if (type == typeof(ushort) || type == typeof(ulong))
+                {
+                    return new UintDrawer();
+                }
+                else if (type == typeof(double))
+                {
+                    return new FloatDrawer();
+                }
+
                 return new StructTypeDrawer(type);
             }
             else if (type.IsGenericType)
