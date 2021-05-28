@@ -122,11 +122,18 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
         HideRightArea = GUILayout.Toggle(HideRightArea, "隐藏右侧", EditorStyles.toolbarButton);
     }
 
+    private static readonly string[] leftTabName = new string[] { "黑板", "列表" };
+
+    public int LeftSelectIndx = 0;
     protected virtual void DrawLeftArea()
     {
-        if (SelectedView)
+        LeftSelectIndx = GUILayout.Toolbar(LeftSelectIndx, leftTabName);
+        if (LeftSelectIndx == 0)
         {
-            Blackboard.Draw(SelectedView);
+            if (SelectedView)
+            {
+                Blackboard.Draw(SelectedView);
+            }
         }
     }
 
