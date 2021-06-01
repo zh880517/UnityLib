@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -51,7 +51,7 @@ public abstract class StateNodeTypeDropDown : AdvancedDropdown
         }
         for (int i = tmpList.Count - 1; i >= 0; --i)
         {
-            var child = root.children.First(it => it.name == tmpList[i]);
+            var child = root.children.FirstOrDefault(it => it.name == tmpList[i]);
             if (child == null)
             {
                 child = new AdvancedDropdownItem(tmpList[i]);

@@ -135,6 +135,10 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
                 Blackboard.Draw(SelectedView);
             }
         }
+        else if (LeftSelectIndx == 1)
+        {
+            DrawGraphList();
+        }
     }
 
     public Vector2 rightScrollPos;

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -22,21 +22,19 @@ public class StateScriptCreateTemplate
         return path;
     }
 
-    
     class CreateStateScriptAction : EndNameEditAction
     {
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             string fileNameWithOutExtension = Path.GetFileNameWithoutExtension(pathName);
-            StreamReader streamReader = new StreamReader(resourceFile);
-            string text = streamReader.ReadToEnd();
-            streamReader.Close();
-            text = Regex.Replace(text, "#ClassName#", fileNameWithOutExtension);
-            text = Regex.Replace(text, "#GUID#", System.Guid.NewGuid().ToString());
-            UTF8Encoding uTF8Encoding = new UTF8Encoding(true, false);
-            StreamWriter streamWriter = new StreamWriter(pathName, false, uTF8Encoding);
-            streamWriter.Write(text);
-            streamWriter.Close();
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append("#if UNITY_EDITOR").AppendLine();
+            stringBuilder.Append($"[TypeIdentify(\"{System.Guid.NewGuid()}\")]").AppendLine();
+            stringBuilder.Append("#endif").AppendLine();
+            stringBuilder.Append($"public class {fileNameWithOutExtension} : IStateNode").AppendLine();
+            stringBuilder.Append("{").AppendLine();
+            stringBuilder.Append("}").AppendLine();
+            File.WriteAllText(pathName, stringBuilder.ToString(), Encoding.UTF8);
             AssetDatabase.ImportAsset(pathName);
             var o = AssetDatabase.LoadAssetAtPath(pathName, typeof(Object));
             ProjectWindowUtil.ShowCreatedAsset(o);
@@ -51,7 +49,7 @@ public class StateScriptCreateTemplate
             ScriptableObject.CreateInstance<CreateStateScriptAction>(),
             GetSelectedPathOrFallBack() + "/NewStateNode.cs",
             EditorGUIUtility.IconContent("cs Script Icon").image as Texture2D,
-            "Assets/StateGraph/Editor/Common/Template/NewStateNode.txt"
+            ""//"Assets/StateGraph/Editor/Common/Template/NewStateNode.txt"
             );
     }
 }
