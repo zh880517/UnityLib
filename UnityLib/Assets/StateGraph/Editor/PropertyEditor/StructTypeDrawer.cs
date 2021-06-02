@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,26 +32,18 @@ namespace PropertyEditor
                 foldout = EditorGUILayout.Foldout(foldout, content);
                 if (!foldout)
                     return false;
-                using (new GUILayout.HorizontalScope())
-                {
-                    GUILayout.Space(10);
-                    return Draw(val, context);
-                }
             }
-            else
-            {
-                return Draw(val, context);
-            }
+            return Draw(val, context, content != null);
         }
 
-        private bool Draw(object val, StateGraph context)
+        private bool Draw(object val, StateGraph context, bool offset)
         {
             bool modify = false;
             if (BaseTypeDrawer != null)
             {
                 modify = modify || BaseTypeDrawer.Draw(null, val, context);
             }
-            using (new GUILayout.VerticalScope())
+            using (new GUILayout.VerticalScope(offset ? ClassTypeDrawer.ContentStyle : ""))
             {
                 foreach (var field in Fields)
                 {

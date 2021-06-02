@@ -17,14 +17,9 @@ public class StateNodeEditor
         var dpName = type.GetCustomAttribute<DisaplayNameAttribute>();
         typeName = dpName != null ? dpName.Name : type.Name;
     }
-    public static GUIStyle backGrountStyle;
+    public static GUIStyle backGrountStyle = new GUIStyle("OL box NoExpand") { padding = new RectOffset(0, 0, 0, 0) };
     public void OnInspectorGUI()
     {
-        if (backGrountStyle == null)
-        {
-            backGrountStyle = new GUIStyle("OL box NoExpand");
-            backGrountStyle.padding = new RectOffset(0, 0, 0, 0);
-        }
         using (new GUILayout.VerticalScope(backGrountStyle))
         {
             using(new GUILayout.HorizontalScope("ContentToolbar"))
@@ -34,26 +29,22 @@ public class StateNodeEditor
                     return;
 
             }
-            using (new GUILayout.HorizontalScope())
+            using (new GUILayout.VerticalScope(PropertyEditor.ClassTypeDrawer.ContentStyle))
             {
-                GUILayout.Space(20);
-                using (new GUILayout.VerticalScope())
+                GUILayout.Label(Node.Data.GetType().Name, EditorStyles.centeredGreyMiniLabel);
+                using (new GUILayout.HorizontalScope())
                 {
-                    GUILayout.Label(Node.Data.GetType().Name, EditorStyles.centeredGreyMiniLabel);
-                    using (new GUILayout.HorizontalScope())
-                    {
 
-                        GUILayout.Label("名字");
-                        EditorGUI.BeginChangeCheck();
-                        string name = EditorGUILayout.TextField(Node.Name);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            PropertyEditor.DrawerCollector.OnPropertyModify(Node.Graph);
-                            Node.Name = name;
-                        }
+                    GUILayout.Label("名字");
+                    EditorGUI.BeginChangeCheck();
+                    string name = EditorGUILayout.TextField(Node.Name);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        PropertyEditor.DrawerCollector.OnPropertyModify(Node.Graph);
+                        Node.Name = name;
                     }
-                    drawer.Draw(null, Node.Data, Node.Graph);
                 }
+                drawer.Draw(null, Node.Data, Node.Graph);
             }
         }
     }

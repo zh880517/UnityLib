@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 namespace PropertyEditor
 {
     public class ClassTypeDrawer : IDrawer
@@ -11,6 +10,8 @@ namespace PropertyEditor
         public List<FiledDrawer> Fields = new List<FiledDrawer>();
         private Type Type;
         private bool foldout = true;
+
+        public static GUIStyle ContentStyle = new GUIStyle() { padding = new RectOffset(10, 0, 0, 0) };
         public ClassTypeDrawer(Type type)
         {
             Type = type;
@@ -33,19 +34,11 @@ namespace PropertyEditor
                 foldout = EditorGUILayout.Foldout(foldout, content);
                 if (!foldout)
                     return false;
-                using (new GUILayout.HorizontalScope())
-                {
-                    GUILayout.Space(10);
-                    return Draw(val, context);
-                }
             }
-            else
-            {
-                return Draw(val, context);
-            }
+            return Draw(val, context, content != null);
         }
 
-        private bool Draw(object val, StateGraph context)
+        private bool Draw(object val, StateGraph context, bool offset)
         {
             if (val == null)
             {
@@ -56,7 +49,7 @@ namespace PropertyEditor
             {
                 BaseTypeDrawer.Draw(null, val, context);
             }
-            using (new GUILayout.VerticalScope())
+            using (new GUILayout.VerticalScope(offset ? ContentStyle : ""))
             {
                 foreach (var field in Fields)
                 {
