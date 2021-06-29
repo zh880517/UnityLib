@@ -69,6 +69,7 @@ public class StateNode: ISerializationCallbackReceiver
     public void OnAfterDeserialize()
     {
         nodeData = null;
+        editor = null;
     }
 
     public static implicit operator StateNodeRef(StateNode exists)
