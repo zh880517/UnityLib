@@ -30,6 +30,10 @@ namespace PropertyEditor
             {
                 idx = EditorGUILayout.Popup(idx, context.Blackboard.Names);
                 Value.Key = context.Blackboard.Names[idx];
+                if (GUILayout.Button("重置"))
+                {
+                    Value.Key = null;
+                }
             }
         }
     }

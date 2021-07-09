@@ -12,7 +12,7 @@ public abstract class StateNodeTypeDropDown : AdvancedDropdown
     public StateNodeTypeDropDown(StateGraphView view) : base(new AdvancedDropdownState())
     {
         View = view;
-        minimumSize = new Vector2(180, 300);
+        minimumSize = new Vector2(300, 400);
     }
 
     protected override AdvancedDropdownItem BuildRoot()

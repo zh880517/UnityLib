@@ -4,9 +4,72 @@ using UnityEngine;
 
 public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where TGraph :StateGraph where TView:StateGraphView
 {
+    #region 编辑器配置
+    [System.Serializable]
+    public class EditorConfig
+    {
+        public bool HidenLeft;
+        public bool HideRight;
+        public bool ExportWhenSave = true;
+        private string key;
+
+        public void SetHidenLeft(bool hidden)
+        {
+            if (HidenLeft != hidden)
+            {
+                HidenLeft = hidden;
+                Save();
+            }
+        }
+        public void SetHideRight(bool hidden)
+        {
+            if (HideRight != hidden)
+            {
+                HideRight = hidden;
+                Save();
+            }
+        }
+        public void SetExportWhenSave(bool export)
+        {
+            if (ExportWhenSave != export)
+            {
+                ExportWhenSave = export;
+                Save();
+            }
+        }
+
+        public static EditorConfig Load(string key)
+        {
+            EditorConfig config = new EditorConfig();
+            config.key = key;
+            var save = EditorPrefs.GetString(key, "{}");
+            EditorJsonUtility.FromJsonOverwrite(save, config);
+            return config;
+        }
+
+        public void Save()
+        {
+            string val = EditorJsonUtility.ToJson(this);
+            EditorPrefs.SetString(key, val);
+        }
+    }
+    private static EditorConfig _config;
+    protected static EditorConfig Config
+    {
+        get
+        {
+            if (_config == null)
+                _config = EditorConfig.Load(typeof(TGraph).FullName);
+            return _config;
+        }
+    }
+    #endregion
+
     public const float TOOL_BAR_HEIGHT = 20;
-    public bool HideLeftArea;
-    public bool HideRightArea;
+    protected float RightAreaRate = 0.2f;
+    protected float LeftAreaRate = 0.15f;
+    protected float LEFT_AREA_WIDTH = 200;
+    protected float RIGHT_AREA_WIDTH = 300;
     public TView SelectedView;
     public BlackboardEditor Blackboard = new BlackboardEditor();
     public List<TView> OpenList = new List<TView>();
@@ -39,15 +102,16 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
         }
     }
 
+    protected string GetSaveKey()
+    {
+        return typeof(TGraph).FullName;
+    }
+
     protected void RegistUndo(string name)
     {
         Undo.RegisterCompleteObjectUndo(this, name);
     }
 
-    public float RightAreaRate = 0.2f;
-    public float LeftAreaRate = 0.15f;
-    public float LEFT_AREA_WIDTH = 200;
-    public float RIGHT_AREA_WIDTH = 300;
     private void OnGUI()
     {
         OpenList.RemoveAll(it => it == null);
@@ -66,7 +130,7 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
                 DrawToolBar();
             }
         }
-        if (!HideLeftArea)
+        if (!Config.HidenLeft)
         {
             using (new GUILayout.AreaScope(new Rect(new Vector2(0, TOOL_BAR_HEIGHT), new Vector2(LEFT_AREA_WIDTH, size.y - TOOL_BAR_HEIGHT*2))))
             {
@@ -75,16 +139,16 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
         }
         float centerStartX = LEFT_AREA_WIDTH;
         float centerWidth = size.x - LEFT_AREA_WIDTH - RIGHT_AREA_WIDTH;
-        if (HideLeftArea)
+        if (Config.HidenLeft)
         {
             centerStartX = 0;
             centerWidth += LEFT_AREA_WIDTH;
         }
-        if (HideRightArea)
+        if (Config.HideRight)
         {
             centerWidth += RIGHT_AREA_WIDTH;
         }
-        if (!HideRightArea)
+        if (!Config.HideRight)
         {
             Rect rightRect = new Rect(new Vector2(size.x - RIGHT_AREA_WIDTH, TOOL_BAR_HEIGHT), new Vector2(RIGHT_AREA_WIDTH, size.y - TOOL_BAR_HEIGHT*2));
             using (new GUILayout.AreaScope(rightRect))
@@ -119,6 +183,14 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
         }
 
         Event e = Event.current;
+
+        if (e.type == EventType.KeyDown && e.control && e.keyCode == KeyCode.S)
+        {
+            AssetDatabase.SaveAssets();
+            if (SelectedView && Config.ExportWhenSave)
+                DoExport(SelectedView.Graph as TGraph);
+            e.Use();
+        }
         if ((e.control || e.command) && (e.keyCode == KeyCode.Z || e.keyCode == KeyCode.Y))
         {
             NeedRepaint = true;
@@ -138,18 +210,18 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
         {
             OpenCreateWizard();
         }
-        if (GUILayout.Button("导出", EditorStyles.toolbarButton))
-        {
-            DoExport();
-        }
         GUILayout.FlexibleSpace();
-        HideLeftArea = GUILayout.Toggle(HideLeftArea, "隐藏左侧", EditorStyles.toolbarButton);
-        HideRightArea = GUILayout.Toggle(HideRightArea, "隐藏右侧", EditorStyles.toolbarButton);
+        if (SelectedView && GUILayout.Button("导出", EditorStyles.toolbarButton))
+        {
+            DoExport(SelectedView.Graph as TGraph);
+        }
+        Config.SetExportWhenSave(GUILayout.Toggle(Config.ExportWhenSave, "保存时导出", EditorStyles.toolbarButton));
+        Config.SetHidenLeft(GUILayout.Toggle(Config.HidenLeft, "隐藏左侧", EditorStyles.toolbarButton));
+        Config.SetHideRight(GUILayout.Toggle(Config.HideRight, "隐藏右侧", EditorStyles.toolbarButton));
     }
 
-    protected virtual void DoExport()
+    protected virtual void DoExport(TGraph graph)
     {
-
     }
 
     private static readonly string[] leftTabName = new string[] { "黑板", "列表" };
@@ -234,18 +306,13 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
             {
                 GUILayout.Label("当前显示:", EditorStyles.boldLabel);
                 DrawGraphInfo(SelectedView.Graph);
-                if (GUILayout.Button("关闭"))
-                {
-                    RegistUndo("close state graph");
-                    CloseSelect();
-                }
             }
         }
         using (var scroll = new GUILayout.ScrollViewScope(graphsScroll))
         {
             using(new GUILayout.VerticalScope())
             {
-                if (OpenList.Count > 0)
+                if (OpenList.Count > 1)
                 {
                     GUILayout.Label("当前打开:", EditorStyles.boldLabel);
                 }
@@ -260,25 +327,18 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
                     using (new GUILayout.VerticalScope("Box"))
                     {
                         DrawGraphInfo(view.Graph);
-                        using (new GUILayout.HorizontalScope())
+                        if (GUILayout.Button("打开"))
                         {
-                            if (GUILayout.Button("关闭"))
-                            {
-                                CloseView(view);
-                                --i;
-                                continue;
-                            }
-                            GUILayout.FlexibleSpace();
-                            if (GUILayout.Button("切换显示"))
-                            {
-                                RegistUndo("switch state graph");
-                                SelectedView = view;
-                            }
+                            RegistUndo("switch state graph");
+                            OpenList.Remove(view);
+                            OpenList.Insert(0, view);
+                            SelectedView = view;
                         }
                     }
                 }
                 //显示所有的同类型Graph
                 var list = GetGraphs();
+                GUILayout.Label("列表", EditorStyles.boldLabel);
                 foreach (var graph in list)
                 {
                     //过滤已经打开的Graph
@@ -312,36 +372,11 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
 
     protected virtual void OnCloseView(TView view)
     {
+        if (Config.ExportWhenSave && EditorUtility.IsDirty(view.Graph))
+            DoExport(view.Graph as TGraph);
         Undo.ClearUndo(view.Graph);
         Undo.ClearUndo(view);
         DestroyImmediate(view);
-    }
-
-    protected void CloseSelect()
-    {
-        if (SelectedView)
-        {
-            int idx = OpenList.IndexOf(SelectedView);
-            OpenList.RemoveAt(idx);
-            OnCloseView(SelectedView);
-            SelectedView = null;
-            idx--;
-            if (idx < 0)
-            {
-                idx = 0;
-            }
-            if (idx <= OpenList.Count - 1)
-            {
-                SelectedView = OpenList[idx];
-            }
-        }
-    }
-
-    protected void CloseView(TView view)
-    {
-        int idx = OpenList.IndexOf(view);
-        OpenList.RemoveAt(idx);
-        OnCloseView(view);
     }
 
     private void OnDestroy()

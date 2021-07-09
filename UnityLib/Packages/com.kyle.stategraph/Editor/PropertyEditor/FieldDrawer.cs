@@ -15,8 +15,7 @@ namespace PropertyEditor
             Info = info;
             Drawer = drawer;
             var display = info.GetCustomAttribute<DisplayNameAttribute>();
-            var toolTip = info.GetCustomAttribute<TooltipAttribute>();
-            Content = new GUIContent(display == null ? info.Name : display.Name, toolTip != null ? toolTip.tooltip : "");
+            Content = new GUIContent(display == null ? info.Name : display.Name, display != null ? display.ToolTip : "");
             var validFunc = info.GetCustomAttribute<ValidFuncAttribute>();
             if (validFunc != null)
             {

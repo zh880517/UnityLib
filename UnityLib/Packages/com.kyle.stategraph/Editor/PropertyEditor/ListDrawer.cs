@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 namespace PropertyEditor
@@ -8,7 +9,7 @@ namespace PropertyEditor
     public class ListDrawer : IDrawer
     {
         private Type ElementType;
-        private Type Type;
+        private FieldInfo Field;
         public List<IDrawer> Drawers = new List<IDrawer>();
         private bool foldout = true;
         private int selectIndex = -1;
@@ -16,10 +17,10 @@ namespace PropertyEditor
         private static readonly GUIContent empty = new GUIContent();
         public static readonly GUIContent iconToolbarPlusMore = EditorGUIUtility.TrIconContent("Toolbar Plus", "Choose to add to list");
         public static readonly GUIContent iconToolbarMinus = EditorGUIUtility.TrIconContent("Toolbar Minus", "Remove selection from list");
-        public ListDrawer(Type type)
+        public ListDrawer(FieldInfo field)
         {
-            Type = type;
-            ElementType = type.GenericTypeArguments[0];
+            Field = field;
+            ElementType = Field.FieldType.GenericTypeArguments[0];
         }
 
         public bool Draw(GUIContent content, object val, StateGraph context)
@@ -108,7 +109,7 @@ namespace PropertyEditor
             IList list = val as IList;
             while (Drawers.Count < list.Count)
             {
-                Drawers.Add(DrawerCollector.CreateDrawer(ElementType));
+                Drawers.Add(DrawerCollector.CreatContainerDrawer(Field, ElementType));
             }
             for (int i = 0; i < list.Count; ++i)
             {
@@ -144,7 +145,7 @@ namespace PropertyEditor
 
         public object GetValue()
         {
-            return Activator.CreateInstance(Type);
+            return Activator.CreateInstance(Field.FieldType);
         }
     }
 

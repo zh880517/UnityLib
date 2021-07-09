@@ -53,12 +53,10 @@ namespace PropertyEditor
             }
         }
 
-        public static IDrawer CreateDrawer(FieldInfo field)
+        public static IDrawer CreatContainerDrawer(FieldInfo field, Type elememtType)
         {
-            if (field.IsStatic || !field.IsPublic || field.GetCustomAttribute<UnityEngine.HideInInspector>() != null)
-                return null;
             var custom = field.GetCustomAttribute<PropertyCustomDrawerAttribute>();
-            if (custom != null && custom.TypeCheck(field.FieldType))
+            if (custom != null && custom.TypeCheck(elememtType))
             {
                 if (Instance.drawerTypes.TryGetValue(custom.GetType(), out Type drawerType))
                 {
@@ -70,9 +68,40 @@ namespace PropertyEditor
                     }
                 }
             }
-            if (field.FieldType.IsEnum && field.GetCustomAttribute<EnumMaskAttribute>() != null)
+            if (elememtType.IsEnum && field.GetCustomAttribute<EnumMaskAttribute>() != null)
             {
-                return new EnumMaskDrawer(field.FieldType);
+                return new EnumMaskDrawer(elememtType);
+            }
+            return CreateDrawer(elememtType);
+        }
+
+        public static IDrawer CreateDrawer(FieldInfo field)
+        {
+            if (field.IsStatic || !field.IsPublic || field.GetCustomAttribute<UnityEngine.HideInInspector>() != null)
+                return null;
+            //自定义编辑类型放在最前，可以支持对List类型的重写
+            var custom = field.GetCustomAttribute<PropertyCustomDrawerAttribute>();
+            if (custom != null && custom.TypeCheck(field.FieldType))
+            {
+                if (Instance.drawerTypes.TryGetValue(custom.GetType(), out Type drawerType))
+                {
+                    if (Activator.CreateInstance(drawerType) is CustomDrawerBase drawer)
+                    {
+                        drawer.SetAttribute(custom);
+                        return drawer;
+                    }
+                }
+            }
+            if (!IsList(field.FieldType))
+            {
+                if (field.FieldType.IsEnum && field.GetCustomAttribute<EnumMaskAttribute>() != null)
+                {
+                    return new EnumMaskDrawer(field.FieldType);
+                }
+            }
+            else
+            {
+                return new ListDrawer(field);
             }
             return CreateDrawer(field.FieldType);
         }
@@ -111,15 +140,10 @@ namespace PropertyEditor
 
                 return new StructTypeDrawer(type);
             }
-            else if (type.IsGenericType)
+            else if (type.IsGenericType && typeof(IEnumerable).IsAssignableFrom(type))
             {
-                if (type.GetGenericTypeDefinition() == typeof(List<>))
-                {
-                    return new ListDrawer(type);
-                }
                 //只支持List容器
-                if (typeof(IEnumerable).IsAssignableFrom(type))
-                    return null;
+                return null;
             }
             return new ClassTypeDrawer(type);
         }
@@ -128,6 +152,11 @@ namespace PropertyEditor
         {
             UnityEditor.Undo.RegisterCompleteObjectUndo(graph, "Property Modify");
             UnityEditor.EditorUtility.SetDirty(graph);
+        }
+
+        public static bool IsList(Type type)
+        {
+            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
         }
     }
 

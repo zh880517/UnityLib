@@ -13,7 +13,8 @@ public class StateGraphView : ScriptableObject
     public const float STACK_BOTTOM_HEIGHT = STACK_TOP_HEIGHT;//容器节点底部预留高度
     public const float STACK_LEFT_WIDTH = 20;//容器节点左侧预留宽度
     public const float STACK_NODE_WIDTH = STACK_LEFT_WIDTH + CHILD_INTERVAL + NODE_WIDTH;//容器节点宽度
-    public const float PIN_WIDTH = 20;//连接点宽度
+    public const float PIN_WIDTH = 14;//连接点宽度
+    public const float PIN_RADIUS = PIN_WIDTH * 0.5f;
     public static readonly Vector2 NODE_SIZE = new Vector2(NODE_WIDTH, NODE_HEIGHT);//普通节点的大小
     public static readonly Vector2 PIN_SIZE = new Vector2(PIN_WIDTH + 5, PIN_WIDTH + 5);//连接点的大小
     public static readonly Color NormalNodeColor = new Color32(80, 80, 80, 180);
@@ -150,8 +151,8 @@ public class StateGraphView : ScriptableObject
         {
             if (!link.IsChild)
             {
-                Vector2 from = GetOutputPinRect(link.From.Node).center;
-                Vector2 to = GetInputPinRect(link.To.Node).center;
+                Vector2 from = GetOutputPin(link.From.Node);
+                Vector2 to = GetInputPin(link.To.Node);
                 Color color = Color.white;
                 if (Selecteds.Contains(link.From) || Selecteds.Contains(link.To))
                 {
@@ -190,16 +191,16 @@ public class StateGraphView : ScriptableObject
         //画顶部区域，包含文字、输入、添加子节点
         if (Canvas.DrawRect(topBound, StackNodeColor, true, false))
         {
-            topBound.position += new Vector2(PIN_WIDTH, 0);
+            topBound.position += new Vector2(PIN_WIDTH + 4, 0);
             topBound.width -= PIN_WIDTH * 2;
             Canvas.DrawText(topBound, node.Name, null, node.Comments, StateGraphEditorStyles.NodeNameStyle);
             if (Graph.ChechInput(node))
             {
-                Vector2 pos = GetInputPinRect(node).center;
-                Canvas.DrawCircle(pos, CircleWireColor, 6, true);
+                Vector2 pos = GetInputPin(node);
+                Canvas.DrawCircle(pos, CircleWireColor, PIN_RADIUS, true);
                 if (Graph.Links.Exists(it => it.To == node))
                 {
-                    Canvas.DrawCircle(pos, CircleSoldColor, 4, false);
+                    Canvas.DrawCircle(pos, CircleSoldColor, PIN_RADIUS - 2, false);
                 }
 
                 Rect addRect = GetAddChildPinRect(node);
@@ -256,11 +257,11 @@ public class StateGraphView : ScriptableObject
         {
             if (Graph.CheckOutput(node))
             {
-                Vector2 pos = GetOutputPinRect(node).center;
-                Canvas.DrawCircle(pos, CircleWireColor, 6, true);
+                Vector2 pos = GetOutputPin(node);
+                Canvas.DrawCircle(pos, CircleWireColor, PIN_RADIUS, true);
                 if (Graph.Links.Exists(it => !it.IsChild && it.From == node))
                 {
-                    Canvas.DrawCircle(pos, CircleSoldColor, 4, false);
+                    Canvas.DrawCircle(pos, CircleSoldColor, PIN_RADIUS - 2, false);
                 }
             }
         }
@@ -280,20 +281,20 @@ public class StateGraphView : ScriptableObject
             Canvas.DrawText(txtBound, node.Name, null, node.Comments, StateGraphEditorStyles.NodeNameStyle);
             if (Graph.ChechInput(node))
             {
-                Vector2 pos = GetInputPinRect(node).center;
-                Canvas.DrawCircle(pos, CircleWireColor, 6, true);
+                Vector2 pos = GetInputPin(node);
+                Canvas.DrawCircle(pos, CircleWireColor, PIN_RADIUS, true);
                 if (isChild || Graph.Links.Exists(it => it.To == node))
                 {
-                    Canvas.DrawCircle(pos, CircleSoldColor, 4, false);
+                    Canvas.DrawCircle(pos, CircleSoldColor, PIN_RADIUS - 2, false);
                 }
             }
             if (Graph.CheckOutput(node))
             {
-                Vector2 pos = GetOutputPinRect(node).center;
-                Canvas.DrawCircle(pos, CircleWireColor, 6, true);
+                Vector2 pos = GetOutputPin(node);
+                Canvas.DrawCircle(pos, CircleWireColor, PIN_RADIUS, true);
                 if (Graph.Links.Exists(it => it.From == node))
                 {
-                    Canvas.DrawCircle(pos, CircleSoldColor, 4, false);
+                    Canvas.DrawCircle(pos, CircleSoldColor, PIN_RADIUS - 2, false);
                 }
             }
         }
@@ -392,12 +393,6 @@ public class StateGraphView : ScriptableObject
                 e.Use();
                 return;
             }
-            if (control && e.keyCode == KeyCode.S && !ReadOnly)
-            {
-                AssetDatabase.SaveAssets();
-                e.Use();
-                return;
-            }
             if (control && e.keyCode == KeyCode.A)
             {
                 Selecteds.Clear();
@@ -411,6 +406,12 @@ public class StateGraphView : ScriptableObject
         }
     }
 
+    const float compareVal = PIN_RADIUS*PIN_RADIUS + 16;
+    private bool MouseInPin(Vector2 pinPos)
+    {
+        return Vector2.SqrMagnitude(pinPos - Canvas.MouseInWorld) <= compareVal;
+    }
+
     private void OnClick(bool isCtrl, bool isLeft)
     {
         var hitNode = HitTest(Canvas.MouseInWorld);
@@ -422,13 +423,13 @@ public class StateGraphView : ScriptableObject
         {
             if (!isLeft && !ReadOnly)
             {
-                if (Graph.CheckOutput(hitNode) && GetOutputPinRect(hitNode).Contains(Canvas.MouseInWorld))
+                if (Graph.CheckOutput(hitNode) && MouseInPin(GetOutputPin(hitNode)))
                 {
                     BreakOutputLink(hitNode);
                     ignoreRightUp = true;
                     return;
                 }
-                if (Graph.ChechInput(hitNode) && GetInputPinRect(hitNode).Contains(Canvas.MouseInWorld))
+                if (Graph.ChechInput(hitNode) && MouseInPin(GetInputPin(hitNode)))
                 {
                     BreakInputLink(hitNode);
                     ignoreRightUp = true;
@@ -457,16 +458,16 @@ public class StateGraphView : ScriptableObject
                                 DragMode = new ViewLinkMode(hitNode, true, true, rect.center);
                                 break;
                             }
-                            rect = GetOutputPinRect(hitNode);
-                            if (Graph.CheckOutput(hitNode) && rect.Contains(Canvas.MouseInWorld))
+                            Vector2 center = GetOutputPin(hitNode);
+                            if (Graph.CheckOutput(hitNode) && MouseInPin(center))
                             {
-                                DragMode = new ViewLinkMode(hitNode, true, false, rect.center);
+                                DragMode = new ViewLinkMode(hitNode, true, false, center);
                                 break;
                             }
-                            rect = GetInputPinRect(hitNode);
-                            if (Graph.ChechInput(hitNode) && rect.Contains(Canvas.MouseInWorld))
+                            center = GetInputPin(hitNode);
+                            if (Graph.ChechInput(hitNode) && MouseInPin(center))
                             {
-                                DragMode = new ViewLinkMode(hitNode, false, false, rect.center);
+                                DragMode = new ViewLinkMode(hitNode, false, false, center);
                                 break;
                             }
                         }
@@ -770,29 +771,29 @@ public class StateGraphView : ScriptableObject
         EditorUtility.SetDirty(Graph);
     }
 
-    public Rect GetOutputPinRect(StateNode node, bool forceDefult = false)
+    public Vector2 GetOutputPin(StateNode node, bool forceDefult = false)
     {
         if (Graph.IsStack(node))
         {
-            return new Rect(node.Bounds.max - PIN_SIZE, PIN_SIZE);
+            return node.Bounds.max - PIN_SIZE * 0.5f;
         }
         else
         {
             if (forceDefult || !node.ShowReversal)
-                return new Rect(node.Bounds.max - new Vector2(PIN_SIZE.x, node.Bounds.height * 0.5f + PIN_SIZE.y * 0.5f), PIN_SIZE);
+                return node.Bounds.max - new Vector2(PIN_WIDTH*0.5f, node.Bounds.height * 0.5f);
             else
-                return GetInputPinRect(node, true);
+                return GetInputPin(node, true);
         }
     }
 
-    public Rect GetInputPinRect(StateNode node, bool forceDefult = false)
+    public Vector2 GetInputPin(StateNode node, bool forceDefult = false)
     {
         if (Graph.IsStack(node))
-            return new Rect(node.Bounds.position, PIN_SIZE);
+            return node.Bounds.position + PIN_SIZE*0.5f;
         if (forceDefult || !node.ShowReversal)
-            return new Rect(node.Bounds.position + new Vector2(0, node.Bounds.height * 0.5f - PIN_SIZE.y * 0.5f), PIN_SIZE);
+            return node.Bounds.position + new Vector2(PIN_WIDTH * 0.5f, node.Bounds.height * 0.5f);
 
-        return GetOutputPinRect(node, true);
+        return GetOutputPin(node, true);
     }
 
     public Rect GetAddChildPinRect(StateNode node)
