@@ -8,6 +8,7 @@ public class StateNodeEditor
     private PropertyEditor.IDrawer drawer;
     private bool foldout = true;
     private string typeName;
+    private string tooltip;
     private StateNode Node;
     public StateNodeEditor(StateNode node)
     {
@@ -16,6 +17,8 @@ public class StateNodeEditor
         drawer = PropertyEditor.DrawerCollector.CreateDrawer(type);
         var dpName = type.GetCustomAttribute<DisplayNameAttribute>();
         typeName = dpName != null ? dpName.Name : type.Name;
+        if (dpName != null)
+            tooltip = dpName.ToolTip;
     }
     public static GUIStyle backGrountStyle = new GUIStyle("OL box NoExpand") { padding = new RectOffset(0, 0, 0, 0) };
     public void OnInspectorGUI()
@@ -32,6 +35,10 @@ public class StateNodeEditor
             using (new GUILayout.VerticalScope(PropertyEditor.ClassTypeDrawer.ContentStyle))
             {
                 EditorGUILayout.SelectableLabel(Node.Data.GetType().Name, EditorStyles.centeredGreyMiniLabel, GUILayout.Height(20));
+                if (!string.IsNullOrEmpty(tooltip))
+                {
+                    GUILayout.Label(tooltip, EditorStyles.helpBox);
+                }
                 using (new GUILayout.HorizontalScope())
                 {
                     GUILayout.Label("名字");

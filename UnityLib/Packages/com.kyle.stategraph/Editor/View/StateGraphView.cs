@@ -227,6 +227,8 @@ public class StateGraphView : ScriptableObject
         {
             var link = childLinkTmp[i];
             DrawNormalNode(link.To.Node, true);
+            if (!Selecteds.Contains(link.To))
+                continue;
             if (childLinkTmp.Count > 1)
             {
                 Rect btnSize = link.To.Node.Bounds;
@@ -372,7 +374,7 @@ public class StateGraphView : ScriptableObject
                 }
                 return;
             }
-            bool control = e.control || (Application.platform == RuntimePlatform.OSXEditor && e.command);
+            bool control = (e.control || (Application.platform == RuntimePlatform.OSXEditor && e.command)) && !e.alt;
             if (control && e.keyCode == KeyCode.D && !ReadOnly)
             {
                 if (Duplicate())

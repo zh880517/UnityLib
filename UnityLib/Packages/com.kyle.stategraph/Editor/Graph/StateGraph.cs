@@ -8,6 +8,7 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     [SerializeField]
     [HideInInspector]
     private ulong IdIndex;
+    public int GroupId;
     public int SerializeVersion { get; private set; } = 1;
     public List<StateNode> Nodes = new List<StateNode>();
     public List<StateNodeLink> Links = new List<StateNodeLink>();
@@ -96,6 +97,8 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
 
     public virtual bool CheckLink(StateNode from, StateNode to, bool isChild)
     {
+        if (isChild && (from.Parent || IsStack(to)))
+            return false;
         if (!CheckOutput(from) || !ChechInput(to))
             return false;
         if (isChild && !CheckChildType(from, to.NodeType))

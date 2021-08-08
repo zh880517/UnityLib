@@ -7,4 +7,5 @@ public struct WriteVariable
     {
         blackboard.SetValue(Key, val);
     }
+
 }

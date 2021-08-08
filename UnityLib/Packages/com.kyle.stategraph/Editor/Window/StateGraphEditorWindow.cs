@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -74,6 +75,9 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
     public BlackboardEditor Blackboard = new BlackboardEditor();
     public List<TView> OpenList = new List<TView>();
     public bool NeedRepaint { get; set; }
+    [SerializeField]
+    protected StateGraphGroup Group;
+    private List<bool> groupFoldout = new List<bool>();
 
     protected virtual void Open(TGraph graph) 
     {
@@ -100,6 +104,18 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
         {
             LeftSelectIndx = 1;
         }
+        string groupPath = GetGroupPath();
+        if (!string.IsNullOrEmpty(groupPath))
+        {
+            Group = AssetDatabase.LoadAssetAtPath<StateGraphGroup>(groupPath);
+            if (Group == null)
+            {
+                Group = CreateInstance<StateGraphGroup>();
+                Group.Groups.Add("Default");
+                AssetDatabase.CreateAsset(Group, groupPath);
+            }
+        }
+        EditorApplication.playModeStateChanged -= WaitSave;
     }
 
     protected string GetSaveKey()
@@ -110,6 +126,11 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
     protected void RegistUndo(string name)
     {
         Undo.RegisterCompleteObjectUndo(this, name);
+    }
+
+    protected virtual string GetGroupPath()
+    {
+        return null;
     }
 
     private void OnGUI()
@@ -186,9 +207,7 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
 
         if (e.type == EventType.KeyDown && e.control && e.keyCode == KeyCode.S)
         {
-            AssetDatabase.SaveAssets();
-            if (SelectedView && Config.ExportWhenSave)
-                DoExport(SelectedView.Graph as TGraph);
+            Save();
             e.Use();
         }
         if ((e.control || e.command) && (e.keyCode == KeyCode.Z || e.keyCode == KeyCode.Y))
@@ -306,53 +325,68 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
             {
                 GUILayout.Label("当前显示:", EditorStyles.boldLabel);
                 DrawGraphInfo(SelectedView.Graph);
+                if (Group)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    int newGroup = EditorGUILayout.Popup("分组", SelectedView.Graph.GroupId, Group.Names);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        SelectedView.RegistUndo("modify group");
+                        SelectedView.Graph.GroupId = newGroup;
+                    }
+                }
             }
         }
         using (var scroll = new GUILayout.ScrollViewScope(graphsScroll))
         {
             using(new GUILayout.VerticalScope())
             {
-                if (OpenList.Count > 1)
-                {
-                    GUILayout.Label("当前打开:", EditorStyles.boldLabel);
-                }
-                for (int i=0; i<OpenList.Count; ++i)
-                {
-                    var view = OpenList[i];
-                    if (view == SelectedView)
-                        continue;
-                    //匹配搜索框
-                    if (!string.IsNullOrWhiteSpace(graphSearch) && view.Graph.name.IndexOf(graphSearch, System.StringComparison.OrdinalIgnoreCase) < 0)
-                        continue;
-                    using (new GUILayout.VerticalScope("Box"))
-                    {
-                        DrawGraphInfo(view.Graph);
-                        if (GUILayout.Button("打开"))
-                        {
-                            RegistUndo("switch state graph");
-                            OpenList.Remove(view);
-                            OpenList.Insert(0, view);
-                            SelectedView = view;
-                        }
-                    }
-                }
                 //显示所有的同类型Graph
                 var list = GetGraphs();
                 GUILayout.Label("列表", EditorStyles.boldLabel);
-                foreach (var graph in list)
+                if (Group)
                 {
-                    //过滤已经打开的Graph
-                    if (OpenList.Exists(it => it.Graph == graph))
-                        continue;
-                    //匹配搜索框
-                    if (!string.IsNullOrWhiteSpace(graphSearch) && graph.name.IndexOf(graphSearch, System.StringComparison.OrdinalIgnoreCase) < 0)
-                        continue;
-                    using (new GUILayout.VerticalScope("Box"))
+                    for (int i=0; i<Group.Groups.Count; ++i)
                     {
-                        DrawGraphInfo(graph);
-                        if (GUILayout.Button("打开"))
+                        while (groupFoldout.Count < Group.Groups.Count)
                         {
-                            AssetDatabase.OpenAsset(graph);
+                            groupFoldout.Add(false);
+                        }
+                        bool foldout = groupFoldout[i];
+                        var drawList = list.Where(it => it.GroupId == i && (string.IsNullOrWhiteSpace(graphSearch) || it.name.IndexOf(graphSearch, System.StringComparison.OrdinalIgnoreCase) >= 0));
+                        if (drawList.Count() > 0)
+                        {
+                            groupFoldout[i] = EditorGUILayout.Foldout(foldout, Group.Groups[i], true);
+                            if (!groupFoldout[i])
+                                continue;
+                            foreach (var graph in drawList)
+                            {
+                                using (new GUILayout.VerticalScope("Box"))
+                                {
+                                    DrawGraphInfo(graph);
+                                    if (GUILayout.Button("打开"))
+                                    {
+                                        AssetDatabase.OpenAsset(graph);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var graph in list)
+                    {
+                        //匹配搜索框
+                        if (!string.IsNullOrWhiteSpace(graphSearch) && graph.name.IndexOf(graphSearch, System.StringComparison.OrdinalIgnoreCase) < 0)
+                            continue;
+                        using (new GUILayout.VerticalScope("Box"))
+                        {
+                            DrawGraphInfo(graph);
+                            if (GUILayout.Button("打开"))
+                            {
+                                AssetDatabase.OpenAsset(graph);
+                            }
                         }
                     }
                 }
@@ -372,8 +406,6 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
 
     protected virtual void OnCloseView(TView view)
     {
-        if (Config.ExportWhenSave && EditorUtility.IsDirty(view.Graph))
-            DoExport(view.Graph as TGraph);
         Undo.ClearUndo(view.Graph);
         Undo.ClearUndo(view);
         DestroyImmediate(view);
@@ -381,12 +413,45 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
 
     private void OnDestroy()
     {
+        Save();
         foreach (var view in OpenList)
         {
             OnCloseView(view);
         }
         Undo.ClearUndo(this);
-        AssetDatabase.SaveAssets();
+    }
+
+    protected void WaitSave(PlayModeStateChange state)
+    {
+        if (state == PlayModeStateChange.ExitingPlayMode)
+        {
+            AssetDatabase.SaveAssets();
+        }
+    }
+
+    protected virtual void Save()
+    {
+        bool dirty = false;
+        foreach (var view in OpenList)
+        {
+            if (EditorUtility.IsDirty(view.Graph))
+            {
+                dirty = true;
+                if (Config.ExportWhenSave)
+                    DoExport(view.Graph as TGraph);
+            }
+        }
+        if (dirty)
+        {
+            if (EditorApplication.isPlaying)
+            {
+                EditorApplication.playModeStateChanged += WaitSave;
+            }
+            else
+            {
+                AssetDatabase.SaveAssets();
+            }
+        }
     }
 
     protected abstract void OpenCreateWizard();
