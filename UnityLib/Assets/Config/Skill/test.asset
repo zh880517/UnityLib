@@ -1,0 +1,299 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48b8daa1bb54b8a4cbf4adb675b0e420, type: 3}
+  m_Name: test
+  m_EditorClassIdentifier: 
+  IdIndex: 14
+  Nodes:
+  - Bounds:
+      serializedVersion: 2
+      x: -29.741241
+      y: -97.88594
+      width: 120
+      height: 50
+    ID: 1
+    serializeData:
+      Type: SkillEntry
+      TypeGUID: abaf8623-9eed-4377-837f-7fbb11a2a0c8
+      JsonDatas: '{"Id":0}'
+    SortIndex: 0
+    Parent:
+      id: 0
+      graph: {fileID: 0}
+    Name: Entry
+    Comments: 
+    Graph: {fileID: 11400000}
+  - Bounds:
+      serializedVersion: 2
+      x: 637
+      y: 234
+      width: 120
+      height: 50
+    ID: 13
+    serializeData:
+      Type: SkillVariableCondition
+      TypeGUID: 249f9163-40b7-4308-86b7-33fbbda1a28b
+      JsonDatas: '{"Id":0,"Compares":[],"MinCount":0}'
+    SortIndex: 1
+    Parent:
+      id: 0
+      graph: {fileID: 0}
+    Name: "\u53D8\u91CF\u6761\u4EF6"
+    Comments: 
+    Graph: {fileID: 11400000}
+  - Bounds:
+      serializedVersion: 2
+      x: 882.7466
+      y: -72.53729
+      width: 120
+      height: 50
+    ID: 7
+    serializeData:
+      Type: SkillWait
+      TypeGUID: 68428fdc-b1ed-47fc-aed2-90247f247995
+      JsonDatas: '{"Id":0,"WaitSecond":{"Value":0.0,"Key":"param2","UseBlackBoard":true}}'
+    SortIndex: 2
+    Parent:
+      id: 0
+      graph: {fileID: 0}
+    Name: wait1
+    Comments: 
+    Graph: {fileID: 11400000}
+  - Bounds:
+      serializedVersion: 2
+      x: 145.21082
+      y: -39.59227
+      width: 142
+      height: 156
+    ID: 6
+    serializeData:
+      Type: SkillBranch
+      TypeGUID: 55cc94e3-61bf-4a26-94c4-707762feb526
+      JsonDatas: '{"Id":0}'
+    SortIndex: 3
+    Parent:
+      id: 0
+      graph: {fileID: 0}
+    Name: "\u5206\u652F"
+    Comments: 
+    Graph: {fileID: 11400000}
+  - Bounds:
+      serializedVersion: 2
+      x: 167.21082
+      y: -12.59227
+      width: 120
+      height: 50
+    ID: 8
+    serializeData:
+      Type: SkillVariableCondition
+      TypeGUID: 249f9163-40b7-4308-86b7-33fbbda1a28b
+      JsonDatas: '{"Id":0,"Compares":[{"Left":{"Value":0.0,"Key":"","UseBlackBoard":false},"CompareType":0,"Right":{"Value":0.0,"Key":"param2","UseBlackBoard":true}},{"Left":{"Value":0.0,"Key":"","UseBlackBoard":false},"CompareType":0,"Right":{"Value":0.0,"Key":"","UseBlackBoard":false}},{"Left":{"Value":0.0,"Key":"","UseBlackBoard":false},"CompareType":0,"Right":{"Value":0.0,"Key":"","UseBlackBoard":false}},{"Left":{"Value":0.0,"Key":"","UseBlackBoard":false},"CompareType":0,"Right":{"Value":0.0,"Key":"","UseBlackBoard":false}}],"MinCount":0}'
+    SortIndex: 4
+    Parent:
+      id: 6
+      graph: {fileID: 11400000}
+    Name: "\u53D8\u91CF\u6761\u4EF6"
+    Comments: 
+    Graph: {fileID: 11400000}
+  - Bounds:
+      serializedVersion: 2
+      x: 167.21082
+      y: 39.40773
+      width: 120
+      height: 50
+    ID: 9
+    serializeData:
+      Type: SkillVariableCondition
+      TypeGUID: 249f9163-40b7-4308-86b7-33fbbda1a28b
+      JsonDatas: '{"Id":0,"Compares":[],"MinCount":0}'
+    SortIndex: 5
+    Parent:
+      id: 6
+      graph: {fileID: 11400000}
+    Name: "\u53D8\u91CF\u6761\u4EF6"
+    Comments: 
+    Graph: {fileID: 11400000}
+  - Bounds:
+      serializedVersion: 2
+      x: 771
+      y: 203
+      width: 120
+      height: 50
+    ID: 12
+    serializeData:
+      Type: SkillVariableCondition
+      TypeGUID: 249f9163-40b7-4308-86b7-33fbbda1a28b
+      JsonDatas: '{"Id":0,"Compares":[{"Left":{"Value":0.0,"Key":"param1","UseBlackBoard":false},"CompareType":1,"Right":{"Value":0.0,"Key":"","UseBlackBoard":false}},{"Left":{"Value":0.0,"Key":"param1","UseBlackBoard":true},"CompareType":1,"Right":{"Value":0.0,"Key":"param1","UseBlackBoard":false}},{"Left":{"Value":0.0,"Key":"param1","UseBlackBoard":false},"CompareType":0,"Right":{"Value":0.0,"Key":"param1","UseBlackBoard":false}},{"Left":{"Value":0.0,"Key":"param1","UseBlackBoard":false},"CompareType":0,"Right":{"Value":0.0,"Key":"param1","UseBlackBoard":true}}],"MinCount":0}'
+    SortIndex: 6
+    Parent:
+      id: 0
+      graph: {fileID: 0}
+    Name: "\u53D8\u91CF\u6761\u4EF6"
+    Comments: 
+    Graph: {fileID: 11400000}
+  - Bounds:
+      serializedVersion: 2
+      x: 346.79285
+      y: 241.15765
+      width: 120
+      height: 50
+    ID: 5
+    serializeData:
+      Type: SkillWait
+      TypeGUID: 68428fdc-b1ed-47fc-aed2-90247f247995
+      JsonDatas: '{"Id":0,"WaitSecond":{"Value":0.0,"Key":"param2","UseBlackBoard":false}}'
+    SortIndex: 7
+    Parent:
+      id: 0
+      graph: {fileID: 0}
+    Name: "\u7B49\u5F85"
+    Comments: 
+    Graph: {fileID: 11400000}
+  - Bounds:
+      serializedVersion: 2
+      x: 430.3507
+      y: 360.3678
+      width: 142
+      height: 208
+    ID: 2
+    serializeData:
+      Type: SkillActionGroup
+      TypeGUID: 40558C2E-B6C2-476F-A639-8E8C213ECE35
+      JsonDatas: '{"Id":0,"Condition":{"Compares":[],"MinCount":0}}'
+    SortIndex: 8
+    Parent:
+      id: 0
+      graph: {fileID: 0}
+    Name: 
+    Comments: 
+    Graph: {fileID: 11400000}
+  - Bounds:
+      serializedVersion: 2
+      x: 452.3507
+      y: 387.3678
+      width: 120
+      height: 50
+    ID: 3
+    serializeData:
+      Type: SkillPlayAnimState
+      TypeGUID: aa2b5d4f-75e9-44e2-b18a-cfd9b3d145cb
+      JsonDatas: '{"Id":0,"StateName":""}'
+    SortIndex: 9
+    Parent:
+      id: 2
+      graph: {fileID: 11400000}
+    Name: "\u64AD\u653E\u52A8\u753B"
+    Comments: 
+    Graph: {fileID: 11400000}
+  - Bounds:
+      serializedVersion: 2
+      x: 452.3507
+      y: 439.3678
+      width: 120
+      height: 50
+    ID: 4
+    serializeData:
+      Type: SkillSetVariable
+      TypeGUID: 077f471e-1919-46b6-90a2-71af4e2ced4e
+      JsonDatas: '{"Id":0,"Value":{"Value":0.0,"Key":"param1","UseBlackBoard":true}}'
+    SortIndex: 10
+    Parent:
+      id: 2
+      graph: {fileID: 11400000}
+    Name: "\u8BBE\u7F6E\u53D8\u91CF"
+    Comments: 
+    Graph: {fileID: 11400000}
+  - Bounds:
+      serializedVersion: 2
+      x: 452.3507
+      y: 491.3678
+      width: 120
+      height: 50
+    ID: 14
+    serializeData:
+      Type: SkillPlayAnimState
+      TypeGUID: aa2b5d4f-75e9-44e2-b18a-cfd9b3d145cb
+      JsonDatas: '{"Id":0,"StateName":""}'
+    SortIndex: 11
+    Parent:
+      id: 2
+      graph: {fileID: 11400000}
+    Name: "\u64AD\u653E\u52A8\u753B"
+    Comments: 
+    Graph: {fileID: 11400000}
+  Links:
+  - From:
+      id: 1
+      graph: {fileID: 11400000}
+    To:
+      id: 6
+      graph: {fileID: 11400000}
+    IsChild: 0
+  - From:
+      id: 6
+      graph: {fileID: 11400000}
+    To:
+      id: 8
+      graph: {fileID: 11400000}
+    IsChild: 1
+  - From:
+      id: 6
+      graph: {fileID: 11400000}
+    To:
+      id: 9
+      graph: {fileID: 11400000}
+    IsChild: 1
+  - From:
+      id: 6
+      graph: {fileID: 11400000}
+    To:
+      id: 5
+      graph: {fileID: 11400000}
+    IsChild: 0
+  - From:
+      id: 8
+      graph: {fileID: 11400000}
+    To:
+      id: 7
+      graph: {fileID: 11400000}
+    IsChild: 0
+  - From:
+      id: 2
+      graph: {fileID: 11400000}
+    To:
+      id: 3
+      graph: {fileID: 11400000}
+    IsChild: 1
+  - From:
+      id: 2
+      graph: {fileID: 11400000}
+    To:
+      id: 4
+      graph: {fileID: 11400000}
+    IsChild: 1
+  - From:
+      id: 2
+      graph: {fileID: 11400000}
+    To:
+      id: 14
+      graph: {fileID: 11400000}
+    IsChild: 1
+  Blackboard:
+    Variables:
+    - Name: param1
+      DefultValue: 0
+    - Name: param2
+      DefultValue: 0
+    - Name: param3
+      DefultValue: 0
+    - Name: param4
+      DefultValue: 0

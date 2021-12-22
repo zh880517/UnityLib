@@ -1,0 +1,9 @@
+{
+  "name": "com.kyle.gamepad",
+  "version": "1.0.0",
+  "unity": "2019.4",
+  "unityRelease": "2f1",
+  "displayName": "GamePad",
+  "description": "\u6e38\u620f\u865a\u62df\u624b\u67c4",
+  "hideInEditor": false
+}
