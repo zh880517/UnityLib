@@ -67,7 +67,7 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
     #endregion
 
     public const float TOOL_BAR_HEIGHT = 20;
-    protected float RightAreaRate = 0.2f;
+    protected float RightAreaRate = 0.3f;
     protected float LeftAreaRate = 0.15f;
     protected float LEFT_AREA_WIDTH = 200;
     protected float RIGHT_AREA_WIDTH = 300;
@@ -79,7 +79,7 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
     protected StateGraphGroup Group;
     private List<bool> groupFoldout = new List<bool>();
 
-    protected virtual void Open(TGraph graph) 
+    public virtual void Open(TGraph graph) 
     {
         if (SelectedView != null && SelectedView.Graph == graph)
         {
@@ -282,15 +282,7 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
                 }
                 else
                 {
-                    EditorGUI.BeginChangeCheck();
-                    string commit = SelectedView.Graph.Commit;
-                    GUILayout.Label("描述：");
-                    commit = EditorGUILayout.TextArea(commit);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        SelectedView.RegistUndo("modify commit");
-                        SelectedView.Graph.Commit = commit;
-                    }
+                    SelectedView.PropertyEditor.Draw();
                 }
                 GUILayout.FlexibleSpace();
                 rightScrollPos = scroll.scrollPosition;
@@ -353,7 +345,11 @@ public abstract class StateGraphEditorWindow<TGraph, TView> : EditorWindow where
                             groupFoldout.Add(false);
                         }
                         bool foldout = groupFoldout[i];
-                        var drawList = list.Where(it => it.GroupId == i && (string.IsNullOrWhiteSpace(graphSearch) || it.name.IndexOf(graphSearch, System.StringComparison.OrdinalIgnoreCase) >= 0));
+                        var drawList = list.Where(it => it.GroupId == i);
+                        if (!string.IsNullOrWhiteSpace(graphSearch))
+                        {
+                            drawList = drawList.Where(it => it.name.IndexOf(graphSearch, System.StringComparison.OrdinalIgnoreCase) >= 0 || it.Commit.IndexOf(graphSearch, System.StringComparison.OrdinalIgnoreCase) >= 0);
+                        }
                         if (drawList.Count() > 0)
                         {
                             groupFoldout[i] = EditorGUILayout.Foldout(foldout, Group.Groups[i], true);

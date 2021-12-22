@@ -28,22 +28,53 @@ public class BlackboardEditor
         
         for (int i=0; i<view.Graph.Blackboard.Variables.Count; ++i)
         {
-            using (new GUILayout.HorizontalScope())
+            using (new GUILayout.HorizontalScope("Box"))
             {
-                if (GUILayout.Button("", "SearchCancelButton"))
+                var variable = view.Graph.Blackboard.Variables[i];
+                if (!variable.ReadOnly && GUILayout.Button("", "SearchCancelButton"))
                 {
                     view.RegistUndo("remove variable");
                     view.Graph.Blackboard.RemoveAt(i);
                     i--;
                     continue;
                 }
-                var variable = view.Graph.Blackboard.Variables[i];
-                GUILayout.Label(variable.Name);
-                float val = EditorGUILayout.FloatField(variable.DefultValue);
-                if (val != variable.DefultValue)
+                using(new GUILayout.VerticalScope())
                 {
-                    view.RegistUndo("modify variable defult value");
-                    variable.DefultValue = val;
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.Label(variable.Name);
+                        if (variable.ReadOnly)
+                        {
+                            GUILayout.Label(variable.DefultValue.ToString());
+                        }
+                        else
+                        {
+                            double val = EditorGUILayout.DoubleField(variable.DefultValue);
+                            if (val != variable.DefultValue)
+                            {
+                                view.RegistUndo("modify variable defult value");
+                                variable.DefultValue = val;
+                            }
+                        }
+                    }
+                    using(new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.Label("备注", GUILayout.ExpandWidth(false));
+                        if (variable.ReadOnly)
+                        {
+                            GUILayout.Label(variable.Commit, EditorStyles.wordWrappedLabel);
+                        }
+                        else
+                        {
+                            string commit = EditorGUILayout.TextArea(variable.Commit);
+                            if (commit != variable.Commit)
+                            {
+                                view.RegistUndo("modify variable commit");
+                                variable.Commit = commit;
+                            }
+                        }
+
+                    }
                 }
             }
         }

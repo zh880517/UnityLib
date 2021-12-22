@@ -8,11 +8,16 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     [SerializeField]
     [HideInInspector]
     private ulong IdIndex;
+    [HideInInspector]
     public int GroupId;
     public int SerializeVersion { get; private set; } = 1;
+    [HideInInspector]
     public List<StateNode> Nodes = new List<StateNode>();
+    [HideInInspector]
     public List<StateNodeLink> Links = new List<StateNodeLink>();
+    [HideInInspector]
     public StateBlackboard Blackboard = new StateBlackboard();
+    [DisplayName("描述"), MultiLineText]
     public string Commit;
 
     public StateNode FindNode(ulong id)
@@ -99,7 +104,11 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
     {
         if (isChild && (from.Parent || IsStack(to)))
             return false;
-        if (!CheckOutput(from) || !ChechInput(to))
+        if (!ChechInput(to))
+            return false;
+        if (isChild && !IsStack(from))
+            return false;
+        if (!CheckOutput(from) && !isChild)
             return false;
         if (isChild && !CheckChildType(from, to.NodeType))
             return false;
@@ -112,31 +121,42 @@ public abstract class StateGraph : ScriptableObject, ISerializationCallbackRecei
 
     public virtual bool CheckDelete(StateNodeRef node)
     {
-        return node.Id > 1;
+        return !typeof(INoDelete).IsAssignableFrom(node.Node.NodeType);
     }
 
     public virtual bool CheckCopy(StateNodeRef node)
     {
-        return node.Id > 1;
+        return !typeof(INoCopy).IsAssignableFrom(node.Node.NodeType);
     }
 
     public virtual bool CheckOutput(StateNodeRef node)
     {
-        return true;
+        return typeof(IOutputNode).IsAssignableFrom(node.Node.NodeType);
     }
 
     public virtual bool ChechInput(StateNodeRef node)
     {
-        return node.Id > 1;
+        return typeof(IInputNode).IsAssignableFrom(node.Node.NodeType);
     }
 
-    public abstract bool IsStack(StateNode node);
+    public virtual bool IsStack(StateNode node)
+    {
+        return typeof(IStackNode).IsAssignableFrom(node.NodeType);
+    }
 
     public abstract bool CheckChildType(StateNode parent, Type childType);
 
     public abstract bool CheckTypeValid(Type type);
 
-    public abstract bool CheckReplace(Type src, Type dst);
+    public virtual bool CheckReplace(Type src, Type dst)
+    {
+        if (src == dst)
+            return true;
+        if (src.BaseType == dst.BaseType || src.BaseType == dst || src == dst.BaseType)
+            return true;
+
+        return false;
+    }
 
     protected abstract void OnCreat();
 

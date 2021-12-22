@@ -61,6 +61,7 @@ public class StateNodeEditor
                         Node.Comments = commit;
                     }
                 }
+                GUILayout.Space(10);
                 drawer.Draw(null, Node.Data, Node.Graph);
             }
         }

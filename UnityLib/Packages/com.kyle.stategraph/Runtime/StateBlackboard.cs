@@ -6,7 +6,9 @@ using System.Linq;
 public class BlackboardVariable
 {
     public string Name = string.Empty;
-    public float DefultValue;
+    public double DefultValue;
+    public string Commit;
+    public bool ReadOnly;
 }
 
 [Serializable]

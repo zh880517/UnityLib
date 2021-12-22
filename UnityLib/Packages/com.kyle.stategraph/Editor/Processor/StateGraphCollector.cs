@@ -70,6 +70,11 @@ public abstract class StateGraphCollector<T> : IStateGraphCollector where T : St
         Names = Graphs.Select(it => it.name).ToList();
     }
 
+    public T Get(string name)
+    {
+        return Graphs.FirstOrDefault(it => it.name == name);
+    }
+
     public Type GraphType()
     {
         return typeof(T);

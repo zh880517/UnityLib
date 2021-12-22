@@ -16,6 +16,7 @@ public static class StateGraphEditorStyles
     {
         style.alignment = TextAnchor.MiddleLeft;
         style.fontStyle = FontStyle.Bold;
+        style.wordWrap = true;
     });
 
     public static readonly GUIRenderStyle TopTipStyle = new GUIRenderStyle(12, () => { return EditorStyles.label; }, (style) =>

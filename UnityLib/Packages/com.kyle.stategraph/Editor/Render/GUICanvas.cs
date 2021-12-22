@@ -116,6 +116,14 @@ public class GUICanvas
         }
     }
 
+    public void DrawIcon(Rect bounds, Texture icon)
+    {
+        if (bounds.Overlaps(ViewInWorld))
+        {
+            GUI.DrawTexture(WorldToScreen(bounds), icon, ScaleMode.ScaleToFit);
+        }
+    }
+
     public bool DrawText(Rect bounds, string content, Texture img, string toolTip, GUIRenderStyle style)
     {
         if (!bounds.Overlaps(ViewInWorld))

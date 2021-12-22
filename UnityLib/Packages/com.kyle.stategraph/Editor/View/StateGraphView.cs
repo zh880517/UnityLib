@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
 public class StateGraphView : ScriptableObject
 {
+    public const float ICON_SIZE = 20;//节点类型图标大小
     public const float CHILD_INTERVAL = 2;//容器节点的子节点空隙
     public const float NODE_WIDTH = 120;//普通节点的宽度
     public const float NODE_HEIGHT = 50;//普通节点的宽度
@@ -27,6 +29,21 @@ public class StateGraphView : ScriptableObject
     public StateGraph Graph;
     public List<StateNodeRef> Selecteds = new List<StateNodeRef>();
     public GUICanvas Canvas = new GUICanvas();
+
+
+    private StateGraphPropertyEditor _PropertyEditor;
+
+    public StateGraphPropertyEditor PropertyEditor
+    {
+        get
+        {
+            if (_PropertyEditor == null)
+            {
+                _PropertyEditor = new StateGraphPropertyEditor(Graph);
+            }
+            return _PropertyEditor;
+        }
+    }
     public int SelectIndex { get; set; }
     //只读模式，不能修改，不会被保存
     public bool ReadOnly;
@@ -50,6 +67,13 @@ public class StateGraphView : ScriptableObject
                         _vaildTypes.Add(kv.Value);
                     }
                 }
+                _vaildTypes = _vaildTypes.OrderBy(it =>
+                {
+                    var disPlay = it.GetCustomAttribute<DisplayNameAttribute>();
+                    if (disPlay != null && !string.IsNullOrEmpty(disPlay.Name))
+                        return disPlay.Name;
+                    return it.Name;
+                }).ToList();
             }
             return _vaildTypes;
         }
@@ -193,6 +217,14 @@ public class StateGraphView : ScriptableObject
         {
             topBound.position += new Vector2(PIN_WIDTH + 4, 0);
             topBound.width -= PIN_WIDTH * 2;
+            var icon = TypeIconCollector.Get(node.NodeType);
+            if (icon)
+            {
+                Rect rect = new Rect(topBound.x, topBound.y, ICON_SIZE, topBound.height);
+                Canvas.DrawIcon(rect, icon);
+                topBound.x += ICON_SIZE;
+                topBound.width -= ICON_SIZE;
+            }
             Canvas.DrawText(topBound, node.Name, null, node.Comments, StateGraphEditorStyles.NodeNameStyle);
             if (Graph.ChechInput(node))
             {
@@ -202,11 +234,9 @@ public class StateGraphView : ScriptableObject
                 {
                     Canvas.DrawCircle(pos, CircleSoldColor, PIN_RADIUS - 2, false);
                 }
-
-                Rect addRect = GetAddChildPinRect(node);
-
-                Canvas.DrawText(addRect, "✚", null, null, StateGraphEditorStyles.TxtButtonStyle);
             }
+            Rect addRect = GetAddChildPinRect(node);
+            Canvas.DrawText(addRect, "✚", null, null, StateGraphEditorStyles.TxtButtonStyle);
         }
         childLinkTmp.Clear();
         {//左侧区域
@@ -280,6 +310,14 @@ public class StateGraphView : ScriptableObject
             Rect txtBound = node.Bounds;
             txtBound.width -= PIN_WIDTH * 2;
             txtBound.center = node.Bounds.center;
+            var icon = TypeIconCollector.Get(node.NodeType);
+            if (icon)
+            {
+                Rect rect = new Rect(txtBound.x, txtBound.y, ICON_SIZE, txtBound.height);
+                Canvas.DrawIcon(rect, icon);
+                txtBound.x += ICON_SIZE;
+                txtBound.width -= ICON_SIZE;
+            }
             Canvas.DrawText(txtBound, node.Name, null, node.Comments, StateGraphEditorStyles.NodeNameStyle);
             if (Graph.ChechInput(node))
             {
@@ -843,6 +881,7 @@ public class StateGraphView : ScriptableObject
                     menu.AddItem(new GUIContent("反转"), node.Node.Reversal, () => SetNodeReversal(node.Node, !node.Node.Reversal));
                 }
             }
+            AddMenuItem(menu, "选中同类型节点", true, SelectSameType);
         }
         menu.ShowAsContext();
     }
@@ -856,6 +895,22 @@ public class StateGraphView : ScriptableObject
         else
         {
             menu.AddDisabledItem(new GUIContent(name));
+        }
+    }
+
+    protected void SelectSameType()
+    {
+        if (Selecteds.Count == 1)
+        {
+            var selectNode = Selecteds[0];
+            var selectType = selectNode.Node.NodeType;
+            foreach (var node in Graph.Nodes)
+            {
+                if (node != selectNode && node.NodeType == selectType)
+                {
+                    Selecteds.Add(node);
+                }
+            }
         }
     }
 }

@@ -15,6 +15,8 @@ public abstract class StateCreatWizard<T> : ScriptableWizard  where T :StateGrap
             if (_directorys == null)
             {
                 string saveDir = GetSaveDirectory();
+                if (!Directory.Exists(saveDir))
+                    Directory.CreateDirectory(saveDir);
                 var dirs = Directory.GetDirectories(saveDir, "*", SearchOption.AllDirectories);
                 List<string> formatDirs = new List<string>() { "无" };
                 foreach (var dir in dirs)
