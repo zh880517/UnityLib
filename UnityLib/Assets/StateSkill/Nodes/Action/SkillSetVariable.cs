@@ -5,8 +5,4 @@ public class SkillSetVariable : SkillAction
 {
     public WriteVariable Key;
     public ReadVariable Value;
-    public override void Execute(SkillContext context)
-    {
-        Key.SetValue(context.Blackboard, Value.GetValue(context.Blackboard));
-    }
 }

@@ -5,8 +5,4 @@ public class SkillPlayAnimState : SkillAction
 {
     [DisplayName("状态机")]
     public string StateName;
-    public override void Execute(SkillContext context)
-    {
-        
-    }
 }
