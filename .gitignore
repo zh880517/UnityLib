@@ -35,3 +35,8 @@ sysinfo.txt
 *.apk
 *.unitypackage
 UnityLib/ProjectSettings/ProjectVersion.txt
+UnityLib/Assets/Config/
+UnityLib/Assets/Config.meta
+.vsconfig
+Test/
+Test.meta
