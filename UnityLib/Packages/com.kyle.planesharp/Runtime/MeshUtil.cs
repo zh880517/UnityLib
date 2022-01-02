@@ -20,8 +20,8 @@ namespace PlaneSharp
                 Vector3 pt = points[i];
                 uvs[i] = new Vector2(pt.x, pt.z);
             }
-            mesh.triangles = triangulator.Triangulate();
             mesh.vertices = points;
+            mesh.triangles = triangulator.Triangulate();
             mesh.uv = uvs;
         }
 

@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -79,7 +78,7 @@ namespace PlaneSharp
             {
                 Vector3 pval = points[p];
                 Vector3 qval = points[q];
-                A += pval.x * qval.y - qval.x * pval.y;
+                A += pval.x * qval.z - qval.x * pval.z;
             }
             return (A * 0.5f);
         }
@@ -90,7 +89,7 @@ namespace PlaneSharp
             Vector3 A = points[V[u]];
             Vector3 B = points[V[v]];
             Vector3 C = points[V[w]];
-            if (Mathf.Epsilon > (((B.x - A.x) * (C.y - A.y)) - ((B.y - A.y) * (C.x - A.x))))
+            if (Mathf.Epsilon > (((B.x - A.x) * (C.z - A.z)) - ((B.z - A.z) * (C.x - A.x))))
                 return false;
             for (p = 0; p < n; p++)
             {
@@ -105,19 +104,19 @@ namespace PlaneSharp
 
         private bool InsideTriangle(Vector3 A, Vector3 B, Vector3 C, Vector3 P)
         {
-            float ax, ay, bx, by, cx, cy, apx, apy, bpx, bpy, cpx, cpy;
+            float ax, az, bx, bz, cx, cz, apx, apz, bpx, bpz, cpx, cpz;
             float cCROSSap, bCROSScp, aCROSSbp;
 
-            ax = C.x - B.x; ay = C.y - B.y;
-            bx = A.x - C.x; by = A.y - C.y;
-            cx = B.x - A.x; cy = B.y - A.y;
-            apx = P.x - A.x; apy = P.y - A.y;
-            bpx = P.x - B.x; bpy = P.y - B.y;
-            cpx = P.x - C.x; cpy = P.y - C.y;
+            ax = C.x - B.x; az = C.z - B.z;
+            bx = A.x - C.x; bz = A.z - C.z;
+            cx = B.x - A.x; cz = B.z - A.z;
+            apx = P.x - A.x; apz = P.z - A.z;
+            bpx = P.x - B.x; bpz = P.z - B.z;
+            cpx = P.x - C.x; cpz = P.z - C.z;
 
-            aCROSSbp = ax * bpy - ay * bpx;
-            cCROSSap = cx * apy - cy * apx;
-            bCROSScp = bx * cpy - by * cpx;
+            aCROSSbp = ax * bpz - az * bpx;
+            cCROSSap = cx * apz - cz * apx;
+            bCROSScp = bx * cpz - bz * cpx;
 
             return ((aCROSSbp >= 0.0f) && (bCROSScp >= 0.0f) && (cCROSSap >= 0.0f));
         }
