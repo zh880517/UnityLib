@@ -1,8 +1,8 @@
 {
-  "name": "com.kyle.polygon",
+  "name": "com.kyle.planesharp",
   "hideInEditor": false,
   "version": "1.0.0",
   "unity": "2019.3",
   "unityRelease": "2f1",
-  "displayName": "Polygon"
+  "displayName": "PlaneSharp"
 }

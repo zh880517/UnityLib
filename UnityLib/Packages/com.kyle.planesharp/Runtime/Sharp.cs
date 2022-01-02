@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Polygon
+namespace PlaneSharp
 {
     [DisallowMultipleComponent]
     public abstract class Sharp : MonoBehaviour, ISerializationCallbackReceiver
@@ -8,11 +8,6 @@ namespace Polygon
         public PolyType Type;
         public Mesh ShowMesh { get; private set; }
         private bool isDirty = true;
-
-        public void SetVisableInScene()
-        {
-            gameObject.AddComponent<SharpRender>();
-        }
 
         public void SetDirty()
         {

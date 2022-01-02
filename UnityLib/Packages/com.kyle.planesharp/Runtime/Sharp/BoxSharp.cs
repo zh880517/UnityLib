@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Polygon
+namespace PlaneSharp
 {
     [AddComponentMenu("Polygon/Box")]
     public class BoxSharp : Sharp

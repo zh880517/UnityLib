@@ -1,6 +1,6 @@
 using UnityEditor;
 using UnityEngine;
-namespace Polygon
+namespace PlaneSharp
 {
     [CustomEditor(typeof(BoxSharp))]
     public class BoxSharpEditor : Editor

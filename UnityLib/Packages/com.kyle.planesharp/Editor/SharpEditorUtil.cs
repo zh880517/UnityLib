@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Polygon
+namespace PlaneSharp
 {
     public static class SharpEditorUtil
     {
@@ -17,14 +17,14 @@ namespace Polygon
             {
                 if (GUILayout.Button("取消显示"))
                 {
-                    Object.DestroyImmediate(sharpRender);
+                    Undo.DestroyObjectImmediate(sharpRender);
                 }
             }
             else
             {
                 if (GUILayout.Button("在场景中显示"))
                 {
-                    sharp.SetVisableInScene();
+                    Undo.AddComponent<SharpRender>(sharp.gameObject);
                 }
             }
         }

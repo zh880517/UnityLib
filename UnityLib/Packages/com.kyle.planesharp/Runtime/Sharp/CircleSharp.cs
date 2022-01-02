@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Polygon
+namespace PlaneSharp
 {
     [AddComponentMenu("Polygon/Circle")]
     public class CircleSharp : Sharp

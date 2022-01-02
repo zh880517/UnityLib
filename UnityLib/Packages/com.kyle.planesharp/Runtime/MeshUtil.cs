@@ -1,5 +1,5 @@
 using UnityEngine;
-namespace Polygon
+namespace PlaneSharp
 {
     public static class MeshUtil
     {

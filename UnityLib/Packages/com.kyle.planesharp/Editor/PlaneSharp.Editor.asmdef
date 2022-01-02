@@ -1,7 +1,11 @@
 {
-    "name": "Polygon.Runtime",
-    "references": [],
-    "includePlatforms": [],
+    "name": "PlaneSharp.Editor",
+    "references": [
+        "PlaneSharp.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

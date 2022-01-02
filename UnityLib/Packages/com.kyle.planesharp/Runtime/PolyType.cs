@@ -1,4 +1,4 @@
-namespace Polygon
+namespace PlaneSharp
 {
     public enum PolyType
     {

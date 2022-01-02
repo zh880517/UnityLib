@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-namespace Polygon
+namespace PlaneSharp
 {
     [AddComponentMenu("Polygon/Polygon")]
     public class PolySharp : Sharp
