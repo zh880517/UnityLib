@@ -39,12 +39,13 @@ namespace PlaneSharp
                 return;
             float d = Vector3.Dot(-ray.origin, Vector3.up) / dot1;
             Vector3 mousePos = d * ray.direction + ray.origin;
+            
+            var result = PolygonUtil.ClosestPointToPolyLine(mousePos, worldPoints);
+            Vector3 closePoint = result.Point;
+            int index = result.Index;
 
-            Vector3 closePoint = PolygonUtil.ClosestPointToPolyLine(mousePos, worldPoints, out int index);
             using (new Handles.DrawingScope(Color.green))
             {
-                //画距离鼠标最近的点
-                Handles.SphereHandleCap(0, closePoint, Quaternion.identity, 0.1f, Event.current.type);
                 //画边缘线
                 for (int i=0; i< worldPoints.Length; ++i)
                 {
@@ -72,81 +73,58 @@ namespace PlaneSharp
                 {//移除点
                     if (worldPoints.Length > 3)
                     {
-                        float sqrDistance = (closePoint - worldPoints[0]).sqrMagnitude;
-                        int nearIndex = 0;
-                        for (int i = 1; i < worldPoints.Length; ++i)
-                        {
-                            float val = (worldPoints[i] - closePoint).sqrMagnitude;
-                            if (val < sqrDistance)
-                            {
-                                sqrDistance = val;
-                                nearIndex = i;
-                            }
-                        }
-                        int preIndex = nearIndex - 1;
+                        int removeIndex = index + 1;
+                        if (removeIndex == worldPoints.Length)
+                            removeIndex = 0;
+
+                        int preIndex = removeIndex - 1;
                         if (preIndex < 0)
                             preIndex = worldPoints.Length - 1;
-                        int nextIndex = nearIndex + 1;
+                        int nextIndex = removeIndex + 1;
                         if (nextIndex == worldPoints.Length)
                             nextIndex = 0;
                         Handles.DrawLine(worldPoints[preIndex], worldPoints[nextIndex]);
                         using (new Handles.DrawingScope(Color.red))
                         {
-                            Handles.DrawAAPolyLine(5, worldPoints[preIndex], worldPoints[nearIndex]);
-                            Handles.DrawAAPolyLine(5, worldPoints[nextIndex], worldPoints[nearIndex]);
-                            float handleSize = HandleUtility.GetHandleSize(worldPoints[nearIndex]) * 0.1f;
-                            if (Handles.Button(worldPoints[nearIndex], Quaternion.identity, handleSize, handleSize, Handles.SphereHandleCap))
+                            Handles.DrawAAPolyLine(5, worldPoints[preIndex], worldPoints[removeIndex]);
+                            Handles.DrawAAPolyLine(5, worldPoints[nextIndex], worldPoints[removeIndex]);
+                            float handleSize = HandleUtility.GetHandleSize(worldPoints[removeIndex]) * 0.1f;
+                            var pt1 = HandleUtility.WorldToGUIPoint(worldPoints[removeIndex]);
+                            var pt2 = HandleUtility.WorldToGUIPoint(mousePos);
+                            float pickSize = Vector2.Distance(pt1, pt2) + 0.1f;
+                            if (Handles.Button(worldPoints[removeIndex], Quaternion.identity, handleSize, pickSize, Handles.SphereHandleCap))
                             {
                                 Undo.RecordObject(sharp, "delete polygon point");
                                 EditorUtility.SetDirty(sharp);
-                                sharp.Points.RemoveAt(nearIndex);
+                                sharp.Points.RemoveAt(removeIndex);
                                 sharp.SetDirty();
                                 Event.current.Use();
                             }
                         }
                     }
                 }
-                else if(Event.current.shift && Vector3.Distance(worldPoints[index], closePoint) > 0.1f)
+                else if(Event.current.shift && (result.SegmentLength * result.NormalLength) > 0.1f && (result.SegmentLength * result.NormalLength) < (result.SegmentLength - 0.1f))
                 {//添加点
-                    int preIndex = index - 1;
-                    if (preIndex < 0)
-                        preIndex = worldPoints.Length - 1;
-                    int nextIndex = index + 1;
-                    if (nextIndex == worldPoints.Length)
-                        nextIndex = 0;
-                    int instertIndex = -1;
-                    if (Vector3.Distance(worldPoints[preIndex], closePoint) > 0.1f)
-                    {
-                        Vector3 normal1 = (closePoint - worldPoints[preIndex]).normalized;
-                        Vector3 normal2 = (worldPoints[index] - closePoint).normalized;
-                        if (Vector3.Dot(normal1, normal2) < 0.001)
-                        {
-                            instertIndex = index;
-                        }
-                    }
-                    else if (Vector3.Distance(worldPoints[preIndex], closePoint) > 0.1f)
-                    {
-                        instertIndex = nextIndex;
-                    }
-                    if (instertIndex > -1)
-                    {
-                        nextIndex = index + 1;
-                        if (nextIndex == worldPoints.Length)
-                            nextIndex = 0;
-                        using (new Handles.DrawingScope(Color.white))
-                        {
-                            Handles.DrawLine(mousePos, worldPoints[instertIndex]);
-                            Handles.DrawLine(mousePos, worldPoints[nextIndex]);
-                            if (Handles.Button(mousePos, Quaternion.identity, 0.1f, 0.1f, Handles.SphereHandleCap))
-                            {
-                                Undo.RecordObject(sharp, "add polygon point");
-                                EditorUtility.SetDirty(sharp);
 
-                                var pt = matrix.inverse.MultiplyPoint(mousePos);
-                                sharp.Points.Insert(nextIndex, pt);
-                                sharp.SetDirty();
-                                Event.current.Use();
-                            }
+                    //画距离鼠标最近的点
+                    Handles.SphereHandleCap(0, closePoint, Quaternion.identity, 0.1f, Event.current.type);
+
+                    int insertIndex = index + 1;
+                    if (insertIndex == worldPoints.Length)
+                        insertIndex = 0;
+                    using (new Handles.DrawingScope(Color.white))
+                    {
+                        Handles.DrawLine(mousePos, worldPoints[index]);
+                        Handles.DrawLine(mousePos, worldPoints[insertIndex]);
+                        if (Handles.Button(mousePos, Quaternion.identity, 0.1f, 0.1f, Handles.SphereHandleCap))
+                        {
+                            Undo.RecordObject(sharp, "add polygon point");
+                            EditorUtility.SetDirty(sharp);
+
+                            var pt = matrix.inverse.MultiplyPoint(mousePos);
+                            sharp.Points.Insert(insertIndex, pt);
+                            sharp.SetDirty();
+                            Event.current.Use();
                         }
                     }
                 }

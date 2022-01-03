@@ -6,17 +6,17 @@ namespace PlaneSharp
     public struct ClosestPointResult
     {
         public Vector3 Point;
-        public int Index;
+        public int Index;//边索引，从0开始
         public float NormalLength;//0-1;
         public float SegmentLength;//靠近的线段长度
     }
 
     public static class PolygonUtil
     {
-        public static Vector3 ClosestPointToPolyLine(Vector3 point, List<Vector3> polygon, out int index)
+        public static ClosestPointResult ClosestPointToPolyLine(Vector3 point, List<Vector3> polygon)
         {
             float num = DistancePointLine(point, polygon[polygon.Count - 1], polygon[0]);
-            index = polygon.Count - 1;
+            int index = polygon.Count - 1;
             for (int i = 1; i < polygon.Count; i++)
             {
                 float num3 = DistancePointLine(point, polygon[i - 1], polygon[i]);
@@ -43,13 +43,13 @@ namespace PlaneSharp
             }
 
             num4 = Mathf.Clamp01(num4);
-            return Vector3.Lerp(vector, vector2, num4);
+            return new ClosestPointResult { Index = index, Point = Vector3.Lerp(vector, vector2, num4), NormalLength = num4, SegmentLength = magnitude };
         }
 
-        public static Vector3 ClosestPointToPolyLine(Vector3 point, Vector3[] polygon, out int index)
+        public static ClosestPointResult ClosestPointToPolyLine(Vector3 point, Vector3[] polygon)
         {
             float num = DistancePointLine(point, polygon[polygon.Length - 1], polygon[0]);
-            index = polygon.Length - 1;
+            int index = polygon.Length - 1;
             for (int i = 1; i < polygon.Length; i++)
             {
                 float num3 = DistancePointLine(point, polygon[i - 1], polygon[i]);
@@ -76,7 +76,7 @@ namespace PlaneSharp
             }
 
             num4 = Mathf.Clamp01(num4);
-            return Vector3.Lerp(vector, vector2, num4);
+            return new ClosestPointResult { Index = index, Point = Vector3.Lerp(vector, vector2, num4), NormalLength = num4, SegmentLength = magnitude };
         }
 
         public static ClosestPointResult ClosestPointToLine(Vector3 point, Vector3[] line)
