@@ -28,5 +28,48 @@ namespace PlaneSharp
                 }
             }
         }
+
+        private static T CreateSharp<T>(MenuCommand menuCommand) where T : Sharp
+        {
+            GameObject go = ObjectFactory.CreateGameObject(typeof(T).Name);
+            T sharp = Undo.AddComponent<T>(go);
+            var camera = SceneView.lastActiveSceneView.camera;
+            Ray ray = new Ray(camera.transform.position, camera.transform.forward);
+            if (!Utils.RayCastPlaneXZ(ray, out Vector3 pos))
+            {
+                pos = ray.origin + ray.direction * 10;
+            }
+            go.transform.position = pos;
+            if (menuCommand.context is GameObject parent)
+            {
+                Undo.SetTransformParent(go.transform, parent.transform, "CreateSharp");
+            }
+            return sharp;
+        }
+
+        [MenuItem("GameObject/PlaneSharp/Box", false, 50)]
+        public static void CreateBox(MenuCommand menuCommand)
+        {
+            CreateSharp<BoxSharp>(menuCommand);
+        }
+
+        [MenuItem("GameObject/PlaneSharp/Circle", false, 51)]
+        public static void CreateCircle(MenuCommand menuCommand)
+        {
+            CreateSharp<CircleSharp>(menuCommand);
+        }
+
+        [MenuItem("GameObject/PlaneSharp/Polygon", false, 52)]
+        public static void CreatePolygon(MenuCommand menuCommand)
+        {
+            CreateSharp<PolySharp>(menuCommand);
+        }
+        [MenuItem("GameObject/PlaneSharp/Line", false, 53)]
+        public static void CreateLine(MenuCommand menuCommand)
+        {
+            var line = CreateSharp<LineSharp>(menuCommand);
+            line.Type = PolyType.Obstacle;
+        }
+
     }
 }
