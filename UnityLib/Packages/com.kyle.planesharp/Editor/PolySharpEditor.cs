@@ -25,8 +25,7 @@ namespace PlaneSharp
                 worldPoints = new Vector3[sharp.Points.Count];
             Vector3 pos = sharp.transform.position;
             pos.y = 0;
-            Vector3 eulerAngles = sharp.transform.rotation.eulerAngles;
-            Quaternion rotation = Quaternion.Euler(0, eulerAngles.y, 0);
+            Quaternion rotation = Utils.TransRotation(sharp.transform.rotation);
             Matrix4x4 matrix = Matrix4x4.TRS(pos, rotation, Vector3.one);
             for (int i = 0; i < sharp.Points.Count; ++i)
             {
@@ -34,13 +33,10 @@ namespace PlaneSharp
             }
             //计算鼠标点击在XZ平面的点
             Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
-            float dot1 = Vector3.Dot(ray.direction, Vector3.up);
-            if (dot1 == 0)//鼠标没有点击在XZ平面
-                return;
-            float d = Vector3.Dot(-ray.origin, Vector3.up) / dot1;
-            Vector3 mousePos = d * ray.direction + ray.origin;
-            
-            var result = PolygonUtil.ClosestPointToPolyLine(mousePos, worldPoints);
+            if (!Utils.RayCastPlaneXZ(ray, out Vector3 mousePos))
+                return;//鼠标没有点击在XZ平面
+
+            var result = Utils.ClosestPointToPolyLine(mousePos, worldPoints);
             Vector3 closePoint = result.Point;
             int index = result.Index;
 

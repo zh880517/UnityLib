@@ -41,7 +41,6 @@ namespace PlaneSharp
                 return;
             Vector3 pos = transform.position;
             pos.y = 0;
-            Vector3 angle = transform.rotation.eulerAngles;
             Color color = Gizmos.color;
             switch (Type)
             {
@@ -55,13 +54,12 @@ namespace PlaneSharp
                     Gizmos.color = new Color(1, 0, 0, 0.5f);
                     break;
             }
-            Gizmos.DrawMesh(ShowMesh, pos, Quaternion.Euler(0, angle.y, 0));
+            Gizmos.DrawMesh(ShowMesh, pos, Utils.TransRotation(transform.rotation));
             Gizmos.color = color;
         }
 
         public void OnBeforeSerialize()
         {
-            
         }
 
         public void OnAfterDeserialize()
