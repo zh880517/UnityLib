@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace PlaneSharp
 {
-    [AddComponentMenu("Polygon/Polygon")]
+    [AddComponentMenu("PlaneSharp/Polygon")]
     public class PolySharp : Sharp
     {
         public List<Vector3> Points = new List<Vector3>() 

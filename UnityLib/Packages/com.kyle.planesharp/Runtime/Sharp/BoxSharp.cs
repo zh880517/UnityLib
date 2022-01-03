@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace PlaneSharp
 {
-    [AddComponentMenu("Polygon/Box")]
+    [AddComponentMenu("PlaneSharp/Box")]
     public class BoxSharp : Sharp
     {
         public Vector3 Offset;

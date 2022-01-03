@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 namespace PlaneSharp
 {
@@ -85,6 +86,53 @@ namespace PlaneSharp
             {
                 var pt = Vector3.Scale(RectVertices[i], new Vector3(size.x, 1, size.y)) + center;
                 vertices[i] = pt;
+                uvs[i] = new Vector2(pt.x, pt.z);
+            }
+            mesh.triangles = null;
+            mesh.vertices = vertices;
+            mesh.triangles = triangles;
+            mesh.uv = uvs;
+        }
+
+        public static void SetMeshByLines(Mesh mesh, List<Vector3> lines)
+        {
+            int verticeCount = lines.Count * 2;
+            Vector3[] vertices = new Vector3[verticeCount];
+            Vector2[] uvs = new Vector2[verticeCount];
+            int triangleCount = (lines.Count - 1) * 2 * 3 * 2;//双面显示，三角形翻一倍
+            int[] triangles = new int[triangleCount];
+            for (int i=0; i<lines.Count; ++i)
+            {
+                vertices[i*2] = lines[i];
+                vertices[i*2 + 1] = lines[i] + new Vector3(0, 0.5f, 0);
+                if (i > 0)
+                {
+                    int trangleIndex = (i - 1) * 2 * 3 * 2;
+
+                    triangles[trangleIndex] = i*2-2; //0
+                    triangles[trangleIndex + 1] = i*2-1;// 1
+                    triangles[trangleIndex + 2] = i*2 + 1;//3
+
+                    triangles[trangleIndex + 3] = i * 2 - 2;//0
+                    triangles[trangleIndex + 4] = i * 2 + 1;//3
+                    triangles[trangleIndex + 5] = i * 2;//2
+
+                    //背面逆序即可
+                    triangles[trangleIndex + 6] = i * 2;
+                    triangles[trangleIndex + 7] = i * 2 + 1;
+                    triangles[trangleIndex + 8] = i * 2 - 2;
+
+                    triangles[trangleIndex + 9] = i * 2 + 1;
+                    triangles[trangleIndex + 10] = i * 2 - 1;
+                    triangles[trangleIndex + 11] = i * 2 - 2;
+
+                }
+            }
+
+
+            for (int i = 0; i < vertices.Length; ++i)
+            {
+                var pt = vertices[i];
                 uvs[i] = new Vector2(pt.x, pt.z);
             }
             mesh.triangles = null;

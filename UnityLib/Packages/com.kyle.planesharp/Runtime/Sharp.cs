@@ -37,6 +37,8 @@ namespace PlaneSharp
         private void OnDrawGizmos()
         {
             RefreshMesh();
+            if (GetComponent<SharpRender>())
+                return;
             Vector3 pos = transform.position;
             pos.y = 0;
             Vector3 angle = transform.rotation.eulerAngles;

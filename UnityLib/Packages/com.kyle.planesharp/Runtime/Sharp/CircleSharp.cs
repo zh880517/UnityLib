@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace PlaneSharp
 {
-    [AddComponentMenu("Polygon/Circle")]
+    [AddComponentMenu("PlaneSharp/Circle")]
     public class CircleSharp : Sharp
     {
         public Vector3 Offset;
