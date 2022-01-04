@@ -19,6 +19,7 @@ namespace PlaneSharp
         }
         private void OnSceneGUI()
         {
+            bool enableEditor = targets.Length == 1;
             var sharp = target as BoxSharp;
             sharp.Offset.y = 0;
             Vector3 pos = sharp.transform.position;
@@ -28,34 +29,37 @@ namespace PlaneSharp
             using (new Handles.DrawingScope(Color.green, matrix))
             {
                 Handles.DrawWireCube(sharp.Offset, new Vector3(sharp.Size.x, 0, sharp.Size.y));
-                for (int i = 0; i < 4; ++i)
+                if (enableEditor)
                 {
-                    Vector3 normal = ControlPoints[i];
-                    bool isX = (i % 2 == 0);
-                    float size = sharp.Size.y;
-                    if (isX)
-                        size = sharp.Size.x;
-                    size *= 0.5f;
-                    Vector3 pt = normal * size + sharp.Offset;
-                    EditorGUI.BeginChangeCheck();
-                    float handleSize = HandleUtility.GetHandleSize(pt) * 0.05f;
-                    pt = Handles.FreeMoveHandle(pt, rotation, handleSize, normal, Handles.DotHandleCap);
-                    if (EditorGUI.EndChangeCheck())
+                    for (int i = 0; i < 4; ++i)
                     {
-                        Undo.RecordObject(sharp, "modify box");
-                        EditorUtility.SetDirty(sharp);
-                        Vector3 otherSide = normal * (-1 * size) + sharp.Offset;
-                        float newSize = Vector3.Distance(pt, otherSide) * 0.5f;
-                        sharp.Offset += normal * (newSize - size) * 0.5f;
+                        Vector3 normal = ControlPoints[i];
+                        bool isX = (i % 2 == 0);
+                        float size = sharp.Size.y;
                         if (isX)
+                            size = sharp.Size.x;
+                        size *= 0.5f;
+                        Vector3 pt = normal * size + sharp.Offset;
+                        EditorGUI.BeginChangeCheck();
+                        float handleSize = HandleUtility.GetHandleSize(pt) * 0.05f;
+                        pt = Handles.FreeMoveHandle(pt, rotation, handleSize, normal, Handles.DotHandleCap);
+                        if (EditorGUI.EndChangeCheck())
                         {
-                            sharp.Size.x = newSize*2;
+                            Undo.RecordObject(sharp, "modify box");
+                            EditorUtility.SetDirty(sharp);
+                            Vector3 otherSide = normal * (-1 * size) + sharp.Offset;
+                            float newSize = Vector3.Distance(pt, otherSide) * 0.5f;
+                            sharp.Offset += normal * (newSize - size) * 0.5f;
+                            if (isX)
+                            {
+                                sharp.Size.x = newSize * 2;
+                            }
+                            else
+                            {
+                                sharp.Size.y = newSize * 2;
+                            }
+                            sharp.SetDirty();
                         }
-                        else
-                        {
-                            sharp.Size.y = newSize*2;
-                        }
-                        sharp.SetDirty();
                     }
                 }
             }

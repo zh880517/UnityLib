@@ -21,6 +21,7 @@ namespace PlaneSharp
 
         private void OnSceneGUI()
         {
+            bool enableEditor = targets.Length == 1;
             var sharp = target as CircleSharp;
             sharp.Offset.y = 0;
             Vector3 pos = sharp.transform.position + sharp.Offset;
@@ -28,22 +29,25 @@ namespace PlaneSharp
             using(new Handles.DrawingScope(Color.green))
             {
                 Handles.DrawWireDisc(pos, Vector3.up, sharp.Radius);
-                for (int i=0; i<4; ++i)
+                if (enableEditor)
                 {
-                    Vector3 normal = ControlPoints[i];
-                    Vector3 pt = normal * sharp.Radius + pos;
-                    EditorGUI.BeginChangeCheck();
-                    float handleSize = HandleUtility.GetHandleSize(pt) * 0.05f;
-                    pt = Handles.FreeMoveHandle(pt, Quaternion.identity, handleSize, normal, Handles.DotHandleCap);
-                    if (EditorGUI.EndChangeCheck())
+                    for (int i = 0; i < 4; ++i)
                     {
-                        Undo.RecordObject(sharp, "modify circle");
-                        EditorUtility.SetDirty(sharp);
-                        Vector3 otherSide = normal * (-1 * sharp.Radius) + pos;
-                        float radius = Vector3.Distance(pt, otherSide) * 0.5f;
-                        sharp.Offset = sharp.Offset + normal * (radius - sharp.Radius) * 0.5f;
-                        sharp.Radius = radius;
-                        sharp.SetDirty();
+                        Vector3 normal = ControlPoints[i];
+                        Vector3 pt = normal * sharp.Radius + pos;
+                        EditorGUI.BeginChangeCheck();
+                        float handleSize = HandleUtility.GetHandleSize(pt) * 0.05f;
+                        pt = Handles.FreeMoveHandle(pt, Quaternion.identity, handleSize, normal, Handles.DotHandleCap);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(sharp, "modify circle");
+                            EditorUtility.SetDirty(sharp);
+                            Vector3 otherSide = normal * (-1 * sharp.Radius) + pos;
+                            float radius = Vector3.Distance(pt, otherSide) * 0.5f;
+                            sharp.Offset = sharp.Offset + normal * (radius - sharp.Radius) * 0.5f;
+                            sharp.Radius = radius;
+                            sharp.SetDirty();
+                        }
                     }
                 }
             }

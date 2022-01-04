@@ -20,6 +20,7 @@ namespace PlaneSharp
         }
         private void OnSceneGUI()
         {
+            bool enableEditor = targets.Length == 1;
             var sharp = target as PolySharp;
             if (worldPoints == null || worldPoints.Length != sharp.Points.Count)
                 worldPoints = new Vector3[sharp.Points.Count];
@@ -31,6 +32,7 @@ namespace PlaneSharp
             {
                 worldPoints[i] = matrix.MultiplyPoint(sharp.Points[i]);
             }
+
             //计算鼠标点击在XZ平面的点
             Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
             if (!Utils.RayCastPlaneXZ(ray, out Vector3 mousePos))
@@ -50,21 +52,26 @@ namespace PlaneSharp
                         nextIndex = 0;
                     Vector3 pt = worldPoints[i];
                     Handles.DrawLine(pt, worldPoints[nextIndex]);
-                    //点位置编辑
-                    float handleSize = HandleUtility.GetHandleSize(pt) * 0.05f;
-                    EditorGUI.BeginChangeCheck();
-                    pt = Handles.FreeMoveHandle(pt, Quaternion.identity, handleSize, new Vector3(1, 0, 1), Handles.DotHandleCap);
-                    if (EditorGUI.EndChangeCheck())
+                    if (enableEditor)
                     {
-                        Undo.RecordObject(sharp, "move polygon point");
-                        EditorUtility.SetDirty(sharp);
-                        pt = matrix.inverse.MultiplyPoint(pt);
-                        pt.y = 0;
-                        worldPoints[i] = pt;
-                        sharp.Points[i] = pt;
-                        sharp.SetDirty();
+                        //点位置编辑
+                        float handleSize = HandleUtility.GetHandleSize(pt) * 0.05f;
+                        EditorGUI.BeginChangeCheck();
+                        pt = Handles.FreeMoveHandle(pt, Quaternion.identity, handleSize, new Vector3(1, 0, 1), Handles.DotHandleCap);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(sharp, "move polygon point");
+                            EditorUtility.SetDirty(sharp);
+                            pt = matrix.inverse.MultiplyPoint(pt);
+                            pt.y = 0;
+                            worldPoints[i] = pt;
+                            sharp.Points[i] = pt;
+                            sharp.SetDirty();
+                        }
                     }
                 }
+                if (!enableEditor)
+                    return;
                 if (Event.current.control)
                 {//移除点
                     if (worldPoints.Length > 3)
