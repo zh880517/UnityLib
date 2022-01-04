@@ -48,10 +48,12 @@ namespace PlaneSharp
                     Gizmos.color = new Color(0, 1, 0, 0.5f);
                     break;
                 case PolyType.Hollow:
+                    pos.y = 0.01f;
                     Gizmos.color = new Color(1f, 0.921568632f, 0.0156862754f, 0.5f);
                     break;
                 case PolyType.Obstacle:
                     Gizmos.color = new Color(1, 0, 0, 0.5f);
+                    pos.y = 0.02f;
                     break;
             }
             Gizmos.DrawMesh(ShowMesh, pos, Utils.TransRotation(transform.rotation));

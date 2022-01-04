@@ -51,9 +51,9 @@ namespace PlaneSharp
                     Vector3 pt = worldPoints[i];
                     Handles.DrawLine(pt, worldPoints[nextIndex]);
                     //点位置编辑
-                    float handleSize = HandleUtility.GetHandleSize(pt) * 0.09f;
+                    float handleSize = HandleUtility.GetHandleSize(pt) * 0.05f;
                     EditorGUI.BeginChangeCheck();
-                    pt = Handles.FreeMoveHandle(pt, Quaternion.identity, handleSize, new Vector3(1, 0, 1), Handles.SphereHandleCap);
+                    pt = Handles.FreeMoveHandle(pt, Quaternion.identity, handleSize, new Vector3(1, 0, 1), Handles.DotHandleCap);
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(sharp, "move polygon point");
@@ -84,11 +84,11 @@ namespace PlaneSharp
                         {
                             Handles.DrawAAPolyLine(5, worldPoints[preIndex], worldPoints[removeIndex]);
                             Handles.DrawAAPolyLine(5, worldPoints[nextIndex], worldPoints[removeIndex]);
-                            float handleSize = HandleUtility.GetHandleSize(worldPoints[removeIndex]) * 0.1f;
+                            float handleSize = HandleUtility.GetHandleSize(worldPoints[removeIndex]) * 0.05f;
                             var pt1 = HandleUtility.WorldToGUIPoint(worldPoints[removeIndex]);
                             var pt2 = HandleUtility.WorldToGUIPoint(mousePos);
                             float pickSize = Vector2.Distance(pt1, pt2) + 0.1f;
-                            if (Handles.Button(worldPoints[removeIndex], Quaternion.identity, handleSize, pickSize, Handles.SphereHandleCap))
+                            if (Handles.Button(worldPoints[removeIndex], Quaternion.identity, handleSize, pickSize, Handles.DotHandleCap))
                             {
                                 Undo.RecordObject(sharp, "delete polygon point");
                                 EditorUtility.SetDirty(sharp);
@@ -112,7 +112,8 @@ namespace PlaneSharp
                     {
                         Handles.DrawLine(mousePos, worldPoints[index]);
                         Handles.DrawLine(mousePos, worldPoints[insertIndex]);
-                        if (Handles.Button(mousePos, Quaternion.identity, 0.1f, 0.1f, Handles.SphereHandleCap))
+                        float handleSize = HandleUtility.GetHandleSize(mousePos) * 0.05f;
+                        if (Handles.Button(mousePos, Quaternion.identity, handleSize, 0.1f, Handles.DotHandleCap))
                         {
                             Undo.RecordObject(sharp, "add polygon point");
                             EditorUtility.SetDirty(sharp);

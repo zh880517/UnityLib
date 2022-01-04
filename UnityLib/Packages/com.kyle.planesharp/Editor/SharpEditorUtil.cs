@@ -47,24 +47,24 @@ namespace PlaneSharp
             return sharp;
         }
 
-        [MenuItem("GameObject/PlaneSharp/Box", false, 50)]
+        [MenuItem("GameObject/PlaneSharp/Box", false, 11)]
         public static void CreateBox(MenuCommand menuCommand)
         {
             CreateSharp<BoxSharp>(menuCommand);
         }
 
-        [MenuItem("GameObject/PlaneSharp/Circle", false, 51)]
+        [MenuItem("GameObject/PlaneSharp/Circle", false, 11)]
         public static void CreateCircle(MenuCommand menuCommand)
         {
             CreateSharp<CircleSharp>(menuCommand);
         }
 
-        [MenuItem("GameObject/PlaneSharp/Polygon", false, 52)]
+        [MenuItem("GameObject/PlaneSharp/Polygon", false, 11)]
         public static void CreatePolygon(MenuCommand menuCommand)
         {
             CreateSharp<PolySharp>(menuCommand);
         }
-        [MenuItem("GameObject/PlaneSharp/Line", false, 53)]
+        [MenuItem("GameObject/PlaneSharp/Line", false, 11)]
         public static void CreateLine(MenuCommand menuCommand)
         {
             var line = CreateSharp<LineSharp>(menuCommand);

@@ -32,9 +32,9 @@ namespace PlaneSharp
                 {
                     Vector3 normal = ControlPoints[i];
                     Vector3 pt = normal * sharp.Radius + pos;
-                    float handleSize = HandleUtility.GetHandleSize(pt)*0.09f;
                     EditorGUI.BeginChangeCheck();
-                    pt = Handles.FreeMoveHandle(pt, Quaternion.identity, handleSize, normal, Handles.CubeHandleCap);
+                    float handleSize = HandleUtility.GetHandleSize(pt) * 0.05f;
+                    pt = Handles.FreeMoveHandle(pt, Quaternion.identity, handleSize, normal, Handles.DotHandleCap);
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(sharp, "modify circle");

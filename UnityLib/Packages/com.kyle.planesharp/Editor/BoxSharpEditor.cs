@@ -37,9 +37,9 @@ namespace PlaneSharp
                         size = sharp.Size.x;
                     size *= 0.5f;
                     Vector3 pt = normal * size + sharp.Offset;
-                    float handleSize = HandleUtility.GetHandleSize(pt) * 0.09f;
                     EditorGUI.BeginChangeCheck();
-                    pt = Handles.FreeMoveHandle(pt, Quaternion.identity, handleSize, normal, Handles.CubeHandleCap);
+                    float handleSize = HandleUtility.GetHandleSize(pt) * 0.05f;
+                    pt = Handles.FreeMoveHandle(pt, rotation, handleSize, normal, Handles.DotHandleCap);
                     if (EditorGUI.EndChangeCheck())
                     {
                         Undo.RecordObject(sharp, "modify box");
