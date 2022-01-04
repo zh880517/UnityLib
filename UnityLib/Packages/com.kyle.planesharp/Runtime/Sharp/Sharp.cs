@@ -59,7 +59,7 @@ namespace PlaneSharp
             Gizmos.DrawMesh(ShowMesh, pos, PlaneUtils.TransRotation(transform.rotation));
             Gizmos.color = color;
         }
-
+#endif
         public void OnBeforeSerialize()
         {
         }
@@ -68,6 +68,5 @@ namespace PlaneSharp
         {
             isDirty = true;
         }
-#endif
     }
 }
