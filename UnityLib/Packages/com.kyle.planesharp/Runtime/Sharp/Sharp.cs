@@ -56,7 +56,7 @@ namespace PlaneSharp
                     pos.y = 0.02f;
                     break;
             }
-            Gizmos.DrawMesh(ShowMesh, pos, Utils.TransRotation(transform.rotation));
+            Gizmos.DrawMesh(ShowMesh, pos, PlaneUtils.TransRotation(transform.rotation));
             Gizmos.color = color;
         }
 

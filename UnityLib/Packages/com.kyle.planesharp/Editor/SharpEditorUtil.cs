@@ -35,7 +35,7 @@ namespace PlaneSharp
             T sharp = Undo.AddComponent<T>(go);
             var camera = SceneView.lastActiveSceneView.camera;
             Ray ray = new Ray(camera.transform.position, camera.transform.forward);
-            if (!Utils.RayCastPlaneXZ(ray, out Vector3 pos))
+            if (!PlaneUtils.RayCastPlaneXZ(ray, out Vector3 pos))
             {
                 pos = ray.origin + ray.direction * 10;
             }

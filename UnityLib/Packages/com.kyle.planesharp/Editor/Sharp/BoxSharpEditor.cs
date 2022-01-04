@@ -24,7 +24,7 @@ namespace PlaneSharp
             sharp.Offset.y = 0;
             Vector3 pos = sharp.transform.position;
             pos.y = 0;
-            Quaternion rotation = Utils.TransRotation(sharp.transform.rotation);
+            Quaternion rotation = PlaneUtils.TransRotation(sharp.transform.rotation);
             Matrix4x4 matrix = Matrix4x4.TRS(pos, rotation, Vector3.one);
             using (new Handles.DrawingScope(Color.green, matrix))
             {

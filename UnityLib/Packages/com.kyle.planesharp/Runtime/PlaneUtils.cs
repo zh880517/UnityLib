@@ -11,7 +11,7 @@ namespace PlaneSharp
         public float SegmentLength;//靠近的线段长度
     }
 
-    public static class Utils
+    public static class PlaneUtils
     {
         public static ClosestPointResult ClosestPointToPolyLine(Vector3 point, List<Vector3> polygon)
         {
