@@ -101,9 +101,11 @@ namespace PlaneSharp
                 }
                 else if(Event.current.shift && (result.SegmentLength * result.NormalLength) > 0.1f && (result.SegmentLength * result.NormalLength) < (result.SegmentLength - 0.1f))
                 {//添加点
-
-                    //画距离鼠标最近的点
-                    Handles.SphereHandleCap(0, closePoint, Quaternion.identity, 0.1f, Event.current.type);
+                    {
+                        float handleSize = HandleUtility.GetHandleSize(closePoint) * 0.08f;
+                        //画距离鼠标最近的点
+                        Handles.SphereHandleCap(0, closePoint, Quaternion.identity, handleSize, Event.current.type);
+                    }
 
                     int insertIndex = index + 1;
                     if (insertIndex == worldPoints.Length)

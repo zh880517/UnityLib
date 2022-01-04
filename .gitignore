@@ -40,3 +40,5 @@ UnityLib/Assets/Config.meta
 .vsconfig
 Test/
 Test.meta
+*.log
+*.log
