@@ -1,54 +1,76 @@
+using System.Collections.Generic;
 using UnityEngine;
 namespace PlaneEngine
 {
     public static class SDFGenUtil
     {
-        public struct RectBounds
+        struct GenBox
         {
-            public float xMin;
-            public float yMin;
-            public float xMax;
-            public float yMax;
-
-            public void Encapsulate(Vector2 point)
-            {
-                if (point.x < xMin)
-                    xMin = point.x;
-                else if (point.x > xMax)
-                    xMax = point.x;
-
-                if (point.y < yMin)
-                    yMin = point.y;
-                else if (point.y > yMax)
-                    yMax = point.y;
-            }
-
-            public void Encapsulate(RectBounds target)
-            {
-                xMin = Mathf.Min(target.xMin, xMin);
-                yMin = Mathf.Min(target.yMin, yMin);
-                xMax = Mathf.Max(target.xMax, xMax);
-                yMax = Mathf.Max(target.yMax, yMax);
-            }
-
-            public static RectBounds Empty()
-            {
-                return new RectBounds
-                {
-                    xMin = float.MaxValue,
-                    yMin = float.MaxValue,
-                    xMax = float.MinValue,
-                    yMax = float.MinValue,
-                };
-            }
+            public Vector2 Position;
+            public Vector2 Rotation;
+            public Vector2 Size;
         }
-        public static RectBounds EncapsulateRect(RectBounds rect, RectBounds target)
+
+        struct GenCircle
         {
-            rect.xMin = Mathf.Min(target.xMin, rect.xMin);
-            rect.yMin = Mathf.Min(target.yMin, rect.yMin);
-            rect.xMax = Mathf.Max(target.xMax, rect.xMax);
-            rect.yMax = Mathf.Max(target.yMax, rect.yMax);
-            return rect;
+            public Vector2 Position;
+            public float Radius;
+        }
+
+        struct GenPoints
+        {
+            public Vector2[] Points;
+        }
+
+        class SharpCollector
+        {
+            public List<GenBox> Boxs = new List<GenBox>();
+            public List<GenCircle> Circles = new List<GenCircle>();
+            public List<GenPoints> Polygons = new List<GenPoints>();
+            public List<GenPoints> Lines = new List<GenPoints>();
+
+            public void AddSharp(Sharp sharp)
+            {
+                Matrix4x4 matrix = PlaneUtils.ToPlaneMatrix(sharp.transform);
+                if (sharp is CircleSharp circle)
+                {
+                    var pos = matrix.MultiplyPoint(circle.Offset);
+                    Circles.Add(new GenCircle
+                    {
+                        Position = PlaneUtils.ToVector2(pos),
+                        Radius = circle.Radius,
+                    });
+                }
+                else if (sharp is BoxSharp box)
+                {
+                    var pos = matrix.MultiplyPoint(box.Offset);
+                    var rotation = matrix.MultiplyVector(new Vector3(1, 0, 0));
+                    Boxs.Add(new GenBox
+                    {
+                        Position = PlaneUtils.ToVector2(pos),
+                        Rotation = PlaneUtils.ToVector2(rotation),
+                        Size = PlaneUtils.ToVector2(box.Size),
+                    });
+                }
+                else if (sharp is PolySharp polygon)
+                {
+                    GenPoints points = new GenPoints { Points = new Vector2[polygon.Points.Count] };
+                    for (int i=0; i<polygon.Points.Count; ++i)
+                    {
+                        points.Points[i] = PlaneUtils.ToVector2(matrix.MultiplyPoint(polygon.Points[i]));
+                    }
+                    Polygons.Add(points);
+                }
+                else if (sharp is LineSharp line)
+                {
+                    GenPoints points = new GenPoints { Points = new Vector2[line.Points.Count] };
+                    for (int i = 0; i < line.Points.Count; ++i)
+                    {
+                        points.Points[i] = PlaneUtils.ToVector2(matrix.MultiplyPoint(line.Points[i]));
+                    }
+                    Lines.Add(points);
+                }
+            }
         }
 
         public static SDFRawData GeneratorByRoot(GameObject root)
@@ -56,6 +78,8 @@ namespace PlaneEngine
             SDFRawData rawData = new SDFRawData();
             var sharps = root.GetComponentsInChildren<Sharp>();
             RectBounds bounds = RectBounds.Empty();
+            SharpCollector walkArea = new SharpCollector();
+
             foreach (var sharp in sharps)
             {
                 if (sharp.Type == PolyType.Area && (sharp is LineSharp))
@@ -66,7 +90,7 @@ namespace PlaneEngine
             return rawData;
         }
 
-        public static RectBounds ToBounds(this PolySharp sharp)
+        static RectBounds ToBounds(this PolySharp sharp)
         {
             RectBounds bounds = RectBounds.Empty();
             Matrix4x4 matrix = PlaneUtils.ToPlaneMatrix(sharp.transform);
@@ -79,10 +103,10 @@ namespace PlaneEngine
             return bounds;
         }
 
-        public static RectBounds ToBounds(this CircleSharp sharp)
+        static RectBounds ToBounds(this CircleSharp sharp)
         {
             Matrix4x4 matrix = PlaneUtils.ToPlaneMatrix(sharp.transform);
-            Vector3 pos = matrix.MultiplyPoint(sharp.Offset);
+            Vector3 pos = sharp.transform.position; //matrix.MultiplyPoint(sharp.Offset);
             return new RectBounds()
             {
                 xMin = pos.x - sharp.Radius,
