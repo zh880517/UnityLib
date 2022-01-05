@@ -17,22 +17,18 @@ namespace PlaneEngine
             return (ap - h * ab).magnitude;
         }
 
-        public static float BoxSDF(Vector2 point, Vector2 center, Vector2 size)
+        public static float BoxSDF(Vector2 point, Vector2 center, Vector2 halfSize)
         {
-            Vector2 p = point - center;
-            p.x = Mathf.Abs(p.x);
-            p.y = Mathf.Abs(p.y);
-            Vector2 d = p - size;
+            point -= center;
+            Vector2 d = point.Abs() - halfSize;
             return Vector2.Max(d, Vector2.zero).sqrMagnitude + Mathf.Min(Mathf.Max(d.x, d.y), 0);
         }
 
-        public static float OrientedBoxSDF(Vector2 point, Vector2 center, Vector2 rotation, Vector2 size)
+        public static float OrientedBoxSDF(Vector2 point, Vector2 center, Vector2 rotation, Vector2 halfSize)
         {
-            Vector2 v = point - center;
-            float px = Mathf.Abs(Vector2.Dot(v, rotation));//在box的x轴的投影长度
-            float py = Mathf.Abs(Vector2.Dot(v, new Vector2(-rotation.y, rotation.x)));//在box的y轴的投影长度
-            Vector2 p = new Vector2(px, py);
-            Vector2 d = p - size;
+            point -= center;
+            point = new Matrix2x2(rotation.x, -rotation.y, rotation.y, rotation.x).Multiply(point);
+            Vector2 d = point.Abs() - halfSize;
             return Vector2.Max(d, Vector2.zero).sqrMagnitude + Mathf.Min(Mathf.Max(d.x, d.y), 0);
         }
 

@@ -12,16 +12,16 @@ namespace PlaneEngine
     {
         public Vector2 Position;
         public Vector2 Rotation;
-        public Vector2 Size;
+        public Vector2 HalfSize;
 
         public RectBounds GetBounds()
         {
-            return BoundUtil.BoxBounds(Position, Rotation, Size);
+            return BoundUtil.BoxBounds(Position, Rotation, HalfSize);
         }
 
         public float SDF(Vector2 point)
         {
-            return SDFUtil.OrientedBoxSDF(point, Position, Rotation, Size);
+            return SDFUtil.OrientedBoxSDF(point, Position, Rotation, HalfSize);
         }
     }
 
@@ -174,7 +174,7 @@ namespace PlaneEngine
                 {
                     Position = PlaneUtils.ToVector2(pos),
                     Rotation = PlaneUtils.ToVector2(rotation),
-                    Size = PlaneUtils.ToVector2(box.Size),
+                    HalfSize = PlaneUtils.ToVector2(box.Size)*0.5f,
                 };
             }
             else if (shape is PolyShape polygon)
