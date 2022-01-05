@@ -6,6 +6,7 @@ namespace PlaneEngine
     public abstract class Shape : MonoBehaviour, ISerializationCallbackReceiver
     {
         public PolyType Type;
+        public bool IsStatic = true;
         public Mesh ShowMesh { get; private set; }
         private bool isDirty = true;
 

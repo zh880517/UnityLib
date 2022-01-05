@@ -6,12 +6,18 @@ namespace PlaneEngine
     interface ISDFShape
     {
         float SDF(Vector2 point);
+        RectBounds GetBounds();
     }
     class Box : ISDFShape
     {
         public Vector2 Position;
         public Vector2 Rotation;
         public Vector2 Size;
+
+        public RectBounds GetBounds()
+        {
+            return BoundUtil.BoxBounds(Position, Rotation, Size);
+        }
 
         public float SDF(Vector2 point)
         {
@@ -24,6 +30,11 @@ namespace PlaneEngine
         public Vector2 Position;
         public float Radius;
 
+        public RectBounds GetBounds()
+        {
+            return BoundUtil.CircleBounds(Position, Radius);
+        }
+
         public float SDF(Vector2 point)
         {
             return SDFUtil.CircleSDF(point, Position, Radius);
@@ -34,6 +45,11 @@ namespace PlaneEngine
     {
         public Vector2[] Points;
 
+        public RectBounds GetBounds()
+        {
+            return BoundUtil.PointsBounds(Points);
+        }
+
         public float SDF(Vector2 point)
         {
             return SDFUtil.PolygonSDF(point, Points);
@@ -43,6 +59,11 @@ namespace PlaneEngine
     class Line : ISDFShape
     {
         public Vector2[] Points;
+
+        public RectBounds GetBounds()
+        {
+            return BoundUtil.PointsBounds(Points);
+        }
 
         public float SDF(Vector2 point)
         {
@@ -61,19 +82,42 @@ namespace PlaneEngine
         private readonly List<ISDFShape> WalkAble = new List<ISDFShape>();
         private readonly List<ISDFShape> Obstacle = new List<ISDFShape>();
 
+        public void AddRoot(GameObject root)
+        {
+            var shapes = root.GetComponentsInChildren<Shape>();
+            AddSharps(shapes);
+        }
+
+        public bool IsValid()
+        {
+            return WalkAble.Count > 0;
+        }
+
+        public RectBounds GetBounds()
+        {
+            RectBounds bounds = RectBounds.Empty();
+            foreach (var shape in WalkAble)
+            {
+                bounds.Encapsulate(shape.GetBounds());
+            }
+            return bounds;
+        }
 
         private void AddSharps(Shape[] shapes)
         {
             foreach (var shape in shapes)
             {
-                ISDFShape sdfShape = ToSDFSharp(shape);
-                if (shape.Type != PolyType.Area)
+                if (shape.IsStatic)
                 {
-                    WalkAble.Add(sdfShape);
-                }
-                else if (!(shape is LineShape))
-                {
-                    Obstacle.Add(sdfShape);
+                    ISDFShape sdfShape = ToSDFSharp(shape);
+                    if (shape.Type != PolyType.Area)
+                    {
+                        WalkAble.Add(sdfShape);
+                    }
+                    else if (!(shape is LineShape))
+                    {
+                        Obstacle.Add(sdfShape);
+                    }
                 }
             }
         }
