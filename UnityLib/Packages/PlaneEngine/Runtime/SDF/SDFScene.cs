@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace PlaneEngine
 {
-    interface ISDFSharp
+    interface ISDFShape
     {
         float SDF(Vector2 point);
     }
-    class Box : ISDFSharp
+    class Box : ISDFShape
     {
         public Vector2 Position;
         public Vector2 Rotation;
@@ -19,7 +19,7 @@ namespace PlaneEngine
         }
     }
 
-    class Circle : ISDFSharp
+    class Circle : ISDFShape
     {
         public Vector2 Position;
         public float Radius;
@@ -30,7 +30,7 @@ namespace PlaneEngine
         }
     }
 
-    class Polygon : ISDFSharp
+    class Polygon : ISDFShape
     {
         public Vector2[] Points;
 
@@ -40,7 +40,7 @@ namespace PlaneEngine
         }
     }
 
-    class Line : ISDFSharp
+    class Line : ISDFShape
     {
         public Vector2[] Points;
 
@@ -58,22 +58,22 @@ namespace PlaneEngine
 
     public class SDFScene
     {
-        private List<ISDFSharp> WalkAble = new List<ISDFSharp>();
-        private List<ISDFSharp> Obstacle = new List<ISDFSharp>();
+        private readonly List<ISDFShape> WalkAble = new List<ISDFShape>();
+        private readonly List<ISDFShape> Obstacle = new List<ISDFShape>();
 
 
-        private void AddSharps(Shape[] sharps)
+        private void AddSharps(Shape[] shapes)
         {
-            foreach (var sharp in sharps)
+            foreach (var shape in shapes)
             {
-                ISDFSharp sdfSharp = ToSDFSharp(sharp);
-                if (sharp.Type != PolyType.Area)
+                ISDFShape sdfShape = ToSDFSharp(shape);
+                if (shape.Type != PolyType.Area)
                 {
-                    WalkAble.Add(sdfSharp);
+                    WalkAble.Add(sdfShape);
                 }
-                else if (!(sharp is LineShape))
+                else if (!(shape is LineShape))
                 {
-                    Obstacle.Add(sdfSharp);
+                    Obstacle.Add(sdfShape);
                 }
             }
         }
@@ -110,10 +110,10 @@ namespace PlaneEngine
             return sdf;
         }
 
-        private ISDFSharp ToSDFSharp(Shape sharp)
+        private ISDFShape ToSDFSharp(Shape shape)
         {
-            Matrix4x4 matrix = PlaneUtils.ToPlaneMatrix(sharp.transform);
-            if (sharp is CircleShape circle)
+            Matrix4x4 matrix = PlaneUtils.ToPlaneMatrix(shape.transform);
+            if (shape is CircleShape circle)
             {
                 var pos = matrix.MultiplyPoint(circle.Offset);
                 return new Circle
@@ -122,7 +122,7 @@ namespace PlaneEngine
                     Radius = circle.Radius,
                 };
             }
-            else if (sharp is BoxShape box)
+            else if (shape is BoxShape box)
             {
                 var pos = matrix.MultiplyPoint(box.Offset);
                 var rotation = matrix.MultiplyVector(new Vector3(1, 0, 0));
@@ -133,7 +133,7 @@ namespace PlaneEngine
                     Size = PlaneUtils.ToVector2(box.Size),
                 };
             }
-            else if (sharp is PolyShape polygon)
+            else if (shape is PolyShape polygon)
             {
                 Polygon points = new Polygon { Points = new Vector2[polygon.Points.Count] };
                 for (int i = 0; i < polygon.Points.Count; ++i)
@@ -142,7 +142,7 @@ namespace PlaneEngine
                 }
                 return points;
             }
-            else if (sharp is LineShape line)
+            else if (shape is LineShape line)
             {
                 Line points = new Line { Points = new Vector2[line.Points.Count] };
                 for (int i = 0; i < line.Points.Count; ++i)
