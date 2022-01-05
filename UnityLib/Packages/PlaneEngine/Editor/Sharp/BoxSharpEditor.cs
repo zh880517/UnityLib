@@ -49,7 +49,7 @@ namespace PlaneEngine
                             EditorUtility.SetDirty(sharp);
                             Vector3 otherSide = normal * (-1 * size) + sharp.Offset;
                             float newSize = Vector3.Distance(pt, otherSide) * 0.5f;
-                            sharp.Offset += normal * (newSize - size) * 0.5f;
+                            sharp.Offset += normal * (newSize - size);
                             if (isX)
                             {
                                 sharp.Size.x = newSize * 2;

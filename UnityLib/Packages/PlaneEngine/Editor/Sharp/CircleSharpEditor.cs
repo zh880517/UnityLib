@@ -44,7 +44,7 @@ namespace PlaneEngine
                             EditorUtility.SetDirty(sharp);
                             Vector3 otherSide = normal * (-1 * sharp.Radius) + pos;
                             float radius = Vector3.Distance(pt, otherSide) * 0.5f;
-                            sharp.Offset = sharp.Offset + normal * (radius - sharp.Radius) * 0.5f;
+                            sharp.Offset = sharp.Offset + normal * (radius - sharp.Radius);
                             sharp.Radius = radius;
                             sharp.SetDirty();
                         }
