@@ -3,16 +3,16 @@ using UnityEngine;
 
 namespace PlaneEngine
 {
-    public static class SharpEditorUtil
+    public static class ShapeEditorUtil
     {
         public static void DefaultInspectorGUI(Editor editor)
         {
-            var sharp = editor.target as Sharp;
+            var shape = editor.target as Shape;
             if (editor.DrawDefaultInspector())
             {
-                sharp.SetDirty();
+                shape.SetDirty();
             }
-            var sharpRender = sharp.GetComponent<SharpRender>();
+            var sharpRender = shape.GetComponent<ShapeRender>();
             if (sharpRender)
             {
                 if (GUILayout.Button("取消显示"))
@@ -24,15 +24,15 @@ namespace PlaneEngine
             {
                 if (GUILayout.Button("在场景中显示"))
                 {
-                    Undo.AddComponent<SharpRender>(sharp.gameObject);
+                    Undo.AddComponent<ShapeRender>(shape.gameObject);
                 }
             }
         }
 
-        private static T CreateSharp<T>(MenuCommand menuCommand) where T : Sharp
+        private static T CreateShape<T>(MenuCommand menuCommand) where T : Shape
         {
             GameObject go = ObjectFactory.CreateGameObject(typeof(T).Name);
-            T sharp = Undo.AddComponent<T>(go);
+            T shape = Undo.AddComponent<T>(go);
             var camera = SceneView.lastActiveSceneView.camera;
             Ray ray = new Ray(camera.transform.position, camera.transform.forward);
             if (!PlaneUtils.RayCastPlaneXZ(ray, out Vector3 pos))
@@ -44,30 +44,30 @@ namespace PlaneEngine
             {
                 Undo.SetTransformParent(go.transform, parent.transform, "CreateSharp");
             }
-            return sharp;
+            return shape;
         }
 
-        [MenuItem("GameObject/PlaneSharp/Box", false, 11)]
+        [MenuItem("GameObject/PlaneShape/Box", false, 11)]
         public static void CreateBox(MenuCommand menuCommand)
         {
-            CreateSharp<BoxSharp>(menuCommand);
+            CreateShape<BoxShape>(menuCommand);
         }
 
-        [MenuItem("GameObject/PlaneSharp/Circle", false, 11)]
+        [MenuItem("GameObject/PlaneShape/Circle", false, 11)]
         public static void CreateCircle(MenuCommand menuCommand)
         {
-            CreateSharp<CircleSharp>(menuCommand);
+            CreateShape<CircleShape>(menuCommand);
         }
 
-        [MenuItem("GameObject/PlaneSharp/Polygon", false, 11)]
+        [MenuItem("GameObject/PlaneShape/Polygon", false, 11)]
         public static void CreatePolygon(MenuCommand menuCommand)
         {
-            CreateSharp<PolySharp>(menuCommand);
+            CreateShape<PolyShape>(menuCommand);
         }
-        [MenuItem("GameObject/PlaneSharp/Line", false, 11)]
+        [MenuItem("GameObject/PlaneShape/Line", false, 11)]
         public static void CreateLine(MenuCommand menuCommand)
         {
-            var line = CreateSharp<LineSharp>(menuCommand);
+            var line = CreateShape<LineShape>(menuCommand);
             line.Type = PolyType.Obstacle;
         }
 

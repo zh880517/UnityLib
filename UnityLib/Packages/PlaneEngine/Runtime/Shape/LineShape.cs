@@ -2,8 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace PlaneEngine
 {
-    [AddComponentMenu("PlaneSharp/Line")]
-    public class LineSharp : Sharp
+    [AddComponentMenu("PlaneShape/Line")]
+    public class LineShape : Shape
     {
         public List<Vector3> Points = new List<Vector3>() 
         {

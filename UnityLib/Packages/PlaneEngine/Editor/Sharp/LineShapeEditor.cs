@@ -2,18 +2,18 @@ using UnityEditor;
 using UnityEngine;
 namespace PlaneEngine
 {
-    [CustomEditor(typeof(LineSharp))]
-    public class LineSharpEditor : Editor
+    [CustomEditor(typeof(LineShape))]
+    public class LineShapeEditor : Editor
     {
         private Vector3[] worldPoints;
         public override void OnInspectorGUI()
         {
-            SharpEditorUtil.DefaultInspectorGUI(this);
+            ShapeEditorUtil.DefaultInspectorGUI(this);
             GUILayout.Label("Scene视图操作：");
             GUILayout.Label("按Shift点击在鼠标位置创建点");
             GUILayout.Label("按Control点击红色的点删除");
-            var sharp = target as LineSharp;
-            if (sharp.Points.Count < 2)
+            var shape = target as LineShape;
+            if (shape.Points.Count < 2)
             {
                 GUILayout.Label("线段的点不能少于2个", "Wizard Error");
             }
@@ -22,16 +22,16 @@ namespace PlaneEngine
         private void OnSceneGUI()
         {
             bool enableEditor = targets.Length == 1;
-            var sharp = target as LineSharp;
-            if (worldPoints == null || worldPoints.Length != sharp.Points.Count)
-                worldPoints = new Vector3[sharp.Points.Count];
-            Vector3 pos = sharp.transform.position;
+            var shape = target as LineShape;
+            if (worldPoints == null || worldPoints.Length != shape.Points.Count)
+                worldPoints = new Vector3[shape.Points.Count];
+            Vector3 pos = shape.transform.position;
             pos.y = 0;
-            Quaternion rotation = PlaneUtils.TransRotation(sharp.transform.rotation);
+            Quaternion rotation = PlaneUtils.TransRotation(shape.transform.rotation);
             Matrix4x4 matrix = Matrix4x4.TRS(pos, rotation, Vector3.one);
-            for (int i = 0; i < sharp.Points.Count; ++i)
+            for (int i = 0; i < shape.Points.Count; ++i)
             {
-                worldPoints[i] = matrix.MultiplyPoint(sharp.Points[i]);
+                worldPoints[i] = matrix.MultiplyPoint(shape.Points[i]);
             }
             //计算鼠标点击在XZ平面的点
             Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
@@ -57,13 +57,13 @@ namespace PlaneEngine
                         pt = Handles.FreeMoveHandle(pt, Quaternion.identity, handleSize, new Vector3(1, 0, 1), Handles.DotHandleCap);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObject(sharp, "move polygon point");
-                            EditorUtility.SetDirty(sharp);
+                            Undo.RecordObject(shape, "move polygon point");
+                            EditorUtility.SetDirty(shape);
                             pt = matrix.inverse.MultiplyPoint(pt);
                             pt.y = 0;
                             worldPoints[i] = pt;
-                            sharp.Points[i] = pt;
-                            sharp.SetDirty();
+                            shape.Points[i] = pt;
+                            shape.SetDirty();
                         }
                     }
                 }
@@ -99,10 +99,10 @@ namespace PlaneEngine
                             float pickSize = Vector2.Distance(pt1, pt2) + 0.1f;
                             if (Handles.Button(worldPoints[removeIndex], Quaternion.identity, handleSize, pickSize, Handles.DotHandleCap))
                             {
-                                Undo.RecordObject(sharp, "delete line point");
-                                EditorUtility.SetDirty(sharp);
-                                sharp.Points.RemoveAt(removeIndex);
-                                sharp.SetDirty();
+                                Undo.RecordObject(shape, "delete line point");
+                                EditorUtility.SetDirty(shape);
+                                shape.Points.RemoveAt(removeIndex);
+                                shape.SetDirty();
                                 Event.current.Use();
                             }
                         }
@@ -136,12 +136,12 @@ namespace PlaneEngine
                             float handleSize = HandleUtility.GetHandleSize(mousePos) * 0.05f;
                             if (Handles.Button(mousePos, Quaternion.identity, 0.1f, 0.1f, Handles.DotHandleCap))
                             {
-                                Undo.RecordObject(sharp, "add line point");
-                                EditorUtility.SetDirty(sharp);
+                                Undo.RecordObject(shape, "add line point");
+                                EditorUtility.SetDirty(shape);
 
                                 var pt = matrix.inverse.MultiplyPoint(mousePos);
-                                sharp.Points.Insert(insertIndex, pt);
-                                sharp.SetDirty();
+                                shape.Points.Insert(insertIndex, pt);
+                                shape.SetDirty();
                                 Event.current.Use();
                             }
                         }

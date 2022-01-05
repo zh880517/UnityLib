@@ -62,7 +62,7 @@ namespace PlaneEngine
         private List<ISDFSharp> Obstacle = new List<ISDFSharp>();
 
 
-        private void AddSharps(Sharp[] sharps)
+        private void AddSharps(Shape[] sharps)
         {
             foreach (var sharp in sharps)
             {
@@ -71,7 +71,7 @@ namespace PlaneEngine
                 {
                     WalkAble.Add(sdfSharp);
                 }
-                else if (!(sharp is LineSharp))
+                else if (!(sharp is LineShape))
                 {
                     Obstacle.Add(sdfSharp);
                 }
@@ -110,10 +110,10 @@ namespace PlaneEngine
             return sdf;
         }
 
-        private ISDFSharp ToSDFSharp(Sharp sharp)
+        private ISDFSharp ToSDFSharp(Shape sharp)
         {
             Matrix4x4 matrix = PlaneUtils.ToPlaneMatrix(sharp.transform);
-            if (sharp is CircleSharp circle)
+            if (sharp is CircleShape circle)
             {
                 var pos = matrix.MultiplyPoint(circle.Offset);
                 return new Circle
@@ -122,7 +122,7 @@ namespace PlaneEngine
                     Radius = circle.Radius,
                 };
             }
-            else if (sharp is BoxSharp box)
+            else if (sharp is BoxShape box)
             {
                 var pos = matrix.MultiplyPoint(box.Offset);
                 var rotation = matrix.MultiplyVector(new Vector3(1, 0, 0));
@@ -133,7 +133,7 @@ namespace PlaneEngine
                     Size = PlaneUtils.ToVector2(box.Size),
                 };
             }
-            else if (sharp is PolySharp polygon)
+            else if (sharp is PolyShape polygon)
             {
                 Polygon points = new Polygon { Points = new Vector2[polygon.Points.Count] };
                 for (int i = 0; i < polygon.Points.Count; ++i)
@@ -142,7 +142,7 @@ namespace PlaneEngine
                 }
                 return points;
             }
-            else if (sharp is LineSharp line)
+            else if (sharp is LineShape line)
             {
                 Line points = new Line { Points = new Vector2[line.Points.Count] };
                 for (int i = 0; i < line.Points.Count; ++i)

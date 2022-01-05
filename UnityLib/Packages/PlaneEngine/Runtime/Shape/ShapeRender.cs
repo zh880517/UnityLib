@@ -4,15 +4,15 @@ namespace PlaneEngine
 {
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    public class SharpRender : MonoBehaviour
+    public class ShapeRender : MonoBehaviour
     {
-        private Sharp sharp;
+        private Shape shape;
         private MeshFilter meshFilter;
         private MeshRenderer meshRender;
         void Start()
         {
-            sharp = GetComponent<Sharp>();
-            sharp.RefreshMesh();
+            shape = GetComponent<Shape>();
+            shape.RefreshMesh();
 #if UNITY_EDITOR
             meshFilter = UnityEditor.Undo.AddComponent<MeshFilter>(gameObject);
             meshRender = UnityEditor.Undo.AddComponent<MeshRenderer>(gameObject);
@@ -20,7 +20,7 @@ namespace PlaneEngine
             meshFilter = gameObject.AddComponent<MeshFilter>();
             meshRender = gameObject.AddComponent<MeshRenderer>();
 #endif
-            meshFilter.sharedMesh = sharp.ShowMesh;
+            meshFilter.sharedMesh = shape.ShowMesh;
         }
 
         private void OnDestroy()
@@ -41,7 +41,7 @@ namespace PlaneEngine
 #if UNITY_EDITOR
         void Update()
         {
-            sharp.RefreshMesh();
+            shape.RefreshMesh();
         }
 #endif
     }

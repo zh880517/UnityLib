@@ -2,8 +2,8 @@ using UnityEditor;
 using UnityEngine;
 namespace PlaneEngine
 {
-    [CustomEditor(typeof(BoxSharp))]
-    public class BoxSharpEditor : Editor
+    [CustomEditor(typeof(BoxShape))]
+    public class BoxShapeEditor : Editor
     {
         private static readonly Vector3[] ControlPoints = new Vector3[]
         {
@@ -15,50 +15,50 @@ namespace PlaneEngine
 
         public override void OnInspectorGUI()
         {
-            SharpEditorUtil.DefaultInspectorGUI(this);
+            ShapeEditorUtil.DefaultInspectorGUI(this);
         }
         private void OnSceneGUI()
         {
             bool enableEditor = targets.Length == 1;
-            var sharp = target as BoxSharp;
-            sharp.Offset.y = 0;
-            Vector3 pos = sharp.transform.position;
+            var shape = target as BoxShape;
+            shape.Offset.y = 0;
+            Vector3 pos = shape.transform.position;
             pos.y = 0;
-            Quaternion rotation = PlaneUtils.TransRotation(sharp.transform.rotation);
+            Quaternion rotation = PlaneUtils.TransRotation(shape.transform.rotation);
             Matrix4x4 matrix = Matrix4x4.TRS(pos, rotation, Vector3.one);
             using (new Handles.DrawingScope(Color.green, matrix))
             {
-                Handles.DrawWireCube(sharp.Offset, new Vector3(sharp.Size.x, 0, sharp.Size.y));
+                Handles.DrawWireCube(shape.Offset, new Vector3(shape.Size.x, 0, shape.Size.y));
                 if (enableEditor)
                 {
                     for (int i = 0; i < 4; ++i)
                     {
                         Vector3 normal = ControlPoints[i];
                         bool isX = (i % 2 == 0);
-                        float size = sharp.Size.y;
+                        float size = shape.Size.y;
                         if (isX)
-                            size = sharp.Size.x;
+                            size = shape.Size.x;
                         size *= 0.5f;
-                        Vector3 pt = normal * size + sharp.Offset;
+                        Vector3 pt = normal * size + shape.Offset;
                         EditorGUI.BeginChangeCheck();
                         float handleSize = HandleUtility.GetHandleSize(pt) * 0.05f;
                         pt = Handles.FreeMoveHandle(pt, rotation, handleSize, normal, Handles.DotHandleCap);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObject(sharp, "modify box");
-                            EditorUtility.SetDirty(sharp);
-                            Vector3 otherSide = normal * (-1 * size) + sharp.Offset;
+                            Undo.RecordObject(shape, "modify box");
+                            EditorUtility.SetDirty(shape);
+                            Vector3 otherSide = normal * (-1 * size) + shape.Offset;
                             float newSize = Vector3.Distance(pt, otherSide) * 0.5f;
-                            sharp.Offset += normal * (newSize - size);
+                            shape.Offset += normal * (newSize - size);
                             if (isX)
                             {
-                                sharp.Size.x = newSize * 2;
+                                shape.Size.x = newSize * 2;
                             }
                             else
                             {
-                                sharp.Size.y = newSize * 2;
+                                shape.Size.y = newSize * 2;
                             }
-                            sharp.SetDirty();
+                            shape.SetDirty();
                         }
                     }
                 }

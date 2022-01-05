@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace PlaneEngine
 {
-    [AddComponentMenu("PlaneSharp/Circle")]
-    public class CircleSharp : Sharp
+    [AddComponentMenu("PlaneShape/Circle")]
+    public class CircleShape : Shape
     {
         public Vector3 Offset;
         public float Radius = 1;

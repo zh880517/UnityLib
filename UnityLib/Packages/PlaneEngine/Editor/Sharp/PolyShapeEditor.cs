@@ -2,17 +2,17 @@ using UnityEditor;
 using UnityEngine;
 namespace PlaneEngine
 {
-    [CustomEditor(typeof(PolySharp))]
-    public class PolySharpEditor : Editor
+    [CustomEditor(typeof(PolyShape))]
+    public class PolyShapeEditor : Editor
     {
         private Vector3[] worldPoints;
         public override void OnInspectorGUI()
         {
-            SharpEditorUtil.DefaultInspectorGUI(this);
+            ShapeEditorUtil.DefaultInspectorGUI(this);
             GUILayout.Label("Scene视图操作：");
             GUILayout.Label("按Shift点击在鼠标位置创建点");
             GUILayout.Label("按Control点击红色的点删除");
-            var sharp = target as PolySharp;
+            var sharp = target as PolyShape;
             if (sharp.Points.Count < 3)
             {
                 GUILayout.Label("多边形的点不能少于3个", "Wizard Error");
@@ -21,7 +21,7 @@ namespace PlaneEngine
         private void OnSceneGUI()
         {
             bool enableEditor = targets.Length == 1;
-            var sharp = target as PolySharp;
+            var sharp = target as PolyShape;
             if (worldPoints == null || worldPoints.Length != sharp.Points.Count)
                 worldPoints = new Vector3[sharp.Points.Count];
             Vector3 pos = sharp.transform.position;

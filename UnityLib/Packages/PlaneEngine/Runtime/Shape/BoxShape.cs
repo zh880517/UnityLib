@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace PlaneEngine
 {
-    [AddComponentMenu("PlaneSharp/Box")]
-    public class BoxSharp : Sharp
+    [AddComponentMenu("PlaneShape/Box")]
+    public class BoxShape : Shape
     {
         public Vector3 Offset;
         public Vector2 Size = Vector2.one;

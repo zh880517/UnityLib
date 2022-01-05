@@ -3,7 +3,7 @@ using UnityEngine;
 namespace PlaneEngine
 {
     [DisallowMultipleComponent]
-    public abstract class Sharp : MonoBehaviour, ISerializationCallbackReceiver
+    public abstract class Shape : MonoBehaviour, ISerializationCallbackReceiver
     {
         public PolyType Type;
         public Mesh ShowMesh { get; private set; }
@@ -12,7 +12,7 @@ namespace PlaneEngine
         public void SetDirty()
         {
             isDirty = true;
-            if (GetComponent<SharpRender>() == null && ShowMesh)
+            if (GetComponent<ShapeRender>() == null && ShowMesh)
             {
                 RefreshMesh();
             }
@@ -37,7 +37,7 @@ namespace PlaneEngine
         private void OnDrawGizmos()
         {
             RefreshMesh();
-            if (GetComponent<SharpRender>())
+            if (GetComponent<ShapeRender>())
                 return;
             Vector3 pos = transform.position;
             pos.y = 0;

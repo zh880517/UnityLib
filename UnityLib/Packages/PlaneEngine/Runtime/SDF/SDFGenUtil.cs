@@ -29,10 +29,10 @@ namespace PlaneEngine
             public List<GenPoints> Polygons = new List<GenPoints>();
             public List<GenPoints> Lines = new List<GenPoints>();
 
-            public void AddSharp(Sharp sharp)
+            public void AddSharp(Shape sharp)
             {
                 Matrix4x4 matrix = PlaneUtils.ToPlaneMatrix(sharp.transform);
-                if (sharp is CircleSharp circle)
+                if (sharp is CircleShape circle)
                 {
                     var pos = matrix.MultiplyPoint(circle.Offset);
                     Circles.Add(new GenCircle
@@ -41,7 +41,7 @@ namespace PlaneEngine
                         Radius = circle.Radius,
                     });
                 }
-                else if (sharp is BoxSharp box)
+                else if (sharp is BoxShape box)
                 {
                     var pos = matrix.MultiplyPoint(box.Offset);
                     var rotation = matrix.MultiplyVector(new Vector3(1, 0, 0));
@@ -52,7 +52,7 @@ namespace PlaneEngine
                         Size = PlaneUtils.ToVector2(box.Size),
                     });
                 }
-                else if (sharp is PolySharp polygon)
+                else if (sharp is PolyShape polygon)
                 {
                     GenPoints points = new GenPoints { Points = new Vector2[polygon.Points.Count] };
                     for (int i=0; i<polygon.Points.Count; ++i)
@@ -61,7 +61,7 @@ namespace PlaneEngine
                     }
                     Polygons.Add(points);
                 }
-                else if (sharp is LineSharp line)
+                else if (sharp is LineShape line)
                 {
                     GenPoints points = new GenPoints { Points = new Vector2[line.Points.Count] };
                     for (int i = 0; i < line.Points.Count; ++i)
@@ -76,13 +76,13 @@ namespace PlaneEngine
         public static SDFRawData GeneratorByRoot(GameObject root)
         {
             SDFRawData rawData = new SDFRawData();
-            var sharps = root.GetComponentsInChildren<Sharp>();
+            var sharps = root.GetComponentsInChildren<Shape>();
             RectBounds bounds = RectBounds.Empty();
             SharpCollector walkArea = new SharpCollector();
 
             foreach (var sharp in sharps)
             {
-                if (sharp.Type == PolyType.Area && (sharp is LineSharp))
+                if (sharp.Type == PolyType.Area && (sharp is LineShape))
                 {
 
                 }
@@ -90,7 +90,7 @@ namespace PlaneEngine
             return rawData;
         }
 
-        static RectBounds ToBounds(this PolySharp sharp)
+        static RectBounds ToBounds(this PolyShape sharp)
         {
             RectBounds bounds = RectBounds.Empty();
             Matrix4x4 matrix = PlaneUtils.ToPlaneMatrix(sharp.transform);
@@ -103,7 +103,7 @@ namespace PlaneEngine
             return bounds;
         }
 
-        static RectBounds ToBounds(this CircleSharp sharp)
+        static RectBounds ToBounds(this CircleShape sharp)
         {
             Matrix4x4 matrix = PlaneUtils.ToPlaneMatrix(sharp.transform);
             Vector3 pos = sharp.transform.position; //matrix.MultiplyPoint(sharp.Offset);
