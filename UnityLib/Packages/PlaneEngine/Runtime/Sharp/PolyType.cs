@@ -1,4 +1,4 @@
-namespace PlaneSharp
+namespace PlaneEngine
 {
     public enum PolyType
     {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace PlaneSharp
+namespace PlaneEngine
 {
     public struct ClosestPointResult
     {
@@ -175,6 +175,12 @@ namespace PlaneSharp
         {
             Vector3 angle = rotation.eulerAngles;
             return Quaternion.Euler(0, angle.y, 0);
+        }
+
+        public static Matrix4x4 ToPlaneMatrix(Transform transform)
+        {
+            Quaternion rotation = TransRotation(transform.rotation);
+            return Matrix4x4.TRS(transform.position, rotation, Vector3.one);
         }
 
         public static Vector2 ToVector2(Vector3 vector)

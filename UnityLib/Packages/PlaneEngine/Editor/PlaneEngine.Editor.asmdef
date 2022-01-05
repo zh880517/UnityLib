@@ -1,7 +1,7 @@
 {
-    "name": "PlaneSharp.Editor",
+    "name": "PlaneEngine.Editor",
     "references": [
-        "PlaneSharp.Runtime"
+        "PlaneEngine.Runtime"
     ],
     "includePlatforms": [
         "Editor"

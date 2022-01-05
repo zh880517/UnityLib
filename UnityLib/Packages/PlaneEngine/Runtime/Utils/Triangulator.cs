@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace PlaneSharp
+namespace PlaneEngine
 {
     public class Triangulator
     {

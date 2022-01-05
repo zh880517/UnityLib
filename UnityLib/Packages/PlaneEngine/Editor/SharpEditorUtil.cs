@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace PlaneSharp
+namespace PlaneEngine
 {
     public static class SharpEditorUtil
     {

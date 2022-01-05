@@ -1,6 +1,6 @@
 using UnityEditor;
 using UnityEngine;
-namespace PlaneSharp
+namespace PlaneEngine
 {
     [CustomEditor(typeof(PolySharp))]
     public class PolySharpEditor : Editor

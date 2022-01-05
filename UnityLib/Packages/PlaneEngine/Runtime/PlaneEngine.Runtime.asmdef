@@ -1,5 +1,5 @@
 {
-    "name": "PlaneSharp.Runtime",
+    "name": "PlaneEngine.Runtime",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],

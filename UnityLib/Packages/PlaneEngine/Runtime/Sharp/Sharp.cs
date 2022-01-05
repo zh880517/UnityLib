@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace PlaneSharp
+namespace PlaneEngine
 {
     [DisallowMultipleComponent]
     public abstract class Sharp : MonoBehaviour, ISerializationCallbackReceiver

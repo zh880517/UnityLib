@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace PlaneSharp
+namespace PlaneEngine
 {
     [CustomEditor(typeof(CircleSharp))]
     public class CircleSharpEditor : Editor

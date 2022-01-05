@@ -1,8 +1,8 @@
 {
-  "name": "com.kyle.planesharp",
+  "name": "com.kyle.planeengine",
   "hideInEditor": false,
   "version": "1.0.0",
   "unity": "2019.3",
   "unityRelease": "2f1",
-  "displayName": "PlaneSharp"
+  "displayName": "Plane Engine"
 }

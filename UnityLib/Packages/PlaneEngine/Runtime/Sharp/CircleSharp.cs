@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace PlaneSharp
+namespace PlaneEngine
 {
     [AddComponentMenu("PlaneSharp/Circle")]
     public class CircleSharp : Sharp

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-namespace PlaneSharp
+namespace PlaneEngine
 {
     [AddComponentMenu("PlaneSharp/Line")]
     public class LineSharp : Sharp

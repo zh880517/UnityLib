@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace PlaneSharp
+namespace PlaneEngine
 {
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
