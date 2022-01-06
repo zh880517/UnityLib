@@ -17,25 +17,24 @@ namespace PlaneEngine
             if (size.x < 1 || size.y < 1)
                 return null;
             Vector2 min = bounds.Min;
-            float grain = 0.5f;//精度
-            int width = Mathf.FloorToInt(size.x / grain);
-            int height = Mathf.FloorToInt(size.y / grain);
+            int width = Mathf.FloorToInt(size.x);
+            int height = Mathf.FloorToInt(size.y);
             float maxDistance = Mathf.Max(size.x, size.y);
             float scale = maxDistance / 127;
-            sbyte[] data = new sbyte[width * height];
+            short[] data = new short[width * height];
             for (int i = 0; i < width; ++i)
             {
                 for (int j = 0; j < height; ++j)
                 {
-                    Vector2 pos = min + new Vector2(i*grain, j*grain);
+                    Vector2 pos = min + new Vector2(i, j);
                     float val = scene.SDF(pos);
                     val = (val / maxDistance)*127;
-                    data[i + width * j] = (sbyte)val;
+                    data[i + width * j] = (short)val;
                 }
             }
             SDFRawData rawData = new SDFRawData();
 
-            rawData.Init(width, height, grain, scale, min, data);
+            rawData.Init(width, height, scale, min, data);
             return rawData;
         }
 
@@ -50,11 +49,11 @@ namespace PlaneEngine
                     float val = sdf[i, j];
                     if (val <= 0)
                     {
-                        texture.SetPixel(i, j, new Color(1, 0, 0, -val / 128));
+                        texture.SetPixel(i, j, Color.red);
                     }
                     else
                     {
-                        texture.SetPixel(i, j, new Color(0, 1, 0, val/128));
+                        texture.SetPixel(i, j, Color.green);
                     }
                 }
             }

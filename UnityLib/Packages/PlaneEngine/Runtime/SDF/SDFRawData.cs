@@ -7,16 +7,15 @@ namespace PlaneEngine
     {
         public int Width { get; private set; }
         public int Height { get; private set; }
-        public float Grain { get; private set; }
         public float Scale { get; private set; }
         public Vector2 Origin { get; private set; }
-        private sbyte[] data;
-        public sbyte this[int x, int y]
+        private short[] data;
+        public short this[int x, int y]
         {
             get
             {
                 if (x < 0 || x >= Width || y < 0 || y >= Height)
-                    return sbyte.MinValue;
+                    return short.MinValue;
                 return data[x + y * Width];
             }
         }
@@ -26,14 +25,13 @@ namespace PlaneEngine
             get
             {
                 if (idx < 0 || idx >= data.Length)
-                    return sbyte.MinValue * Scale;
+                    return short.MinValue * Scale;
                 return data[idx] * Scale;
             }
         }
 
         public float Sample(Vector2 pos)
         {
-            pos /= Grain;
             int x = Mathf.FloorToInt(pos.x);
             int y = Mathf.FloorToInt(pos.y);
             int idx = x + y * Width;
@@ -54,14 +52,13 @@ namespace PlaneEngine
             return this[pt.x + pt.y * Width];
         }
 
-        public void Init(int width, int heigh, float grain, float scale, Vector2 origin, sbyte[] data)
+        public void Init(int width, int heigh, float scale, Vector2 origin, short[] data)
         {
             Width = width;
             Height = heigh;
-            Grain = grain;
             Scale = scale;
             Origin = origin;
-            this.data = new sbyte[Width * heigh];
+            this.data = new short[Width * heigh];
             data.CopyTo(this.data, 0);
         }
 
@@ -69,7 +66,6 @@ namespace PlaneEngine
         {
             writer.Write(Width);
             writer.Write(Height);
-            writer.Write(Grain);
             writer.Write(Scale);
             writer.Write(Origin.x);
             writer.Write(Origin.y);
@@ -84,14 +80,13 @@ namespace PlaneEngine
         {
             Width = reader.ReadInt32();
             Height = reader.ReadInt32();
-            Grain = reader.ReadSingle();
             Scale = reader.ReadSingle();
             Origin = new Vector2(reader.ReadSingle(), reader.ReadSingle());
             int len = reader.ReadInt32();
-            data = new sbyte[len];
+            data = new short[len];
             for (int i = 0; i < len; ++i)
             {
-                data[i] = reader.ReadSByte();
+                data[i] = reader.ReadInt16();
             }
         }
     }
