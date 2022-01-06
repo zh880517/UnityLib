@@ -16,7 +16,7 @@ namespace PlaneEngine
 
         public RectBounds GetBounds()
         {
-            return BoundUtil.BoxBounds(Position, Rotation, HalfSize);
+            return BoundUtil.BoxBounds(Position, Rotation, HalfSize*2);
         }
 
         public float SDF(Vector2 point)
@@ -71,7 +71,7 @@ namespace PlaneEngine
             for (int i=2; i<Points.Length; ++i)
             {
                 float val = SDFUtil.SegmentSDF(point, Points[i], Points[i-1]);
-                sdf = Mathf.Min(val);
+                sdf = Mathf.Min(sdf, val);
             }
             return sdf;
         }
@@ -112,17 +112,17 @@ namespace PlaneEngine
                     ISDFShape sdfShape = ToSDFSharp(shape);
                     if (shape.Type != PolyType.Area)
                     {
-                        WalkAble.Add(sdfShape);
+                        Obstacle.Add(sdfShape);
                     }
                     else if (!(shape is LineShape))
                     {
-                        Obstacle.Add(sdfShape);
+                        WalkAble.Add(sdfShape);
                     }
                 }
             }
         }
 
-        private float SDF(Vector2 point)
+        public float SDF(Vector2 point)
         {
             float sdf = WalkAbleSDF(point);
             if (Obstacle.Count > 0)
@@ -145,10 +145,10 @@ namespace PlaneEngine
 
         private float ObstacleSDF(Vector2 point)
         {
-            float sdf = WalkAble[0].SDF(point);
-            for (int i = 1; i < WalkAble.Count; ++i)
+            float sdf = Obstacle[0].SDF(point);
+            for (int i = 1; i < Obstacle.Count; ++i)
             {
-                float val = WalkAble[i].SDF(point);
+                float val = Obstacle[i].SDF(point);
                 sdf = Mathf.Min(val, sdf);
             }
             return sdf;
@@ -174,7 +174,7 @@ namespace PlaneEngine
                 {
                     Position = PlaneUtils.ToVector2(pos),
                     Rotation = PlaneUtils.ToVector2(rotation),
-                    HalfSize = PlaneUtils.ToVector2(box.Size)*0.5f,
+                    HalfSize = box.Size*0.5f,
                 };
             }
             else if (shape is PolyShape polygon)

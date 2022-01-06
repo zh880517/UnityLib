@@ -6,7 +6,7 @@ namespace PlaneEngine
     public class SDFRawData
     {
         public int Width { get; private set; }
-        public int Heigh { get; private set; }
+        public int Height { get; private set; }
         public float Grain { get; private set; }
         public float Scale { get; private set; }
         public Vector2 Origin { get; private set; }
@@ -15,7 +15,7 @@ namespace PlaneEngine
         {
             get
             {
-                if (x < 0 || x >= Width || y < 0 || y >= Heigh)
+                if (x < 0 || x >= Width || y < 0 || y >= Height)
                     return sbyte.MinValue;
                 return data[x + y * Width];
             }
@@ -57,7 +57,7 @@ namespace PlaneEngine
         public void Init(int width, int heigh, float grain, float scale, Vector2 origin, sbyte[] data)
         {
             Width = width;
-            Heigh = heigh;
+            Height = heigh;
             Grain = grain;
             Scale = scale;
             Origin = origin;
@@ -68,7 +68,7 @@ namespace PlaneEngine
         public void Write(BinaryWriter writer)
         {
             writer.Write(Width);
-            writer.Write(Heigh);
+            writer.Write(Height);
             writer.Write(Grain);
             writer.Write(Scale);
             writer.Write(Origin.x);
@@ -83,7 +83,7 @@ namespace PlaneEngine
         public void Read(BinaryReader reader)
         {
             Width = reader.ReadInt32();
-            Heigh = reader.ReadInt32();
+            Height = reader.ReadInt32();
             Grain = reader.ReadSingle();
             Scale = reader.ReadSingle();
             Origin = new Vector2(reader.ReadSingle(), reader.ReadSingle());

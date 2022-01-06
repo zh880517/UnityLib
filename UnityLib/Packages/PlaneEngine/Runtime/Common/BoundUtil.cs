@@ -37,13 +37,13 @@ namespace PlaneEngine
         public static RectBounds BoxBounds(Vector2 center, Vector2 rotation, Vector2 size)
         {
             RectBounds bounds = RectBounds.Empty();
-            Quaternion quaternion = Quaternion.LookRotation(new Vector3(rotation.x, 0, rotation.y));
+
             for (int i=0; i<4; ++i)
             {
-                Vector2 pt = (BoxPoints[i] + center);
-                pt.Scale(size);
-                Vector3 point = quaternion*PlaneUtils.FromVector2(pt);
-                bounds.Encapsulate(PlaneUtils.ToVector2(point));
+                Vector2 point = Vector2.Scale(BoxPoints[i], size) + center;
+                point = point.Rotate(rotation);
+                //point = matrix.Multiply(point);
+                bounds.Encapsulate(point);
             }
             return bounds;
         }

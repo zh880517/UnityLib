@@ -21,15 +21,16 @@ namespace PlaneEngine
         {
             point -= center;
             Vector2 d = point.Abs() - halfSize;
-            return Vector2.Max(d, Vector2.zero).sqrMagnitude + Mathf.Min(Mathf.Max(d.x, d.y), 0);
+            return Vector2.Max(d, Vector2.zero).magnitude + Mathf.Min(Mathf.Max(d.x, d.y), 0);
         }
 
         public static float OrientedBoxSDF(Vector2 point, Vector2 center, Vector2 rotation, Vector2 halfSize)
         {
             point -= center;
-            point = new Matrix2x2(rotation.x, -rotation.y, rotation.y, rotation.x).Multiply(point);
+            //point = new Matrix2x2(rotation.x, -rotation.y, rotation.y, rotation.x).Multiply(point);
+            point = point.InvertRotate(rotation);// new Matrix2x2(rotation.x, rotation.y, -rotation.y, rotation.x).Multiply(point);
             Vector2 d = point.Abs() - halfSize;
-            return Vector2.Max(d, Vector2.zero).sqrMagnitude + Mathf.Min(Mathf.Max(d.x, d.y), 0);
+            return Vector2.Max(d, Vector2.zero).magnitude + Mathf.Min(Mathf.Max(d.x, d.y), 0);
         }
 
         public static float TriangleSDF(Vector2 point, Vector2 p0, Vector2 p1, Vector2 p2)
