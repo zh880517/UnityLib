@@ -38,7 +38,6 @@ namespace PlaneEngine
             return rawData;
         }
 
-
         public static Texture2D ToTexture(SDFRawData sdf)
         {
             Texture2D texture = new Texture2D(sdf.Width, sdf.Height);
@@ -53,30 +52,6 @@ namespace PlaneEngine
             }
             return texture;
         }
-#if UNITY_EDITOR
-
-        [UnityEditor.MenuItem("GameObject/生成SDF图", false, 100)]
-        private static void SDFtest()
-        {
-            GameObject go = UnityEditor.Selection.activeGameObject;
-            if (go)
-            {
-                var data = GeneratorByRoot(go);
-                if (data != null)
-                {
-                    var texture = ToTexture(data);
-                    var bytes = texture.EncodeToPNG();
-                    string path = "Assets/sdf.png";
-                    System.IO.File.WriteAllBytes(path, bytes);
-                    UnityEditor.AssetDatabase.ImportAsset(path);
-                }
-                else
-                {
-                    Debug.LogError("生成失败");
-                }
-            }
-        }
-#endif
     }
 
 }
