@@ -20,7 +20,7 @@ namespace PlaneEngine
             int width = Mathf.FloorToInt(size.x);
             int height = Mathf.FloorToInt(size.y);
             float maxDistance = Mathf.Max(size.x, size.y);
-            float scale = maxDistance / 127;
+            float scale = maxDistance / short.MaxValue;
             short[] data = new short[width * height];
             for (int i = 0; i < width; ++i)
             {
@@ -28,7 +28,7 @@ namespace PlaneEngine
                 {
                     Vector2 pos = min + new Vector2(i, j);
                     float val = scene.SDF(pos);
-                    val = (val / maxDistance)*127;
+                    val = (val / maxDistance)* short.MaxValue;
                     data[i + width * j] = (short)val;
                 }
             }
@@ -46,15 +46,9 @@ namespace PlaneEngine
             {
                 for (int j = 0; j < sdf.Height; ++j)
                 {
-                    float val = sdf[i, j];
-                    if (val <= 0)
-                    {
-                        texture.SetPixel(i, j, Color.red);
-                    }
-                    else
-                    {
-                        texture.SetPixel(i, j, Color.green);
-                    }
+                    float val = ((float)sdf[i, j]  - short.MinValue)/ 65536;
+                    Color color = new Color(val, val, val, 1);
+                    texture.SetPixel(i, j, color);
                 }
             }
             return texture;
