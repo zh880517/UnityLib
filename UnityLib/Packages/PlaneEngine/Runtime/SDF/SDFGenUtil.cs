@@ -27,7 +27,7 @@ namespace PlaneEngine
                 for (int j = 0; j < height; ++j)
                 {
                     Vector2 pos = min + new Vector2(i, j);
-                    float val = scene.SDF(pos);
+                    float val = scene.SDF(pos); 
                     val = (val / maxDistance)* short.MaxValue;
                     data[i + width * j] = (short)val;
                 }
@@ -38,20 +38,6 @@ namespace PlaneEngine
             return rawData;
         }
 
-        public static Texture2D ToTexture(SDFRawData sdf)
-        {
-            Texture2D texture = new Texture2D(sdf.Width, sdf.Height);
-            for (int i = 0; i < sdf.Width; ++i)
-            {
-                for (int j = 0; j < sdf.Height; ++j)
-                {
-                    float val = ((float)sdf[i, j]  - short.MinValue)/ 65536;
-                    Color color = new Color(val, val, val, 1);
-                    texture.SetPixel(i, j, color);
-                }
-            }
-            return texture;
-        }
     }
 
 }
