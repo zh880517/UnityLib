@@ -2,9 +2,10 @@ using UnityEngine;
 
 namespace AssetPackage
 {
-    public abstract class AssetInstantiateRequest<T> : CustomYieldInstruction where T : Object
+    public abstract class InstantiateAssetRequest<T> : CustomYieldInstruction where T : Object
     {
         public T Asset { get; protected set; }
+        public T OriginalAsset { get; protected set; }
         public abstract float Progeres { get; }
         private System.Action<T> onComplete;
         //仅操作完成时调用
@@ -50,7 +51,7 @@ namespace AssetPackage
         protected Transform parent;
         protected bool worldPositionStays;
 
-        public AssetInstantiateRequest(Transform parent = null, bool worldPositionStays = false)
+        public InstantiateAssetRequest(Transform parent = null, bool worldPositionStays = false)
         {
             this.parent = parent;
             this.worldPositionStays = worldPositionStays;
@@ -60,6 +61,8 @@ namespace AssetPackage
             onFinish?.Invoke(Asset);
             if (Asset)
                 onComplete?.Invoke(Asset);
+            onFinish = null;
+            onComplete = null;
         }
     }
 }

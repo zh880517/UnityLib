@@ -1,7 +1,7 @@
 using UnityEngine;
 namespace AssetPackage
 {
-    public class AssetBundleLoadRequest<T> : AssetLoadRequest<T> where T : Object
+    internal class AssetBundleLoadAssetRequest<T> : LoadAssetRequest<T> where T : Object
     {
         protected AssetBundleRequest bundleRequest;
         public override bool keepWaiting
@@ -16,7 +16,7 @@ namespace AssetPackage
             }
         }
 
-        public AssetBundleLoadRequest(AssetBundleRequest request)
+        public AssetBundleLoadAssetRequest(AssetBundleRequest request)
         {
             bundleRequest = request;
             bundleRequest.completed += OnBundleLoadFinish;

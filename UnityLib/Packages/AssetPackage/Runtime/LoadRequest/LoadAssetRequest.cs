@@ -1,7 +1,7 @@
 using UnityEngine;
 namespace AssetPackage
 {
-    public abstract class AssetLoadRequest<T> : CustomYieldInstruction where T : Object
+    public abstract class LoadAssetRequest<T> : CustomYieldInstruction where T : Object
     {
         public T Asset { get; protected set; }
 
@@ -55,6 +55,8 @@ namespace AssetPackage
             onFinish?.Invoke(Asset);
             if (Asset)
                 onComplete?.Invoke(Asset);
+            onFinish = null;
+            onComplete = null;
         }
     }
 }

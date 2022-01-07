@@ -1,10 +1,9 @@
 using UnityEngine;
 namespace AssetPackage
 {
-    public class AssetBundleInstantiateRequest<T> : AssetInstantiateRequest<T> where T : Object
+    internal class AssetBundleInstantiateAssetRequest<T> : InstantiateAssetRequest<T> where T : Object
     {
         protected AssetBundleRequest bundleRequest;
-        public T OriginalAsset;
         public override bool keepWaiting
         {
             get
@@ -16,7 +15,7 @@ namespace AssetPackage
                 return true;
             }
         }
-        public AssetBundleInstantiateRequest(AssetBundleRequest request)
+        public AssetBundleInstantiateAssetRequest(AssetBundleRequest request)
         {
             bundleRequest = request;
             bundleRequest.completed += OnBundleLoadFinish;
