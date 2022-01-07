@@ -35,7 +35,7 @@ namespace AssetPackage
             throw new NotImplementedException();
         }
 
-        public BundleLoadRequest ReloadBundle(IEnumerable<string> bundleName)
+        public BundleLoadRequest Refresh()
         {
             throw new NotImplementedException();
         }

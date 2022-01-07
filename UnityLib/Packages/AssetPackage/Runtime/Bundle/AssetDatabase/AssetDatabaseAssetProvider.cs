@@ -50,8 +50,9 @@ namespace AssetPackage
             return new AssetDatabaseBundleLoadRequet(1);
         }
 
-        public BundleLoadRequest ReloadBundle(IEnumerable<string> bundleName)
+        public BundleLoadRequest Refresh()
         {
+            Assets = PackageInfo.GetAllAssets();
             return new AssetDatabaseBundleLoadRequet(1);
         }
     }
