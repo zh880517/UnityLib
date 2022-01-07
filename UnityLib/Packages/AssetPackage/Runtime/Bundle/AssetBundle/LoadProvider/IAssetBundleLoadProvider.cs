@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace AssetPackage
 {
     public interface IAssetBundleLoadProvider
     {
-
+        LoadAssetBundleRequest Load(string name, Hash128 hash, uint crc);
     }
 
 }

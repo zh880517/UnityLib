@@ -50,6 +50,12 @@ namespace AssetPackage
             }
         }
 
+        public void SetAsset(T asset)
+        {
+            Asset = asset;
+            DoLoadCallBack();
+        }
+
         protected void DoLoadCallBack()
         {
             onFinish?.Invoke(Asset);

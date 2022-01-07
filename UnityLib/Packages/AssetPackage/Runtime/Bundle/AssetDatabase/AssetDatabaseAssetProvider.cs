@@ -55,6 +55,10 @@ namespace AssetPackage
             Assets = PackageInfo.GetAllAssets();
             return new AssetDatabaseBundleLoadRequet(1);
         }
+
+        public void OnUnLoadUnUsedAsset()
+        {
+        }
     }
 
 }

@@ -1,13 +1,17 @@
 using UnityEngine;
 namespace AssetPackage
 {
-    internal class AssetBundleLoadAssetRequest<T> : LoadAssetRequest<T> where T : Object
+    internal class AssetBundleLoadAssetRequest<T> : LoadAssetRequest<T>, IAssetBundleRequest where T : Object
     {
         protected AssetBundleRequest bundleRequest;
+
+        public string Name { get; private set; }
         public override bool keepWaiting
         {
             get
             {
+                if (Asset)
+                    return false;
                 if (bundleRequest.isDone)
                 {
                     return false;
@@ -16,18 +20,30 @@ namespace AssetPackage
             }
         }
 
-        public AssetBundleLoadAssetRequest(AssetBundleRequest request)
+        public AssetBundleLoadAssetRequest(string name)
         {
-            bundleRequest = request;
-            bundleRequest.completed += OnBundleLoadFinish;
+            Name = name;
         }
 
-        public override float Progeres => bundleRequest == null ? 0 : bundleRequest.progress;
+        public override float Progeres 
+        {
+            get
+            {
+                if (Asset)
+                    return 1;
+                return bundleRequest == null ? 0 : bundleRequest.progress;
+            }
+        }
 
         private void OnBundleLoadFinish(AsyncOperation op)
         {
-            Asset = bundleRequest.asset as T;
-            DoLoadCallBack();
+            SetAsset(bundleRequest.asset as T);
+        }
+
+        public void SetRequest(AssetBundleRequest request)
+        {
+            bundleRequest = request;
+            bundleRequest.completed += OnBundleLoadFinish;
         }
     }
 }

@@ -6,6 +6,9 @@ namespace AssetPackage
     {
         public T Asset { get; protected set; }
         public T OriginalAsset { get; protected set; }
+
+        protected Transform parent;
+        protected bool worldPositionStays;
         public abstract float Progeres { get; }
         private System.Action<T> onComplete;
         //仅操作完成时调用
@@ -48,14 +51,20 @@ namespace AssetPackage
             }
         }
 
-        protected Transform parent;
-        protected bool worldPositionStays;
-
-        public InstantiateAssetRequest(Transform parent = null, bool worldPositionStays = false)
+        public InstantiateAssetRequest(Transform parent, bool worldPositionStays)
         {
             this.parent = parent;
             this.worldPositionStays = worldPositionStays;
         }
+
+        public void SetAsset(T asset)
+        {
+            OriginalAsset = asset;
+            Asset = Instantiate();
+            DoLoadCallBack();
+        }
+
+        protected abstract T Instantiate();
         protected void DoLoadCallBack()
         {
             onFinish?.Invoke(Asset);

@@ -10,8 +10,7 @@ namespace AssetPackage
 
         public AssetDatabaseLoadAssetRequest(T asset)
         {
-            Asset = asset;
-            DoLoadCallBack();
+            SetAsset(asset);
         }
     }
 

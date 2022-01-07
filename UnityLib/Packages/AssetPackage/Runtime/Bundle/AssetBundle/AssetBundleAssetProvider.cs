@@ -35,6 +35,11 @@ namespace AssetPackage
             throw new NotImplementedException();
         }
 
+        public void OnUnLoadUnUsedAsset()
+        {
+            throw new NotImplementedException();
+        }
+
         public BundleLoadRequest Refresh()
         {
             throw new NotImplementedException();
