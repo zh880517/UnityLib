@@ -12,7 +12,7 @@ namespace AssetPackage
         BundleLoadRequest Refresh();
         bool HasAsset(string name);
         LoadAssetRequest<T> LoadAssetAsync<T>(string name) where T : Object;
-        InstantiateAssetRequest<T> InstantiateAssetAsync<T>(string name, Transform paren, bool worldPositionStays) where T : Object;
+        InstantiateAssetRequest<T> InstantiateAssetAsync<T>(string name, Transform parent, bool worldPositionStays) where T : Object;
         void OnUnLoadUnUsedAsset();
         void Destroy();
     }

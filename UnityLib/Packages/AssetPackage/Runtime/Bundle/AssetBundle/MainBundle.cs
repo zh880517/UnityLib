@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace AssetPackage
 {
-    internal class NamedBundle
+    //在编辑器中指定打包的资源
+    internal class MainBundle : AssetBundleInfo
     {
-        public AssetBundle Bundle;
         public List<string> Assets;
 
         private List<IAssetBundleRequest> Requests = new List<IAssetBundleRequest>();

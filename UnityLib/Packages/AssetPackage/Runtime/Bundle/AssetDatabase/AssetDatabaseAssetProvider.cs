@@ -19,14 +19,14 @@ namespace AssetPackage
             return Assets.ContainsKey(name);
         }
 
-        public InstantiateAssetRequest<T> InstantiateAssetAsync<T>(string name, Transform paren, bool worldPositionStays) where T : UnityEngine.Object
+        public InstantiateAssetRequest<T> InstantiateAssetAsync<T>(string name, Transform parent, bool worldPositionStays) where T : UnityEngine.Object
         {
             T asset = null;
             if (Assets.TryGetValue(name, out string path))
             {
                 asset = AssetDatabase.LoadAssetAtPath<T>(path);
             }
-            return new AssetDatabaseInstantiateAssetRequest<T>(asset, paren, worldPositionStays);
+            return new AssetDatabaseInstantiateAssetRequest<T>(asset, parent, worldPositionStays);
         }
 
 

@@ -1,6 +1,8 @@
 {
     "name": "AssetPackage.Editor",
-    "references": [],
+    "references": [
+        "AssetPackage.Runtime"
+    ],
     "includePlatforms": [
         "Editor"
     ],
