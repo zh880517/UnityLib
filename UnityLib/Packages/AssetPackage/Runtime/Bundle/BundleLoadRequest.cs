@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace AssetPackage
 {
-    public abstract class BundleLoadRequest : CustomYieldInstruction
+    public abstract class BundleLoadRequest : CustomYieldInstruction, ILoadTick
     {
         public abstract float Progress { get; }
 
@@ -26,6 +26,12 @@ namespace AssetPackage
         protected void RefreshProgress()
         {
             onProgress?.Invoke(Progress, IsDone);
+        }
+
+        public virtual bool OnTick()
+        {
+            RefreshProgress();
+            return IsDone;
         }
     }
 }

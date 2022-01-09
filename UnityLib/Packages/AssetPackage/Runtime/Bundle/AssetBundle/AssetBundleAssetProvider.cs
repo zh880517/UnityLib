@@ -17,8 +17,7 @@ namespace AssetPackage
             MainBundles.Clear();
             foreach (var kv in Bundles)
             {
-                if (kv.Value.Bundle)
-                    kv.Value.Bundle.Unload(true);
+                kv.Value.Unload();
             }
             Bundles.Clear();
         }
@@ -56,6 +55,7 @@ namespace AssetPackage
 
         public BundleLoadRequest LoadAll()
         {
+
             throw new NotImplementedException();
         }
 

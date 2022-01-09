@@ -41,7 +41,7 @@ namespace AssetPackage
                 }
                 else
                 {
-                    onComplete += value;
+                    onFinish += value;
                 }
             }
             remove

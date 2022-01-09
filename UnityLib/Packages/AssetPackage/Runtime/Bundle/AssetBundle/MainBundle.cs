@@ -9,8 +9,9 @@ namespace AssetPackage
 
         private List<IAssetBundleRequest> Requests = new List<IAssetBundleRequest>();
 
-        public void OnLoadFinish()
+        public override void OnLoadFinish(AssetBundle bundle)
         {
+            base.OnLoadFinish(bundle);
             foreach (var request in Requests)
                 DoRequest(request);
             Requests.Clear();

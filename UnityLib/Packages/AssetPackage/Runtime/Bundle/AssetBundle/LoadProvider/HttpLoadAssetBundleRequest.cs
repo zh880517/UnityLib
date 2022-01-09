@@ -3,21 +3,22 @@ using UnityEngine.Networking;
 
 namespace AssetPackage
 {
-    public class HttpLoadAssetBundleRequest : LoadAssetBundleRequest
+    internal class HttpLoadAssetBundleRequest : LoadAssetBundleRequest
     {
         private UnityWebRequest webRequest;
-        public override bool keepWaiting => !webRequest.isDone;
+        public override  bool IsDone => !webRequest.isDone;
 
         public override float Progress => webRequest.downloadProgress;
 
-        public override AssetBundle GetAssetBundle()
+        protected override AssetBundle GetAssetBundle()
         {
             return DownloadHandlerAssetBundle.GetContent(webRequest);
         }
 
-        public HttpLoadAssetBundleRequest(UnityWebRequest request)
+        public HttpLoadAssetBundleRequest(string url, Hash128 hash, uint crc = 0)
         {
-            webRequest = request;
+            webRequest = UnityWebRequestAssetBundle.GetAssetBundle(url, hash, crc);
+            webRequest.SendWebRequest();
         }
     }
 }

@@ -2,9 +2,15 @@ using UnityEngine;
 
 namespace AssetPackage
 {
-    public abstract class LoadAssetBundleRequest : CustomYieldInstruction
+    internal abstract class LoadAssetBundleRequest
     {
         public abstract float Progress { get; }
-        public abstract AssetBundle GetAssetBundle();
+        public abstract bool IsDone { get; }
+        protected abstract AssetBundle GetAssetBundle();
+        public AssetBundleInfo BundleInfo;
+        public void OnFinish()
+        {
+            BundleInfo.OnLoadFinish(GetAssetBundle());
+        }
     }
 }
