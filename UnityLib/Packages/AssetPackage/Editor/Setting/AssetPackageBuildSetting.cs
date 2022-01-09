@@ -26,8 +26,9 @@ namespace AssetPackage
                 return _Instance;
             }
         }
+        //AssetBundle扩展名
         public string BundleExtension = ".ab";
-        //压缩方式
+        //是否压缩
         public bool CompressedAssetBundle = true;
         public List<AssetPackageSetting> Packages;
 
@@ -36,7 +37,7 @@ namespace AssetPackage
             Dictionary<string, string> assets = new Dictionary<string, string>();
             foreach (var package in Packages)
             {
-                if (!package.Enable)
+                if (!package || !package.Enable)
                     continue;
                 foreach (var path in package.AssetPaths)
                 {
@@ -52,7 +53,7 @@ namespace AssetPackage
             PackageManifest manifest = new PackageManifest();
             foreach (var package in Packages)
             {
-                if (!package.Enable)
+                if (!package || !package.Enable)
                     continue;
                 PackageManifest.BundleInfo bundleInfo = new PackageManifest.BundleInfo();
                 bundleInfo.Name = ToAssetBundlName(package.name);
@@ -79,7 +80,7 @@ namespace AssetPackage
             Dictionary<string, string> packageFiles = new Dictionary<string, string>();
             foreach (var package in Packages)
             {
-                if (!package.Enable)
+                if (!package || !package.Enable)
                     continue;
                 foreach (var path in package.AssetPaths)
                 {
@@ -111,7 +112,7 @@ namespace AssetPackage
             List<AssetBundleBuild> builds = new List<AssetBundleBuild>();
             foreach (var package in Packages)
             {
-                if (!package.Enable)
+                if (!package || !package.Enable)
                     continue;
                 var filePaths = package.AssetPaths;
                 AssetBundleBuild build = new AssetBundleBuild
@@ -125,7 +126,7 @@ namespace AssetPackage
             HashSet<string> dependencies = new HashSet<string>();
             foreach (var file in packageFiles)
             {
-                var depenFiles = AssetDatabase.GetDependencies(file);
+                var depenFiles = AssetDatabase.GetDependencies(file, true);
                 foreach (var dep in depenFiles)
                 {
                     var extension = Path.GetExtension(dep).ToLower();
@@ -136,13 +137,12 @@ namespace AssetPackage
                     }
                 }
             }
+            if (provider == null)
+                provider = new DefaultDependenciesPacakageProvider();
             //依赖文件分包
-            if (provider != null)
-            {
-                var depBundles = provider.FilesToPackage(dependencies);
-                if (depBundles != null)
-                    builds.AddRange(depBundles);
-            }
+            var depBundles = provider.FilesToPackage(dependencies);
+            if (depBundles != null)
+                builds.AddRange(depBundles);
             for (int i=0; i< builds.Count; ++i)
             {
                 string name = builds[i].assetBundleName;

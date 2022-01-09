@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.IO;
-using UnityEditor;
-using UnityEngine;
 
 namespace AssetPackage
 {
+    //将文件夹打包
     public class FolderPackageSetting : AssetPackageSetting
     {
         public string Folder;
@@ -15,29 +14,35 @@ namespace AssetPackage
             get
             {
                 List<string> assetPaths = new List<string>();
-                foreach (var ext in Extensions)
+                if (!string.IsNullOrEmpty(Folder) && Folder.StartsWith("Assets/"))
                 {
-                    var files = Directory.GetFiles(Folder, "*" + ext, SearchOption.TopDirectoryOnly);
-                    foreach (var file in files)
+                    foreach (var ext in Extensions)
                     {
-                        assetPaths.Add(file.Replace('\\', '/'));
+                        var files = Directory.GetFiles(Folder, "*" + ext, SearchOption.TopDirectoryOnly);
+                        foreach (var file in files)
+                        {
+                            assetPaths.Add(file.Replace('\\', '/'));
+                        }
                     }
                 }
+                assetPaths.Sort();
                 return assetPaths;
             }
         }
 
 
-        public override bool IsInPackage(Object obj)
+        public override bool IsInPackage(string path)
         {
-            string path = AssetDatabase.GetAssetPath(obj);
-            string folder = Path.GetDirectoryName(path);
-            if (folder == path)
+            if (!string.IsNullOrEmpty(Folder) && Folder.StartsWith("Assets/"))
             {
-                var extension = Path.GetExtension(path).ToLower();
-                if (Extensions.Contains(extension))
+                string folder = Path.GetDirectoryName(path);
+                if (folder == path)
                 {
-                    return true;
+                    var extension = Path.GetExtension(path).ToLower();
+                    if (Extensions.Contains(extension))
+                    {
+                        return true;
+                    }
                 }
             }
             return false;
