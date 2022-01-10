@@ -1,29 +1,33 @@
 using UnityEngine;
 
-public abstract class InitializeRequest : CustomYieldInstruction
+namespace AssetPackage
 {
-    private System.Action onFinish;
-    public event System.Action OnFinish
+    public abstract class InitializeRequest : CustomYieldInstruction
     {
-        add
+        private System.Action onFinish;
+        public event System.Action OnFinish
         {
-            if (!keepWaiting)
+            add
             {
-                value();
+                if (!keepWaiting)
+                {
+                    value();
+                }
+                else
+                {
+                    onFinish += value;
+                }
             }
-            else
+            remove
             {
                 onFinish += value;
             }
         }
-        remove
-        {
-            onFinish += value;
-        }
-    }
 
-    public void Finished()
-    {
-        onFinish?.Invoke();
+        public void Finished()
+        {
+            onFinish?.Invoke();
+            onFinish = null;
+        }
     }
 }

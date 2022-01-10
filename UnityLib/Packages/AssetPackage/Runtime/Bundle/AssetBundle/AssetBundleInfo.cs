@@ -6,6 +6,7 @@ namespace AssetPackage
     {
         public string Name;
         public Hash128 Hash;
+        public bool HasLoad;
         protected AssetBundle Bundle;
         public List<AssetBundleInfo> Dependencies = new List<AssetBundleInfo>();
 
@@ -18,6 +19,8 @@ namespace AssetPackage
         {
             if (Bundle)
                 Bundle.Unload(true);
+            Bundle = null;
+            HasLoad = false;
         }
     }
 }

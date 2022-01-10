@@ -43,28 +43,26 @@ namespace AssetPackage
         public BundleLoadRequest LoadAll()
         {
             var request = new AssetDatabaseBundleLoadRequet(2);
-            LoadCoroutine.Instance.AddLoadTick(request);
+            AssetLoadCoroutine.Instance.AddLoadTick(request);
             return request;
         }
 
         public BundleLoadRequest LoadByNameCheck(Func<string, bool> nameCheck)
         {
             var request = new AssetDatabaseBundleLoadRequet(1);
-            LoadCoroutine.Instance.AddLoadTick(request);
-            return request;
-        }
-
-        public BundleLoadRequest Refresh()
-        {
-            Assets = PackageInfo.GetAllAssets();
-            var request = new AssetDatabaseBundleLoadRequet(1);
-            LoadCoroutine.Instance.AddLoadTick(request);
+            AssetLoadCoroutine.Instance.AddLoadTick(request);
             return request;
         }
 
         public void OnUnLoadUnUsedAsset()
         {
         }
+
+        public InitializeRequest Initialize()
+        {
+            return new AssetDatabaseInitializeRequest();
+        }
+
     }
 
 }

@@ -15,9 +15,9 @@ namespace AssetPackage
             return DownloadHandlerAssetBundle.GetContent(webRequest);
         }
 
-        public HttpLoadAssetBundleRequest(string url, Hash128 hash, uint crc = 0)
+        public HttpLoadAssetBundleRequest(string url, AssetBundleInfo info):base(info)
         {
-            webRequest = UnityWebRequestAssetBundle.GetAssetBundle(url, hash, crc);
+            webRequest = UnityWebRequestAssetBundle.GetAssetBundle(url, info.Hash, 0);
             webRequest.SendWebRequest();
         }
     }

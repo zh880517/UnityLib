@@ -13,7 +13,7 @@ namespace AssetPackage
             return createRequest.assetBundle;
         }
 
-        public FileLoadAssetBundleRequest(string path)
+        public FileLoadAssetBundleRequest(string path, AssetBundleInfo info) : base(info)
         {
             createRequest = AssetBundle.LoadFromFileAsync(path);
         }

@@ -7,10 +7,14 @@ namespace AssetPackage
         public abstract float Progress { get; }
         public abstract bool IsDone { get; }
         protected abstract AssetBundle GetAssetBundle();
-        public AssetBundleInfo BundleInfo;
+        private AssetBundleInfo bundleInfo;
+        public LoadAssetBundleRequest(AssetBundleInfo info)
+        {
+            bundleInfo = info;
+        }
         public void OnFinish()
         {
-            BundleInfo.OnLoadFinish(GetAssetBundle());
+            bundleInfo.OnLoadFinish(GetAssetBundle());
         }
     }
 }

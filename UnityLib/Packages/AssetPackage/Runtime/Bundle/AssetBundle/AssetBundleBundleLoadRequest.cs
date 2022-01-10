@@ -10,64 +10,56 @@ namespace AssetPackage
         {
             get
             {
-                int count = finshCount + waitQueue.Count + loadingRequest.Count;
-                float progress = finshCount;
-                if (loadingRequest.Count > 0)
-                    progress += loadingRequest.Sum(it=>it.Progress)/loadingRequest.Count;
-                progress /= count;
-                return progress;
+                return loadingRequest.Sum(it=>it.Progress)/(loadingRequest.Count + waitQueue.Count);
             }
         }
 
-        public override bool keepWaiting => waitQueue.Count > 0 || loadingRequest.Count > 0;
+        public override bool keepWaiting => waitQueue.Count > 0 || loadingRequest.Count > finshCount;
 
         private int finshCount;
-        private List<LoadAssetBundleRequest> loadingRequest = new List<LoadAssetBundleRequest>();
+        private List<LoadAssetBundleRequest> loadingRequest;
         public Queue<AssetBundleInfo> waitQueue;
-        public IAssetPathProvider pathProvider;
 
-        public AssetBundleBundleLoadRequest(Queue<AssetBundleInfo> queue, IAssetPathProvider provider)
+        public AssetBundleBundleLoadRequest(Queue<AssetBundleInfo> queue)
         {
             waitQueue = queue;
-            pathProvider = provider;
+            loadingRequest = new List<LoadAssetBundleRequest>(queue.Count);
         }
 
         public override bool OnTick()
         {
+            finshCount = 0;
             for (int i = 0; i < loadingRequest.Count; ++i)
             {
                 var request = loadingRequest[i];
                 if (request.IsDone)
                 {
-                    request.OnFinish();
                     finshCount++;
-                    if (waitQueue.Count > 0)
-                    {
-                        loadingRequest[i] = CreatLoadRequest(waitQueue.Dequeue());
-                    }
-                    else
-                    {
-                        loadingRequest.RemoveAt(i);
-                        --i;
-                    }
                 }
             }
-            while (loadingRequest.Count < MaxLoadCount && waitQueue.Count > 0)
+            while ((loadingRequest.Count - finshCount) < MaxLoadCount && waitQueue.Count > 0)
             {
                 loadingRequest.Add(CreatLoadRequest(waitQueue.Dequeue()));
+            }
+            if (loadingRequest.Count == finshCount && waitQueue.Count == 0)
+            {//等所有的AssetBundle都加载完成再处理，防止因为依赖关系导致加载资源时出问题
+                foreach (var requet in loadingRequest)
+                {
+                    requet.OnFinish();
+                }
             }
             return base.OnTick();
         }
 
         private LoadAssetBundleRequest CreatLoadRequest(AssetBundleInfo info)
         {
-            string loadPath = pathProvider.GetAssetBundlePath(info.Name);
+            string loadPath = AssetManager.PathProvider.GetAssetBundlePath(info.Name);
             if (loadPath.StartsWith("jar:") || loadPath.StartsWith("http"))//android平台的streamingAssetsPath，需要使用缓存方式加载
             {
-                return new HttpLoadAssetBundleRequest(loadPath, info.Hash);
+                return new HttpLoadAssetBundleRequest(loadPath, info);
             }
 
-            return new FileLoadAssetBundleRequest(loadPath);
+            return new FileLoadAssetBundleRequest(loadPath, info);
         }
 
     }

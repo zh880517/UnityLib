@@ -9,18 +9,18 @@ namespace AssetPackage
         bool OnTick();
     }
 
-    internal class LoadCoroutine : MonoBehaviour
+    internal class AssetLoadCoroutine : MonoBehaviour
     {
-        private static LoadCoroutine _instance;
-        public static LoadCoroutine Instance
+        private static AssetLoadCoroutine _instance;
+        public static AssetLoadCoroutine Instance
         {
             get
             {
                 if (_instance == null)
                 {
-                    GameObject go = new GameObject("_LoadCoroutine_");
+                    GameObject go = new GameObject("_AssetLoadCoroutine_");
                     DontDestroyOnLoad(go);
-                    _instance = go.AddComponent<LoadCoroutine>();
+                    _instance = go.AddComponent<AssetLoadCoroutine>();
                 }
                 return _instance;
             }
