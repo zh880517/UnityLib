@@ -124,8 +124,10 @@ namespace AssetPackage
                 builds.Add(build);
             }
             HashSet<string> dependencies = new HashSet<string>();
+            int step = 0;
             foreach (var file in packageFiles)
             {
+                EditorUtility.DisplayProgressBar("资源依赖分析", file, (float)++step / packageFiles.Count);
                 var depenFiles = AssetDatabase.GetDependencies(file, true);
                 foreach (var dep in depenFiles)
                 {
@@ -137,6 +139,8 @@ namespace AssetPackage
                     }
                 }
             }
+            EditorUtility.ClearProgressBar();
+
             if (provider == null)
                 provider = new DefaultDependenciesPacakageProvider();
             //依赖文件分包
