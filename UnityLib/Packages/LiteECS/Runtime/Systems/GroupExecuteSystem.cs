@@ -2,21 +2,18 @@ namespace LiteECS
 {
     public abstract class GroupExecuteSystem<TEntity, TComponent> : IExecuteSystem where TComponent : class, IComponent, new() where TEntity : Entity
     {
-        private readonly Group<TComponent> group;
-        public GroupExecuteSystem(TContext<TEntity> context)
+        protected ContextT<TEntity> context;
+        public GroupExecuteSystem(ContextT<TEntity> context)
         {
-            group = context.CreatGroup<TComponent>();
+            this.context = context;
         }
 
         public void OnExecute()
         {
-            if (group.Count > 0)
+            var group = context.CreatGroup<TComponent>();
+            while(group.MoveNext())
             {
-                while (group.TryGet(out Entity entity, out TComponent component))
-                {
-                    OnExecuteEntity(entity as TEntity, component);
-                }
-                group.Reset();
+                OnExecuteEntity(group.Entity, group.Component);
             }
         }
 

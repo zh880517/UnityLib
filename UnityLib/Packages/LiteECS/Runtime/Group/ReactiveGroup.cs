@@ -1,26 +1,27 @@
-using System;
-
 namespace LiteECS
 {
-    public struct Group<TEntity, TComponent>  where TComponent : class, IComponent, new() where TEntity : Entity
+    public struct ReactiveGroup<TEntity, TComponent> where TEntity : Entity where TComponent : class, IComponent, new()
     {
-        private ContextT<TEntity> Context;
         private int Index;
-        private Func<TComponent, bool> Condition;
+        private int GroupIndex;
+        private uint Version;
+        private ContextT<TEntity> Context;
         public TEntity Entity { get; private set; }
         public TComponent Component { get; private set; }
-        public Group(ContextT<TEntity> context, Func<TComponent, bool> condition)
+
+        public ReactiveGroup(int groupIndex, uint version, ContextT<TEntity> context)
         {
-            Index = 0;
+            Version = version;
             Context = context;
-            Condition = condition;
+            Index = 0;
+            GroupIndex = groupIndex;
             Entity = null;
             Component = default;
         }
 
         public bool MoveNext()
         {
-            var result = Context.Find(Index, 0, Condition);
+            var result = Context.Find<TComponent>(Index, Version, null, GroupIndex);
             Component = result.Component;
             if (result.Id == 0)
             {
@@ -32,5 +33,4 @@ namespace LiteECS
             return true;
         }
     }
-
 }

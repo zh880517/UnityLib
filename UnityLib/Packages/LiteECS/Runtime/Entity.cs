@@ -23,8 +23,7 @@ namespace LiteECS
                 return;
             if (Id == 1)
             {
-                //ILLog.LogError("UniqueEntity 不能调用 Destroy()");
-                return;
+                throw new System.Exception("UniqueEntity 不能调用 Destroy()");
             }
             if (owner != null)
             {

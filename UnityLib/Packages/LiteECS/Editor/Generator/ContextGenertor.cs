@@ -2,15 +2,15 @@ namespace LiteECS.Editor
 {
     public static class ContextGenertor
     {
-    
-        public static string Gen(string name)
+
+        public static string Gen(string name, string upLevelContext)
         {
             CodeWriter writer = new CodeWriter(true);
             writer.Write($"public interface I{name}Component : LiteECS.IComponent");
             writer.EmptyScop();
 
-            writer.Write($"public class {name}Entity : LiteECS.TEntity<I{name}Component>");
-            using(new CodeWriter.Scop(writer))
+            writer.Write($"public class {name}Entity : LiteECS.EntityT<I{name}Component>");
+            using (new CodeWriter.Scop(writer))
             {
                 writer.Write($"public {name}Entity(LiteECS.Context context, int id) : base(context, id)");
                 writer.EmptyScop(false);
@@ -23,9 +23,13 @@ namespace LiteECS.Editor
                 writer.Write($"public static int ComponentCount {{ get; private set; }}").NewLine();
             }
 
-            writer.Write($"public class {name}Context : LiteECS.TContext<{name}Entity>");
+            writer.Write($"public class {name}Context : LiteECS.ContextT<{name}Entity>");
             using (new CodeWriter.Scop(writer))
             {
+                if (!string.IsNullOrEmpty(upLevelContext))
+                {
+                    writer.Write($"public {upLevelContext}Context {upLevelContext}{{ get; private set; }}").NewLine();
+                }
                 //Ctor
                 writer.Write($"protected {name}Context(int componentTypeCount) : base(componentTypeCount, CreatFunc)");
                 writer.EmptyScop();
@@ -45,11 +49,18 @@ namespace LiteECS.Editor
                     writer.Write($"{name}Components.OnContextCreat(contxt);").NewLine();
                     writer.Write("return contxt;");
                 }
+                if (!string.IsNullOrEmpty(upLevelContext))
+                {
+                    writer.Write($"public void Set{upLevelContext}( {upLevelContext}Context {upLevelContext.ToLower()} )");
+                    using (new CodeWriter.Scop(writer))
+                    {
+                        writer.Write($"{upLevelContext} = {upLevelContext.ToLower()};");
+                    }
+                }
             }
 
 
             return writer.ToString();
         }
     }
-
 }

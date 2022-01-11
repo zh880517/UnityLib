@@ -21,16 +21,16 @@ namespace LiteECS.Editor
             //自动System生成
             foreach (var type in componentTypes)
             {
-                var cleanup = type.GetCustomAttribute<CleanupAttribute>();
+                var cleanup = type.GetCustomAttribute<LiteECS.CleanupAttribute>();
                 if (cleanup == null)
                     continue;
                 CodeWriter writer = new CodeWriter();
                 string className = $"{type.Name}CleanupSystem";
                 writer.Write($"using TComponent = {type.FullName};").NewLine();
                 writer.Write($"public class {className} : LiteECS.ICleanupSystem");
-                using(new CodeWriter.Scop(writer))
+                using (new CodeWriter.Scop(writer))
                 {
-                    if (cleanup.Mode == CleanupMode.DestroyEntity)
+                    if (cleanup.Mode == LiteECS.CleanupMode.DestroyEntity)
                     {
                         GenDestroySystem(type, writer, className);
                     }
@@ -45,24 +45,20 @@ namespace LiteECS.Editor
 
         private void GenDestroySystem(Type type, CodeWriter writer, string className)
         {
-            writer.Write($"private readonly LiteECS.Group<TComponent> group;").NewLine();
+            writer.Write($"private readonly {context.Name}Context context;").NewLine();
             writer.Write($"public {className}({context.Name}Context context)");
-            using(new CodeWriter.Scop(writer))
+            using (new CodeWriter.Scop(writer))
             {
-                writer.Write($"group = context.CreatGroup<TComponent>();");
+                writer.Write($"this.context = context;");
             }
             writer.Write($"public void OnCleanup()");
-            using (new CodeWriter.Scop(writer)) 
+            using (new CodeWriter.Scop(writer))
             {
-                writer.Write($"if (group.Count > 0)");
+                writer.Write("var group = context.CreatGroup<TComponent>();").NewLine();
+                writer.Write("while (group.MoveNext())");
                 using (new CodeWriter.Scop(writer))
                 {
-                    writer.Write($"while (group.TryGet(out LiteECS.Entity entity, out _))");
-                    using (new CodeWriter.Scop(writer)) 
-                    {
-                        writer.Write("entity.Destroy();");
-                    }
-                    writer.Write("group.Reset();");
+                    writer.Write("group.Entity.Destroy();");
                 }
             }
         }
@@ -86,7 +82,7 @@ namespace LiteECS.Editor
         {
             CodeWriter writer = new CodeWriter();
             writer.Write($"public static partial class {context.Name}Components");
-            using(new CodeWriter.Scop(writer))
+            using (new CodeWriter.Scop(writer))
             {
                 writer.Write($"static {context.Name}Components()");
                 using (new CodeWriter.Scop(writer))
@@ -96,12 +92,12 @@ namespace LiteECS.Editor
                     writer.Write("InitComponentsIdentity();");
                 }
                 writer.Write($"static void InitComponentsIdentity()");
-                using(new CodeWriter.Scop(writer))
+                using (new CodeWriter.Scop(writer))
                 {
-                    for (int i=0; i<componentTypes.Count; ++i)
+                    for (int i = 0; i < componentTypes.Count; ++i)
                     {
                         var type = componentTypes[i];
-                        if (typeof(IUnique).IsAssignableFrom(type))
+                        if (typeof(LiteECS.IUnique).IsAssignableFrom(type))
                         {
                             writer.Write($"LiteECS.ComponentIdentity<{type.FullName}>.Unique = true;").NewLine();
                         }
@@ -118,14 +114,14 @@ namespace LiteECS.Editor
                     for (int i = 0; i < componentTypes.Count; ++i)
                     {
                         var type = componentTypes[i];
-                    
+
                         if (typeof(LiteECS.IUnique).IsAssignableFrom(type))
                         {
-                            writer.Write($"context.InitComponentCollector<{type.FullName}>();");
+                            writer.Write($"context.InitUniqueComponentCollector<{type.FullName}>();");
                         }
                         else
                         {
-                            writer.Write($"context.InitUniqueComponentCollector<{type.FullName}>();");
+                            writer.Write($"context.InitComponentCollector<{type.FullName}>();");
                         }
                         if (i < componentTypes.Count - 1)
                         {
@@ -137,9 +133,5 @@ namespace LiteECS.Editor
             return writer.ToString();
         }
 
-
-
     }
-
-
 }

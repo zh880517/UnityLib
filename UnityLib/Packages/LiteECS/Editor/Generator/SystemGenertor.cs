@@ -6,9 +6,8 @@ namespace LiteECS.Editor
         Execute,
         Cleanup,
         TearDown,
-        //分割
         GroupExecute,
-        Reactive,
+        ReactiveExecute,
     }
 
     public static class SystemGenertor
@@ -35,9 +34,9 @@ namespace LiteECS.Editor
             {
                 GenGroupExecuteSystem(writer, className, context, componentName);
             }
-            else if (type == ECSSystemGenerateType.Reactive)
+            else if (type == ECSSystemGenerateType.ReactiveExecute)
             {
-                GenReactiveSystem(writer, className, context, componentName);
+                GenReactiveExecuteSystem(writer, className, context, componentName);
             }
             return writer.ToString();
         }
@@ -52,48 +51,31 @@ namespace LiteECS.Editor
             writer.Write($"public class {className} : LiteECS.GroupExecuteSystem<{context}Entity, TComponent>");
             using (new CodeWriter.Scop(writer))
             {
-                writer.Write($"{context}Context context;").NewLine();
+                writer.Write($" private {context}Context Context => context as {context}Context;").NewLine();
                 writer.Write($"public {className}({context}Context context):base(context)");
-                using (new CodeWriter.Scop(writer))
-                {
-                    writer.Write("this.context = context;");
-                }
+                writer.EmptyScop();
                 writer.Write($"protected override void OnExecuteEntity({context}Entity entity, TComponent component)");
                 writer.EmptyScop();
             }
         }
 
-        public static void GenReactiveSystem(CodeWriter writer, string className, string context, string componentName)
+        public static void GenReactiveExecuteSystem(CodeWriter writer, string className, string context, string componentName)
         {
             if (string.IsNullOrEmpty(componentName))
             {
                 componentName = $"I{context}Component";
             }
-            writer.Write("using System.Collections.Generic;").NewLine();
-            writer.Write($"public class {className} : LiteECS.ReactiveSystem<{context}Entity, {componentName}>");
+            writer.Write($"using TComponent = {componentName};").NewLine();
+            writer.Write($"public class {className} : LiteECS.ReactiveExecuteSystem<{context}Entity, TComponent>");
             using (new CodeWriter.Scop(writer))
             {
-                writer.Write($"{context}Context context;").NewLine();
-                writer.Write($"public {className}({context}Context context):base(context, LiteECS.ComponentEvent.OnAddOrModify)");
-                using (new CodeWriter.Scop(writer))
-                {
-                    writer.Write("this.context = context;");
-                }
-
-                writer.NewLine();
-
-                writer.Write($"protected override void OnExecuteEntitis(List<{context}Entity> entities)");
-                using (new CodeWriter.Scop(writer))
-                {
-                    writer.Write("for (int i=0; i< entities.Count; ++i)");
-                    using (new CodeWriter.Scop(writer))
-                    {
-                        writer.Write("var entity = entities[i];");
-                    }
-                }
+                writer.Write($" private {context}Context Context => context as {context}Context;").NewLine();
+                writer.Write($"public {className}({context}Context context):base(context)");
+                writer.EmptyScop();
+                writer.Write($"protected override void OnExecuteEntity({context}Entity entity, TComponent component)");
+                writer.EmptyScop();
             }
         }
+
     }
-
-
 }

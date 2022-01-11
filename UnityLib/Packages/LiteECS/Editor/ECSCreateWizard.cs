@@ -302,5 +302,4 @@ namespace LiteECS.Editor
         }
 
     }
-
 }

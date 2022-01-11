@@ -4,59 +4,37 @@ namespace LiteECS
 
     public class ComponentCollector<T> : IComponentCollectorT<T> where T : class, IComponent, new()
     {
-        private class ComponentUnit
-        {
-            public T Component;
-            public Entity Owner;
-            public int Index;
-        }
-        private List<ComponentUnit> units = new List<ComponentUnit>();
+        private List<ComponentEntity<T>> units = new List<ComponentEntity<T>>();
         private Queue<int> unUsedIdxs = new Queue<int>();
         private Dictionary<int, int> idIdxMap = new Dictionary<int, int>();//EntityId => 数组索引
-        private List<IEventGroup> eventGroups = new List<IEventGroup>();
+        private uint Version;
         public int Count { get; private set; }
 
-        public ComponentCollector()
-        {
-        }
 
-        private ComponentUnit CreateUnit()
+        private ComponentEntity<T> Create()
         {
             if (unUsedIdxs.Count > 0)
             {
                 var index = unUsedIdxs.Dequeue();
                 return units[index];
             }
-            var unit = new ComponentUnit
-            {
-                Component = new T(),
-                Index = units.Count,
-            };
+            var unit = new ComponentEntity<T>();
             units.Add(unit);
             return unit;
         }
 
-        public IComponent Add(Entity entity, bool forceModify)
+        public IComponent Add(Entity entity, uint version, bool forceModify)
         {
             if (idIdxMap.TryGetValue(entity.Id, out int idx))
             {
-                if (forceModify)
-                {
-                    for (int i = 0; i < eventGroups.Count; ++i)
-                    {
-                        eventGroups[i].OnModify<T>(entity.Id);
-                    }
-                }
                 return units[idx].Component;
             }
-            var unit = CreateUnit();
+            var unit = Create();
             idIdxMap.Add(entity.Id, idx);
             unit.Owner = entity;
+            unit.Version = version;
+            Version = version;
             ++Count;
-            for (int i = 0; i < eventGroups.Count; ++i)
-            {
-                eventGroups[i].OnAdd<T>(entity.Id);
-            }
             return unit.Component;
         }
 
@@ -69,15 +47,14 @@ namespace LiteECS
             return null;
         }
 
-        public IComponent Modify(Entity entity)
+        public IComponent Modify(Entity entity, uint version)
         {
             if (idIdxMap.TryGetValue(entity.Id, out int idx))
             {
-                for (int i=0; i<eventGroups.Count; ++i)
-                {
-                    eventGroups[i].OnModify<T>(entity.Id);
-                }
-                return units[idx].Component;
+                var unit = units[idx];
+                unit.Version = version;
+                Version = version;
+                return unit.Component;
             }
             return null;
         }
@@ -87,16 +64,10 @@ namespace LiteECS
             if (idIdxMap.TryGetValue(entity.Id, out int idx))
             {
                 var unit = units[idx];
-                if (unit.Component is IReset resetComp)
-                    resetComp.Reset();
-                unit.Owner = null;
+                unit.Reset();
                 unUsedIdxs.Enqueue(idx);
                 idIdxMap.Remove(entity.Id);
                 --Count;
-                for (int i = 0; i < eventGroups.Count; ++i)
-                {
-                    eventGroups[i].OnRemove<T>(entity.Id);
-                }
             }
         }
 
@@ -109,63 +80,36 @@ namespace LiteECS
                     var unit = units[i];
                     if (unit.Owner != null)
                     {
-                        if (unit.Component is IReset resetComp)
-                            resetComp.Reset();
                         unUsedIdxs.Enqueue(i);
                         idIdxMap.Remove(unit.Owner.Id);
-                        for (int j = 0; j < eventGroups.Count; ++j)
-                        {
-                            eventGroups[j].OnRemove<T>(unit.Owner.Id);
-                        }
+                        unit.Reset();
                         --Count;
-                        unit.Owner = null;
                     }
                 }
             }
         }
 
-        public Entity Find(ref int startIndex, System.Func<T, bool> condition)
+        public EntityFindResult<T> Find(int startIndex, uint version, System.Func<T, bool> condition = null)
         {
-            for (int i=startIndex; i<units.Count; ++i)
+            if (Version > version)
             {
-                var unit = units[i];
-                if (unit.Owner != null && (condition == null || condition(unit.Component)))
+                for (int i = startIndex; i < units.Count; ++i)
                 {
-                    startIndex = i + 1;
-                    return unit.Owner;
+                    var unit = units[i];
+                    if (unit.Owner != null && unit.Version > version && (condition == null || condition(unit.Component)))
+                    {
+                        return new EntityFindResult<T>()
+                        {
+                            Id = unit.Owner.Id,
+                            Index = i + 1,
+                            Version = unit.Version,
+                            Component = unit.Component
+                        };
+                    }
                 }
             }
-            startIndex = units.Count;
-            return null;
+            return new EntityFindResult<T>();
         }
-
-        public void RegistEventGroup(IEventGroup eventGroup)
-        {
-            eventGroups.Add(eventGroup);
-        }
-
-        public void RemoveEventGroup(IEventGroup eventGroup)
-        {
-            eventGroups.Remove(eventGroup);
-        }
-
-        public Entity Find(ref int startIndex, out T component, System.Func<T, bool> condition)
-        {
-            for (int i = startIndex; i < units.Count; ++i)
-            {
-                var unit = units[i];
-                if (unit.Owner != null && condition == null || condition(unit.Component))
-                {
-                    startIndex = i + 1;
-                    component = unit.Component;
-                    return unit.Owner;
-                }
-            }
-            startIndex = units.Count;
-            component = null;
-            return null;
-        }
-
     }
 
 }

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -28,7 +29,7 @@ namespace LiteECS.Editor
                     GUILayout.Label("名字不需要包含 Context");
                     GUI.backgroundColor = color;
                 }
-                if (GUILayout.Button(string.IsNullOrWhiteSpace(createPath) ? "选择目录" : createPath , EditorStyles.linkLabel))
+                if (GUILayout.Button(string.IsNullOrWhiteSpace(createPath) ? "选择目录" : createPath, EditorStyles.linkLabel))
                 {
                     var select = EditorUtility.OpenFolderPanel("选择目录", "Assets/", "");
                     if (!string.IsNullOrEmpty(select))
@@ -46,7 +47,7 @@ namespace LiteECS.Editor
                         createPath = select;
                     }
                 }
-                using(new EditorGUILayout.HorizontalScope())
+                using (new EditorGUILayout.HorizontalScope())
                 {
                     if (GUILayout.Button("放弃"))
                     {
@@ -56,7 +57,7 @@ namespace LiteECS.Editor
                     if (GUILayout.Button("创建"))
                     {
                         var config = ECSConfig.Instance.AddContext(createName, createPath);
-                        if ( config != null)
+                        if (config != null)
                         {
                             config.InitECSDirectory();
                             AssetDatabase.Refresh();
@@ -93,7 +94,7 @@ namespace LiteECS.Editor
                     string fileName = Path.GetFileName(select);
                     if (!fileName.EndsWith("ECS.cs"))
                     {
-                        EditorUtility.DisplayDialog("提示", "无效的文件，ECS文件是以{{ContentName}}ECS.cs命名的", "确定");
+                        EditorUtility.DisplayDialog("提示", "无效的文件，ECS文件是以{ContentName}ECS.cs命名的", "确定");
                         return;
                     }
                     string name = fileName.Substring(0, fileName.Length - 6);
@@ -110,7 +111,7 @@ namespace LiteECS.Editor
 
         void OnGUI()
         {
-            for(int i=0; i< ECSConfig.Instance.Contexts.Count; ++i)
+            for (int i = 0; i < ECSConfig.Instance.Contexts.Count; ++i)
             {
                 var context = ECSConfig.Instance.Contexts[i];
                 using (new EditorGUILayout.VerticalScope("Box"))
@@ -127,6 +128,31 @@ namespace LiteECS.Editor
                             continue;
                         }
                     }
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        if (!string.IsNullOrEmpty(context.UpLevelContext))
+                        {
+                            GUILayout.Label("上层Context: ");
+                            GUILayout.Label(context.UpLevelContext);
+                        }
+                        if (GUILayout.Button("选择上层Context"))
+                        {
+                            var names = ECSConfig.Instance.Contexts.Where(it => it.Name != context.Name && context.Name != it.UpLevelContext).Select(it => it.Name).ToArray();
+                            if (names.Length > 0)
+                            {
+                                GenericMenu generic = new GenericMenu();
+                                foreach (var name in names)
+                                {
+                                    generic.AddItem(new GUIContent(name), name == context.UpLevelContext, () =>
+                                    {
+                                        ECSConfig.MakeModify("set up level context");
+                                        context.UpLevelContext = name;
+                                    });
+                                }
+                                generic.ShowAsContext();
+                            }
+                        }
+                    }
                     GUILayout.Space(5);
                     if (GUILayout.Button(context.DirectoryPath, EditorStyles.linkLabel))
                     {
@@ -136,6 +162,10 @@ namespace LiteECS.Editor
                         var obj = AssetDatabase.LoadMainAssetAtPath(selectPath);
                         EditorGUIUtility.PingObject(obj);
                         Selection.activeObject = obj;
+                    }
+                    if (GUILayout.Button("重新生成ECS文件"))
+                    {
+                        context.GenECSFile(true);
                     }
                 }
                 GUILayout.Space(10);

@@ -6,6 +6,9 @@ namespace LiteECS
         private int idIndex = 1;
         protected readonly Dictionary<int, Entity> entitis = new Dictionary<int, Entity>();
         protected readonly List<IComponentCollector> collectors;
+        protected readonly List<uint> groups = new List<uint>();
+        private uint version = 1;
+        protected bool versionModify;
         public int Generation { get; private set; }
 
         public Context(int componentTypeCount)
@@ -63,6 +66,16 @@ namespace LiteECS
             return newId;
         }
 
+        protected uint GetVersion()
+        {
+            if (versionModify)
+            {
+                ++version;
+                versionModify = false;
+            }
+            return version;
+        }
+
         public void DestroyEntity(Entity entity)
         {
             if (entity.IsDestroyed)
@@ -78,14 +91,14 @@ namespace LiteECS
         {
             if (entity.IsDestroyed)
                 throw new System.Exception("Entity has destroyed");
-            return collectors[ComponentIdentity<T>.Id].Add(entity, forceModify) as T;
+            return collectors[ComponentIdentity<T>.Id].Add(entity, GetVersion(), forceModify) as T;
         }
 
         public T ModifyComponent<T>(Entity entity) where T : class, IComponent, new()
         {
             if (entity.IsDestroyed)
                 throw new System.Exception("Entity has destroyed");
-            return collectors[ComponentIdentity<T>.Id].Modify(entity) as T;
+            return collectors[ComponentIdentity<T>.Id].Modify(entity, GetVersion()) as T;
         }
 
         public T GetComponent<T>(Entity entity) where T : class, IComponent, new()

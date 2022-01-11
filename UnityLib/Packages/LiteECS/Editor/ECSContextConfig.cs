@@ -7,6 +7,7 @@ namespace LiteECS.Editor
     public class ECSContextConfig
     {
         public string Name;
+        public string UpLevelContext;
         public string DirectoryPath;
 
         private List<System.Type> _componentTypes;
@@ -22,6 +23,16 @@ namespace LiteECS.Editor
             }
         }
 
+        public void GenECSFile(bool force)
+        {
+            var ecsFile = Path.Combine(DirectoryPath, $"{Name}ECS.cs");
+            if (!File.Exists(ecsFile) || force)
+            {
+                var fileContext = ContextGenertor.Gen(Name, UpLevelContext);
+                File.WriteAllText(ecsFile, fileContext, new System.Text.UTF8Encoding(false));
+            }
+        }
+
         public void InitECSDirectory()
         {
             if (string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(DirectoryPath))
@@ -34,12 +45,7 @@ namespace LiteECS.Editor
             {
                 dir.Create();
             }
-            var ecsFile = Path.Combine(DirectoryPath, $"{Name}ECS.cs");
-            if (!File.Exists(ecsFile))
-            {
-                var fileContext = ContextGenertor.Gen(Name);
-                File.WriteAllText(ecsFile, fileContext, new System.Text.UTF8Encoding(false));
-            }
+            GenECSFile(false);
 
             string[] childrenDir = { "Components", "Systems", "Generates" };
             foreach (var child in childrenDir)
@@ -53,5 +59,4 @@ namespace LiteECS.Editor
         }
 
     }
-
 }
