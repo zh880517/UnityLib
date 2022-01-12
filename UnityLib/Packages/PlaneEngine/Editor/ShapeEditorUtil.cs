@@ -44,6 +44,9 @@ namespace PlaneEngine
             {
                 Undo.SetTransformParent(go.transform, parent.transform, "CreateSharp");
             }
+            Selection.activeGameObject = go;
+            //EditorGUIUtility.PingObject(go);
+            SceneView.lastActiveSceneView.FrameSelected();
             return shape;
         }
 
