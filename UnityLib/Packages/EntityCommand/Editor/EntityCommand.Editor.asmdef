@@ -1,10 +1,7 @@
 {
-    "name": "LiteECS.Editor",
+    "name": "EntityCommand.Editor",
     "rootNamespace": "",
-    "references": [
-        "LiteECS.Runtime",
-        "CodeGenerator.Editor"
-    ],
+    "references": [],
     "includePlatforms": [
         "Editor"
     ],

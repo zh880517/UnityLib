@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-
+using CodeGenerator;
 namespace LiteECS.Editor
 {
     public class ComponentGenerator
@@ -24,11 +24,11 @@ namespace LiteECS.Editor
                 var cleanup = type.GetCustomAttribute<LiteECS.CleanupAttribute>();
                 if (cleanup == null)
                     continue;
-                CodeWriter writer = new CodeWriter();
+                CSharpWriter writer = new CSharpWriter();
                 string className = $"{type.Name}CleanupSystem";
                 writer.Write($"using TComponent = {type.FullName};").NewLine();
                 writer.Write($"public class {className} : LiteECS.ICleanupSystem");
-                using (new CodeWriter.Scop(writer))
+                using (new CSharpWriter.Scop(writer))
                 {
                     if (cleanup.Mode == LiteECS.CleanupMode.DestroyEntity)
                     {
@@ -43,36 +43,36 @@ namespace LiteECS.Editor
             }
         }
 
-        private void GenDestroySystem(Type type, CodeWriter writer, string className)
+        private void GenDestroySystem(Type type, CSharpWriter writer, string className)
         {
             writer.Write($"private readonly {context.Name}Context context;").NewLine();
             writer.Write($"public {className}({context.Name}Context context)");
-            using (new CodeWriter.Scop(writer))
+            using (new CSharpWriter.Scop(writer))
             {
                 writer.Write($"this.context = context;");
             }
             writer.Write($"public void OnCleanup()");
-            using (new CodeWriter.Scop(writer))
+            using (new CSharpWriter.Scop(writer))
             {
                 writer.Write("var group = context.CreatGroup<TComponent>();").NewLine();
                 writer.Write("while (group.MoveNext())");
-                using (new CodeWriter.Scop(writer))
+                using (new CSharpWriter.Scop(writer))
                 {
                     writer.Write("group.Entity.Destroy();");
                 }
             }
         }
 
-        private void GenRemoveSystem(Type type, CodeWriter writer, string className)
+        private void GenRemoveSystem(Type type, CSharpWriter writer, string className)
         {
             writer.Write($"private readonly {className}Context context;").NewLine();
             writer.Write($"public {className}({context.Name}Context context)");
-            using (new CodeWriter.Scop(writer))
+            using (new CSharpWriter.Scop(writer))
             {
                 writer.Write("this.context = context;");
             }
             writer.Write($"public void OnCleanup()");
-            using (new CodeWriter.Scop(writer))
+            using (new CSharpWriter.Scop(writer))
             {
                 writer.Write($"context.RemoveAll<TComponent>();");
             }
@@ -80,19 +80,19 @@ namespace LiteECS.Editor
 
         private string GenComponentsFile()
         {
-            CodeWriter writer = new CodeWriter();
+            CSharpWriter writer = new CSharpWriter();
             writer.Write($"public static partial class {context.Name}Components");
-            using (new CodeWriter.Scop(writer))
+            using (new CSharpWriter.Scop(writer))
             {
                 writer.Write($"static {context.Name}Components()");
-                using (new CodeWriter.Scop(writer))
+                using (new CSharpWriter.Scop(writer))
                 {
                     writer.Write($"OnContextCreat = DoContentInit;").NewLine();
                     writer.Write($"ComponentCount = {componentTypes.Count};").NewLine();
                     writer.Write("InitComponentsIdentity();");
                 }
                 writer.Write($"static void InitComponentsIdentity()");
-                using (new CodeWriter.Scop(writer))
+                using (new CSharpWriter.Scop(writer))
                 {
                     for (int i = 0; i < componentTypes.Count; ++i)
                     {
@@ -109,7 +109,7 @@ namespace LiteECS.Editor
                     }
                 }
                 writer.Write($"static void DoContentInit({context.Name}Context context)");
-                using (new CodeWriter.Scop(writer))
+                using (new CSharpWriter.Scop(writer))
                 {
                     for (int i = 0; i < componentTypes.Count; ++i)
                     {

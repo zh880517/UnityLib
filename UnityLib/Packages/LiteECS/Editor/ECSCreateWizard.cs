@@ -1,3 +1,4 @@
+using CodeGenerator;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -240,7 +241,7 @@ namespace LiteECS.Editor
             string content = null;
             if (createType == CreateType.Component)
             {
-                CodeWriter writer = new CodeWriter(true);
+                CSharpWriter writer = new CSharpWriter(true);
                 writer.Write($"public partial class {className} : I{cfg.Name}Component");
                 writer.EmptyScop();
                 content = writer.ToString();

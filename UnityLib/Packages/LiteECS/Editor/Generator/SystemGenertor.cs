@@ -1,3 +1,4 @@
+using CodeGenerator;
 namespace LiteECS.Editor
 {
     public enum ECSSystemGenerateType
@@ -14,15 +15,15 @@ namespace LiteECS.Editor
     {
         public static string Gen(string className, string context, ECSSystemGenerateType type, string componentName = null)
         {
-            CodeWriter writer = new CodeWriter(true);
+            CSharpWriter writer = new CSharpWriter(true);
             if (type < ECSSystemGenerateType.GroupExecute)
             {
                 writer.Write($"public class {className} : LiteECS.I{type}System");
-                using (new CodeWriter.Scop(writer))
+                using (new CSharpWriter.Scop(writer))
                 {
                     writer.Write($"{context}Context context;").NewLine();
                     writer.Write($"public {className}({context}Context context)");
-                    using (new CodeWriter.Scop(writer))
+                    using (new CSharpWriter.Scop(writer))
                     {
                         writer.Write("this.context = context;");
                     }
@@ -41,7 +42,7 @@ namespace LiteECS.Editor
             return writer.ToString();
         }
 
-        public static void GenGroupExecuteSystem(CodeWriter writer, string className, string context, string componentName)
+        public static void GenGroupExecuteSystem(CSharpWriter writer, string className, string context, string componentName)
         {
             if (string.IsNullOrEmpty(componentName))
             {
@@ -49,7 +50,7 @@ namespace LiteECS.Editor
             }
             writer.Write($"using TComponent = {componentName};").NewLine();
             writer.Write($"public class {className} : LiteECS.GroupExecuteSystem<{context}Entity, TComponent>");
-            using (new CodeWriter.Scop(writer))
+            using (new CSharpWriter.Scop(writer))
             {
                 writer.Write($" private {context}Context Context => context as {context}Context;").NewLine();
                 writer.Write($"public {className}({context}Context context):base(context)");
@@ -59,7 +60,7 @@ namespace LiteECS.Editor
             }
         }
 
-        public static void GenReactiveExecuteSystem(CodeWriter writer, string className, string context, string componentName)
+        public static void GenReactiveExecuteSystem(CSharpWriter writer, string className, string context, string componentName)
         {
             if (string.IsNullOrEmpty(componentName))
             {
@@ -67,7 +68,7 @@ namespace LiteECS.Editor
             }
             writer.Write($"using TComponent = {componentName};").NewLine();
             writer.Write($"public class {className} : LiteECS.ReactiveExecuteSystem<{context}Entity, TComponent>");
-            using (new CodeWriter.Scop(writer))
+            using (new CSharpWriter.Scop(writer))
             {
                 writer.Write($" private {context}Context Context => context as {context}Context;").NewLine();
                 writer.Write($"public {className}({context}Context context):base(context)");

@@ -1,8 +1,8 @@
 using System.Text;
 
-namespace LiteECS.Editor
+namespace CodeGenerator
 {
-    public class CodeWriter
+    public class CSharpWriter
     {
         private int tabCount = 0;
 
@@ -12,8 +12,8 @@ namespace LiteECS.Editor
 
         public struct Scop : System.IDisposable
         {
-            private readonly CodeWriter writer;
-            public Scop(CodeWriter writer)
+            private readonly CSharpWriter writer;
+            public Scop(CSharpWriter writer)
             {
                 writer.BeginScope();
                 this.writer = writer;
@@ -26,13 +26,13 @@ namespace LiteECS.Editor
         }
 
         /// <param name="winBreakLine">换行符选择，如果生成的文件需要编辑，则选择true，vs里面新加行换行符是Windows默认换行符</param>
-        public CodeWriter(bool winBreakLine = false)
+        public CSharpWriter(bool winBreakLine = false)
         {
             if (winBreakLine)
                 lineBreak = "\r\n";
         }
 
-        public CodeWriter BeginScope()
+        public CSharpWriter BeginScope()
         {
             NewLine();
             Stream.Append('{');
@@ -41,7 +41,7 @@ namespace LiteECS.Editor
             return this;
         }
 
-        public CodeWriter EndScope()
+        public CSharpWriter EndScope()
         {
             tabCount -= 1;
             NewLine();
@@ -50,7 +50,7 @@ namespace LiteECS.Editor
             return this;
         }
 
-        public CodeWriter EmptyScop(bool emptyLine = true)
+        public CSharpWriter EmptyScop(bool emptyLine = true)
         {
             NewLine();
             Stream.Append('{');
@@ -62,19 +62,19 @@ namespace LiteECS.Editor
             return this;
         }
 
-        public CodeWriter EmptyLine()
+        public CSharpWriter EmptyLine()
         {
             Stream.Append(lineBreak);
             return this;
         }
 
-        public CodeWriter NewLine()
+        public CSharpWriter NewLine()
         {
             Stream.Append(lineBreak).Append(' ', tabCount*4);
             return this;
         }
 
-        public CodeWriter Write(string val)
+        public CSharpWriter Write(string val)
         {
             Stream.Append(val);
             return this;

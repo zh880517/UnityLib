@@ -1,13 +1,8 @@
 {
-    "name": "LiteECS.Editor",
+    "name": "EntityCommand.Runtime",
     "rootNamespace": "",
-    "references": [
-        "LiteECS.Runtime",
-        "CodeGenerator.Editor"
-    ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "references": [],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
