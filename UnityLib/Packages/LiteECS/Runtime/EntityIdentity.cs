@@ -1,4 +1,4 @@
-namespace ViewECS
+namespace LiteECS
 {
     public struct EntityIdentity : System.IEquatable<EntityIdentity>
     {
