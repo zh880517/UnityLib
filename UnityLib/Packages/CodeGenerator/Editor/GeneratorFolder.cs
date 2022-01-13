@@ -47,14 +47,7 @@ namespace CodeGenerator
             foreach (var kv in FileContents)
             {
                 string filePath = string.Format("{0}{1}", DirectoryPath, kv.Key);
-                if (File.Exists(filePath))
-                {
-                    if (File.ReadAllText(filePath, encoding) == kv.Value)
-                    {
-                        continue;
-                    }
-                }
-                File.WriteAllText(filePath, kv.Value, encoding);
+                FileUtil.WriteFile(filePath, kv.Value);
             }
         }
 

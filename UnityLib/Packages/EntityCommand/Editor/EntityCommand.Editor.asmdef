@@ -1,7 +1,10 @@
 {
     "name": "EntityCommand.Editor",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "CodeGenerator.Editor",
+        "EntityCommand.Runtime"
+    ],
     "includePlatforms": [
         "Editor"
     ],
