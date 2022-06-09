@@ -2,7 +2,7 @@ namespace FrameLine
 {
     public static class TrackUtil
     {
-        public static void UpdateClipTrackIndex(this FrameLineTrack track)
+        public static void UpdateClipTrackIndex(FrameLineTrack track)
         {
             if (track.Count == 0)
                 return;

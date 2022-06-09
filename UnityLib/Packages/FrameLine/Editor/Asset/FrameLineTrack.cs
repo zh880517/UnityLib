@@ -10,7 +10,7 @@ namespace FrameLine
         public string Name;
         public string Comment;
         public string TypeGUID;
-        public bool Fold;//是否折叠
+        public bool Foldout = true;//
         public int SubTrackCount;//显示素有Clip需要的轨道数量
         [SerializeField]
         private List<FrameClipRef> clips = new List<FrameClipRef>();
@@ -37,10 +37,6 @@ namespace FrameLine
             clips.Sort(ClipUtil.SortByStartFrame);
         }
 
-        public void UpdateTrackInfo()
-        {
-            TrackUtil.UpdateClipTrackIndex(this);
-        }
 
         public void OnAfterDeserialize(FrameLineAsset asset)
         {

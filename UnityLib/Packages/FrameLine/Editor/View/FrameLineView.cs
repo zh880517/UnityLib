@@ -1,7 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
+using UnityEngine;
 namespace FrameLine
 {
     public class FrameLineView : ScriptableObject
@@ -10,13 +9,26 @@ namespace FrameLine
         public List<FrameClipRef> SelectedClips = new List<FrameClipRef>();
         public int CurrentFrame;
         [SerializeField]
-        private Vector2 scrollPos = new Vector2(0.5f, 0.5f);
+        private Vector2 scrollPos;
+
+        //滚动区域看见信息
+        private int visableFrameStart;
+        private int visableFrameEnd;
+        private int visableTrackStart;
+        private int visableTrackEnd;
 
         public bool OnDraw(Vector2 size)
         {
             int showTrackCount = TrackUtil.GetVisableTrackCount(Asset);
             float frameHeight = showTrackCount * (ViewStyles.TrackHeight + ViewStyles.TrackInterval) + ViewStyles.TrackInterval;
             float framWidth = Asset.FrameCount * ViewStyles.FrameWidth + 10;
+
+            //滚动位置
+            float xOffset = scrollPos.x * framWidth;
+            float yOffset = scrollPos.y * frameHeight;
+            visableFrameStart = Mathf.FloorToInt(xOffset / ViewStyles.FrameWidth);
+            visableTrackStart = Mathf.FloorToInt(yOffset / (ViewStyles.FrameWidth + ViewStyles.TrackInterval));
+
             //轨道头部
             Rect trackHeadRect = new Rect(0, 0, ViewStyles.TrackHeadWidth, size.y - ViewStyles.ScrollBarSize);
             bool rePaint = false;
@@ -28,24 +40,21 @@ namespace FrameLine
 
                 }
                 Rect rect = new Rect(0, ViewStyles.FrameBarHeight, trackHeadRect.width, trackHeadRect.height - ViewStyles.FrameBarHeight);
-                using(new GUI.ClipScope(rect))
+                visableTrackEnd = Mathf.CeilToInt((rect.height + yOffset - visableTrackStart * (ViewStyles.TrackHeight + ViewStyles.TrackInterval)) / (ViewStyles.TrackHeight + ViewStyles.TrackInterval));
+                //轨道头部
+                using (new GUI.ClipScope(rect))
                 {
-                    //轨道头部
-                    using (new GUI.ClipScope(rect))
+                    //滚动位置
+                    Rect viewRect = new Rect(0, -yOffset, trackHeadRect.width, frameHeight);
+                    using(new GUILayout.AreaScope(viewRect))
                     {
-                        //滚动位置
-                        float yOffset = -scrollPos.y * rect.height;
-                        Rect viewRect = new Rect(0, yOffset, trackHeadRect.width, frameHeight);
-                        using(new GUILayout.AreaScope(viewRect))
+                        var e = Event.current;
+                        if (viewRect.Contains(e.mousePosition))
                         {
-                            var e = Event.current;
-                            if (viewRect.Contains(e.mousePosition))
-                            {
-                                rePaint |= OnTrackHeadEvent(e);
-                            }
-
-                            DrawTrackHead(size, new Rect(new Vector2(0, -yOffset), rect.size));
+                            rePaint |= OnTrackHeadEvent(e);
                         }
+
+                        DrawTrackHead();
                     }
                 }
             }
@@ -57,15 +66,13 @@ namespace FrameLine
             Vector2 trackAreaInViewSize = new Vector2(frameRect.width, frameRect.height - ViewStyles.FrameBarHeight);
             using(new GUI.ClipScope(frameRect))
             {
+                visableFrameEnd = Mathf.CeilToInt((frameRect.width + xOffset - visableFrameStart * ViewStyles.FrameWidth) / ViewStyles.FrameWidth) + visableFrameStart;
                 //画帧标号背景条
                 GUI.Box(new Rect(0, 0, frameRect.width, ViewStyles.FrameBarHeight), "");
-                //滚动位置
-                float xOffset = -scrollPos.x * framWidth;
-                float yOffset = -scrollPos.y * frameHeight;
                 //帧长度区域|<-所有帧->|，水平滚动区域
-                using(new GUILayout.AreaScope(new Rect(xOffset, 0, framWidth, frameRect.height)))
+                using (new GUILayout.AreaScope(new Rect(-xOffset, 0, framWidth, frameRect.height)))
                 {
-                    DrawFrameLineBackGround(new Rect(new Vector2(-xOffset, 0), frameRect.size));
+                    DrawFrameLineBackGround(new Rect(new Vector2(xOffset, 0), frameRect.size));
                     {
                         var e = Event.current;
                         if (e.mousePosition.y < ViewStyles.FrameBarHeight)
@@ -76,7 +83,7 @@ namespace FrameLine
                     //轨道条区域
                     using (new GUI.ClipScope(new Rect(0, ViewStyles.FrameBarHeight, framWidth, frameHeight)))
                     {
-                        Rect trackViewRect = new Rect(xOffset, yOffset, framWidth, frameHeight);
+                        Rect trackViewRect = new Rect(xOffset, -yOffset, framWidth, frameHeight);
                         using (new GUILayout.AreaScope(trackViewRect))
                         {
                             var e = Event.current;
@@ -84,7 +91,7 @@ namespace FrameLine
                             {
                                 rePaint |= OnFrameClipsEvent(e);
                             }
-                            DrawFrameClips(trackViewRect.size, new Rect(-xOffset, -yOffset, frameRect.width, frameRect.height - ViewStyles.FrameBarHeight));
+                            DrawFrameClips();
                         }
                     }
                 }
@@ -107,7 +114,17 @@ namespace FrameLine
         {
             if (e.button == 0 && (e.type == EventType.MouseDown || e.type == EventType.MouseDrag))
             {
-                CurrentFrame = Mathf.FloorToInt(e.mousePosition.x / ViewStyles.FrameWidth);
+
+                int selectFrame = Mathf.FloorToInt(e.mousePosition.x / ViewStyles.FrameWidth);
+                if (selectFrame >= 0 && selectFrame < Asset.FrameCount)
+                {
+                    CurrentFrame = selectFrame;
+                }
+                return true;
+            }
+            if (e.button == 1 && e.type == EventType.MouseUp)
+            {
+                //创建菜单
                 return true;
             }
             return false;
@@ -118,22 +135,46 @@ namespace FrameLine
             return false;
         }
 
-        private void DrawTrackHead(Vector2 size, Rect showRect)
+        private void DrawTrackHead()
         {
         }
 
-        private void DrawFrameClips(Vector2 size, Rect showRect)
+        private void DrawFrameClips()
         {
+            int trackIndex = 0;
+            foreach (var track in Asset.Tracks)
+            {
+                do
+                {
+                    if (!track.Foldout)
+                    {
+                        if (visableTrackStart > trackIndex || trackIndex > visableTrackEnd)
+                            break;
+                        //TODO:绘制折叠轨道条
+                    }
+                    else
+                    {
+                        foreach (var clipRef in track.Clips)
+                        {
+                            int realTrackIndex = clipRef.Clip.SubTrackIndex + trackIndex;
+                            if (realTrackIndex < visableTrackStart || realTrackIndex > visableTrackEnd)
+                                continue;
+                            
+                        }
+                    }
 
+                } while (false);
+                trackIndex += (track.Foldout ? track.Count : 1);
+            }
         }
 
         private void DrawFrameLineBackGround(Rect showRect)
         {
-            int visableFrameStart = Mathf.FloorToInt(showRect.x / ViewStyles.FrameWidth);
-            int visableFrameEnd = Mathf.Clamp(Mathf.CeilToInt(showRect.xMax / ViewStyles.FrameWidth), visableFrameStart, Asset.FrameCount);
             using(new Handles.DrawingScope(new Color(0.5f, 0.5f, 0.5f, 0.5f)))
             {
-                for (int i = visableFrameStart; i <= visableFrameEnd; ++i)
+                int startIndex = Mathf.Clamp(visableFrameStart, 0, Asset.FrameCount);
+                int endIndex = Mathf.Clamp(visableFrameEnd, 0, Asset.FrameCount);
+                for (int i = startIndex; i <= endIndex; ++i)
                 {
                     float xPos = i * ViewStyles.FrameWidth;
                     Handles.DrawLine(new Vector2(xPos, showRect.yMin), new Vector2(xPos, showRect.yMax));
