@@ -32,7 +32,7 @@ namespace FrameLine
                         {
                             if (type.IsInterface || type.IsAbstract)
                                 continue;
-                            TypeIdentifyAttribute typeIdentify = type.GetCustomAttribute<TypeIdentifyAttribute>();
+                            TypeIdAttribute typeIdentify = type.GetCustomAttribute<TypeIdAttribute>();
                             if (typeIdentify != null && !string.IsNullOrEmpty(typeIdentify.GUID))
                             {
                                 if (_typeGUIDs.TryGetValue(typeIdentify.GUID, out Type exitType))
@@ -62,7 +62,7 @@ namespace FrameLine
             {
                 Type = obj.GetType().FullName
             };
-            TypeIdentifyAttribute typeIdentify = obj.GetType().GetCustomAttribute<TypeIdentifyAttribute>();
+            TypeIdAttribute typeIdentify = obj.GetType().GetCustomAttribute<TypeIdAttribute>();
             if (typeIdentify != null)
             {
                 elem.TypeGUID = typeIdentify.GUID;

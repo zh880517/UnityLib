@@ -12,10 +12,10 @@ namespace FrameLine
         private Vector2 scrollPos;
 
         //滚动区域看见信息
-        private int visableFrameStart;
-        private int visableFrameEnd;
-        private int visableTrackStart;
-        private int visableTrackEnd;
+        public int VisableFrameStart { get; private set; }
+        public int VisableFrameEnd { get; private set; }
+        public int VisableTrackStart { get; private set; }
+        public int VisableTrackEnd { get; private set; }
 
         public bool OnDraw(Vector2 size)
         {
@@ -26,8 +26,8 @@ namespace FrameLine
             //滚动位置
             float xOffset = scrollPos.x * framWidth;
             float yOffset = scrollPos.y * frameHeight;
-            visableFrameStart = Mathf.FloorToInt(xOffset / ViewStyles.FrameWidth);
-            visableTrackStart = Mathf.FloorToInt(yOffset / (ViewStyles.FrameWidth + ViewStyles.TrackInterval));
+            VisableFrameStart = Mathf.FloorToInt(xOffset / ViewStyles.FrameWidth);
+            VisableTrackStart = Mathf.FloorToInt(yOffset / (ViewStyles.FrameWidth + ViewStyles.TrackInterval));
 
             //轨道头部
             Rect trackHeadRect = new Rect(0, 0, ViewStyles.TrackHeadWidth, size.y - ViewStyles.ScrollBarSize);
@@ -37,10 +37,13 @@ namespace FrameLine
                 //轨道头部按钮区域
                 using (new GUILayout.AreaScope(new Rect(0, 0, trackHeadRect.width, ViewStyles.FrameBarHeight), "", EditorStyles.toolbar))
                 {
-
+                    using(new GUILayout.HorizontalScope())
+                    {
+                        DrawToolBar();
+                    }
                 }
                 Rect rect = new Rect(0, ViewStyles.FrameBarHeight, trackHeadRect.width, trackHeadRect.height - ViewStyles.FrameBarHeight);
-                visableTrackEnd = Mathf.CeilToInt((rect.height + yOffset - visableTrackStart * (ViewStyles.TrackHeight + ViewStyles.TrackInterval)) / (ViewStyles.TrackHeight + ViewStyles.TrackInterval));
+                VisableTrackEnd = Mathf.CeilToInt((rect.height + yOffset - VisableTrackStart * (ViewStyles.TrackHeight + ViewStyles.TrackInterval)) / (ViewStyles.TrackHeight + ViewStyles.TrackInterval));
                 //轨道头部
                 using (new GUI.ClipScope(rect))
                 {
@@ -66,7 +69,7 @@ namespace FrameLine
             Vector2 trackAreaInViewSize = new Vector2(frameRect.width, frameRect.height - ViewStyles.FrameBarHeight);
             using(new GUI.ClipScope(frameRect))
             {
-                visableFrameEnd = Mathf.CeilToInt((frameRect.width + xOffset - visableFrameStart * ViewStyles.FrameWidth) / ViewStyles.FrameWidth) + visableFrameStart;
+                VisableFrameEnd = Mathf.CeilToInt((frameRect.width + xOffset - VisableFrameStart * ViewStyles.FrameWidth) / ViewStyles.FrameWidth) + VisableFrameStart;
                 //画帧标号背景条
                 GUI.Box(new Rect(0, 0, frameRect.width, ViewStyles.FrameBarHeight), "");
                 //帧长度区域|<-所有帧->|，水平滚动区域
@@ -137,6 +140,24 @@ namespace FrameLine
 
         private void DrawTrackHead()
         {
+            int trackIndex = 0;
+            foreach (var track in Asset.Tracks)
+            {
+                if (track.Count == 0)
+                    continue;
+                if (trackIndex > VisableTrackEnd)
+                    return;
+                int trackVisableCount = (track.Foldout ? track.Count : 1);
+                do 
+                {
+                    if (trackIndex + trackVisableCount <= VisableTrackStart)
+                        break;
+                    int startIndex = Mathf.Clamp(trackIndex, VisableFrameStart, VisableTrackEnd) - trackIndex;
+                    int endIndex = Mathf.Clamp(trackIndex + trackVisableCount, VisableFrameStart, VisableTrackEnd) - trackIndex;
+                    FrameLineRender.DrawTrackHead(this, track, trackIndex, startIndex, endIndex);
+                } while (false);
+                trackIndex += trackVisableCount;
+            }
         }
 
         private void DrawFrameClips()
@@ -144,27 +165,20 @@ namespace FrameLine
             int trackIndex = 0;
             foreach (var track in Asset.Tracks)
             {
+                if (track.Count == 0)
+                    continue;
+                if (trackIndex > VisableTrackEnd)
+                    return;
+                int trackVisableCount = (track.Foldout ? track.Count : 1);
                 do
                 {
-                    if (!track.Foldout)
-                    {
-                        if (visableTrackStart > trackIndex || trackIndex > visableTrackEnd)
-                            break;
-                        //TODO:绘制折叠轨道条
-                    }
-                    else
-                    {
-                        foreach (var clipRef in track.Clips)
-                        {
-                            int realTrackIndex = clipRef.Clip.SubTrackIndex + trackIndex;
-                            if (realTrackIndex < visableTrackStart || realTrackIndex > visableTrackEnd)
-                                continue;
-                            
-                        }
-                    }
-
+                    if (trackIndex + trackVisableCount <= VisableTrackStart)
+                        break;
+                    int startIndex = Mathf.Clamp(trackIndex, VisableFrameStart, VisableTrackEnd) - trackIndex;
+                    int endIndex = Mathf.Clamp(trackIndex + trackVisableCount, VisableFrameStart, VisableTrackEnd) - trackIndex;
+                    FrameLineRender.DrawTrack(this, track, trackIndex, startIndex, endIndex);
                 } while (false);
-                trackIndex += (track.Foldout ? track.Count : 1);
+                trackIndex += trackVisableCount;
             }
         }
 
@@ -172,8 +186,8 @@ namespace FrameLine
         {
             using(new Handles.DrawingScope(new Color(0.5f, 0.5f, 0.5f, 0.5f)))
             {
-                int startIndex = Mathf.Clamp(visableFrameStart, 0, Asset.FrameCount);
-                int endIndex = Mathf.Clamp(visableFrameEnd, 0, Asset.FrameCount);
+                int startIndex = Mathf.Clamp(VisableFrameStart, 0, Asset.FrameCount);
+                int endIndex = Mathf.Clamp(VisableFrameEnd, 0, Asset.FrameCount);
                 for (int i = startIndex; i <= endIndex; ++i)
                 {
                     float xPos = i * ViewStyles.FrameWidth;
@@ -181,11 +195,16 @@ namespace FrameLine
                     GUI.Label(new Rect(xPos, 0, ViewStyles.FrameWidth, ViewStyles.FrameBarHeight), i.ToString(), ViewStyles.FrameNumStyle);
                 }
             }
-            if (CurrentFrame >= visableFrameStart && CurrentFrame <= visableFrameEnd)
+            if (CurrentFrame >= VisableFrameStart && CurrentFrame <= VisableFrameEnd)
             {
                 Rect rect = new Rect(CurrentFrame * ViewStyles.FrameWidth, 0, ViewStyles.FrameWidth, showRect.height);
-                GUI.DrawTexture(rect, Texture2D.whiteTexture, ScaleMode.StretchToFill, true, 0, ViewStyles.SelectFrameBackGroundColor, Vector4.zero, new Vector4(5, 5, 0, 0));
+                GUIRenderHelper.DrawArea(rect, ViewStyles.SelectFrameBackGroundColor, 5, BorderType.Top);
             }
         }
+
+        protected virtual void DrawToolBar()
+        {
+        }
+
     }
 }
