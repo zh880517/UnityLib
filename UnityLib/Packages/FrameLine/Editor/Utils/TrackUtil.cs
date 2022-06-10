@@ -30,6 +30,14 @@ namespace FrameLine
             track.SubTrackCount = newIndex;
         }
 
+        public static void UpdateAllTrack(this FrameLineAsset asset)
+        {
+            foreach (var track in asset.Tracks)
+            {
+                UpdateClipTrackIndex(track);
+            }
+        }
+
         public static int GetVisableTrackCount(this FrameLineAsset asset)
         {
 

@@ -12,8 +12,11 @@ namespace FrameLine
         public const float ToolBarHeight = 20;
 
         public const float TrackHeadWidth = 200;
+        public const float TrackFoldSize = 10;
 
         public static readonly Color SelectFrameBackGroundColor = new Color32(67, 205, 128, 128);
+        public static readonly Color TrackBGColor = new Color32(67, 205, 128, 128);
+        public static readonly Color SelectTackBGColor = new Color32(67, 205, 128, 128);
         public static readonly GUIStyle FrameNumStyle = new GUIStyle(EditorStyles.label) { alignment = TextAnchor.MiddleCenter };
     }
 

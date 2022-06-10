@@ -31,9 +31,26 @@ public class ActionEditorWinow : EditorWindow
     {
         if (view == null)
             return;
-        if (view.OnDraw(position.size))
+        using(new GUILayout.AreaScope(new Rect(0, 0, position.size.x, 20)))
         {
-            Repaint();
+            using(new GUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("测试"))
+                {
+                    asset.AddClip(0, new TestAction());
+                    asset.UpdateAllTrack();
+                    EditorUtility.SetDirty(asset);
+                }
+                GUILayout.FlexibleSpace();
+            }
+        }
+        Rect rectView = new Rect(0, 20, position.size.x, position.size.x - 20);
+        using (new GUILayout.AreaScope(rectView))
+        {
+            if (view.OnDraw(rectView.size))
+            {
+                Repaint();
+            }
         }
     }
 }
