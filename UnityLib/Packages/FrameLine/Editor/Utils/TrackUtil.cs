@@ -16,7 +16,7 @@ namespace FrameLine
                 for (int j=0; j<i; ++j)
                 {
                     var preClip = track.Clips[j].Clip;
-                    if (preClip.Length > 0 && preClip.StartFrame + preClip.Length <= clip.StartFrame)
+                    if (preClip.Length > 0 && (preClip.StartFrame + preClip.Length) <= clip.StartFrame)
                     {
                         clip.SubTrackIndex = preClip.SubTrackIndex;
                         break;

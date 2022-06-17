@@ -16,20 +16,20 @@ namespace FrameLine
         public IReadOnlyList<FrameClip> Clips => clips;
         public IReadOnlyList<FrameLineTrack> Tracks => tracks;
 
-        public FrameClip AddClip<T>(int frame, T data) where T : IFrameLineClipData
+        public FrameClip AddClip(int frame, IFrameLineClipData data)
         {
             FrameClip clip = new FrameClip
             {
                 ID = ++keyIndex,
                 StartFrame = frame,
-                Name = GetTypeShowName<T>()
+                Name = GetTypeShowName(data.GetType())
             };
             clip.SetData(data);
             clips.Add(clip);
             var track = GetTrack(clip.TypeGUID);
             if (track.Name == null)
             {
-                track.Name = GetTypeShowName<T>();
+                track.Name = GetTypeShowName(data.GetType());
             }
             clip.TrackID = track.ID;
             track.Add(clip);
@@ -65,6 +65,11 @@ namespace FrameLine
             }
         }
 
+        public FrameLineTrack FindTrack(ulong trackID)
+        {
+            return tracks.Find(it => it.ID == trackID);
+        }
+
         protected FrameLineTrack GetTrack(string typeGUID)
         {
             var track = tracks.Find(it => it.TypeGUID == typeGUID);
@@ -80,9 +85,9 @@ namespace FrameLine
             return track;
         }
 
-        public static string GetTypeShowName<T>()
+        public static string GetTypeShowName(System.Type type)
         {
-            return typeof(T).Name;
+            return type.Name;
         }
 
         public FrameClip Find(ulong id)

@@ -14,10 +14,12 @@ public class ActionEditorWinow : EditorWindow
         var window = GetWindow<ActionEditorWinow>();
         if (window.asset != action || window.view == null)
         {
-            
+            action.OnAfterDeserialize();
+            TrackUtil.UpdateAllTrack(action);
             window.asset = action;
             window.view = CreateInstance<FrameLineView>();
-            window.view.hideFlags = HideFlags.HideAndDontSave;//防止冲去虚拟机的时候丢失
+            window.view.hideFlags = HideFlags.HideAndDontSave;//防止重启虚拟机的时候丢失
+            window.view.Window = window;
             window.view.Asset = action;
         }
     }
@@ -31,7 +33,8 @@ public class ActionEditorWinow : EditorWindow
     {
         if (view == null)
             return;
-        using(new GUILayout.AreaScope(new Rect(0, 0, position.size.x, 20)))
+        wantsMouseMove = true;
+        using (new GUILayout.AreaScope(new Rect(0, 0, position.size.x, 20)))
         {
             using(new GUILayout.HorizontalScope())
             {
@@ -44,7 +47,7 @@ public class ActionEditorWinow : EditorWindow
                 GUILayout.FlexibleSpace();
             }
         }
-        Rect rectView = new Rect(0, 20, position.size.x, position.size.x - 20);
+        Rect rectView = new Rect(0, 20, position.size.x, position.size.y - 20);
         using (new GUILayout.AreaScope(rectView))
         {
             if (view.OnDraw(rectView.size))
