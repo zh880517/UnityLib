@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace FrameLine
 {
@@ -19,11 +20,18 @@ namespace FrameLine
                 {
                     CurrentFrame = selectFrame;
                 }
+                e.Use();
                 return true;
             }
             if (e.button == 1 && e.type == EventType.MouseUp)
             {
-                //创建菜单
+                GenericMenu menu = new GenericMenu();
+                OnFrameBarMenue(menu);
+                if (menu.GetItemCount() > 0)
+                {
+                    menu.ShowAsContext();
+                }
+                e.Use();
                 return true;
             }
             return false;
@@ -31,10 +39,96 @@ namespace FrameLine
 
         private bool OnFrameClipsEvent(Event e)
         {
-            if (dragOperate != null)
+            if (dragOperate != null && e.button == 0)
             {
+                //普通的点击也会触发DragOperate,所以这里不能直接返回
+                if (e.type == EventType.MouseDrag)
+                {
+                    dragOperate.Drag(e.mousePosition);
+                    return true;
+                }
+                else if (e.type == EventType.MouseUp)
+                {
+                    if (dragOperate.HasDraged)
+                    {
+                        dragOperate.OnDragEnd();
+                    }
+                    else
+                    {
+                        bool isMultSelect = (e.modifiers & (EventModifiers.Control | EventModifiers.Command)) != 0;
+                        if (!isMultSelect)
+                        {
+                            var hitTest = HitTest(e.mousePosition);
+                            if (hitTest.HitPart == FrameClipHitPartType.Normal || hitTest.HitPart == FrameClipHitPartType.None)
+                            {
+                                SelectedClips.Clear();
+                                if (hitTest.Clip)
+                                {
+                                    SelectedClips.Add(hitTest.Clip);
+                                }
+                            }
+                        }
+                    }
+                    dragOperate = null;
+                    return true;
+                }
             }
             if (e.button == 0)
+            {
+                bool isMultSelect = (e.modifiers & (EventModifiers.Control | EventModifiers.Command)) != 0;
+                if (e.type == EventType.MouseDown)
+                {
+                    var hitTest = HitTest(e.mousePosition);
+                    switch (hitTest.HitPart)
+                    {
+                        case FrameClipHitPartType.None:
+                            if (!isMultSelect)
+                                SelectedClips.Clear();
+                            return true;
+                        case FrameClipHitPartType.Normal:
+                            if (isMultSelect)
+                            {
+                                int selectedIdx = SelectedClips.IndexOf(hitTest.Clip);
+                                if (selectedIdx >= 0)
+                                {
+                                    SelectedClips.RemoveAt(selectedIdx);
+                                }
+                                else
+                                {
+                                    SelectedClips.Add(hitTest.Clip);
+                                }
+                            }
+                            else
+                            {
+                                if (!SelectedClips.Contains(hitTest.Clip))
+                                {
+                                    SelectedClips.Clear();
+                                    SelectedClips.Add(hitTest.Clip);
+                                }
+                            }
+                            dragOperate = new ClipsDragMoveOperate(this, hitTest.Frame);
+                            return true;
+                        case FrameClipHitPartType.LeftCtrl:
+                            dragOperate = new ClipDragStartOperate(this, hitTest.Clip);
+                            return true;
+                        case FrameClipHitPartType.RightCtrl:
+                            dragOperate = new ClipDragEndOperate(this, hitTest.Clip);
+                            return true;
+                        default:
+                            break;
+                    }
+                }
+            }
+            if (e.button == 1)
+            {
+                if (e.type == EventType.MouseDown)
+                {
+                }
+                else if (e.type == EventType.MouseUp)
+                {
+                }
+            }
+            if (e.type == EventType.KeyDown)
             {
 
             }

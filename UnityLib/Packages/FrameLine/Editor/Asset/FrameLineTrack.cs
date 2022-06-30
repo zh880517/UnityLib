@@ -10,7 +10,7 @@ namespace FrameLine
         public string Name;
         public string Comment;
         public string TypeGUID;
-        public bool Foldout = true;//
+        public bool Foldout = true;//未被折叠
         public int SubTrackCount;//显示素有Clip需要的轨道数量
         [SerializeField]
         private List<FrameClipRef> clips = new List<FrameClipRef>();
@@ -44,6 +44,7 @@ namespace FrameLine
             {
                 var clipRef = clips[i];
                 clipRef.Clip = asset.Find(clipRef.ID);
+                clips[i] = clipRef;
             }
         }
     }

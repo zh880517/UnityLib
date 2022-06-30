@@ -14,8 +14,6 @@ public class ActionEditorWinow : EditorWindow
         var window = GetWindow<ActionEditorWinow>();
         if (window.asset != action || window.view == null)
         {
-            action.OnAfterDeserialize();
-            TrackUtil.UpdateAllTrack(action);
             window.asset = action;
             window.view = CreateInstance<FrameLineView>();
             window.view.hideFlags = HideFlags.HideAndDontSave;//防止重启虚拟机的时候丢失
@@ -40,8 +38,10 @@ public class ActionEditorWinow : EditorWindow
             {
                 if (GUILayout.Button("测试"))
                 {
-                    asset.AddClip(0, new TestAction());
+                    var clip = asset.AddClip(0, new TestAction());
                     asset.UpdateAllTrack();
+                    view.SelectedClips.Clear();
+                    view.SelectedClips.Add(clip);
                     EditorUtility.SetDirty(asset);
                 }
                 GUILayout.FlexibleSpace();

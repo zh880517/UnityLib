@@ -16,7 +16,6 @@ namespace FrameLine
                 view.Asset.RemoveClip(clipRef);
             }
             view.SelectedClips.Clear();
-            TrackUtil.UpdateAllTrack(view.Asset);
         }
 
         public static void MoveSelectedClip(this FrameLineView view, int offsetFrame)
@@ -27,33 +26,31 @@ namespace FrameLine
                 startFrame = Mathf.Clamp(startFrame, 0, view.FrameCount - 1);
                 clipRef.Clip.StartFrame = startFrame;
             }
-            TrackUtil.UpdateAllTrack(view.Asset);
         }
 
         public static void MoveClipStart(this FrameLineView view, FrameClipRef clipRef, int frame)
         {
             if (frame < 0)
                 return;
+            int endFrame = ClipUtil.GetClipEndFrame(view.Asset, clipRef);
+            if (frame > endFrame)
+                return;
             int lastStart = clipRef.Clip.StartFrame;
             clipRef.Clip.StartFrame = frame;
             if (clipRef.Clip.Length > 0)
             {
-                int length = clipRef.Clip.Length + (frame - lastStart);
+                int length = clipRef.Clip.Length - (frame - lastStart);
                 clipRef.Clip.Length = Mathf.Max(length, 1);
             }
-            var track = view.Asset.FindTrack(clipRef.Clip.TrackID);
-            TrackUtil.UpdateClipTrackIndex(track);
         }
 
         public static void MoveClipEnd(this FrameLineView view, FrameClipRef clipRef, int frame)
         {
-            if (frame >= view.FrameCount)
+            if (frame >= view.FrameCount || frame < clipRef.Clip.StartFrame)
                 return;
             if (clipRef.Clip.Length <= 0 && frame == (view.FrameCount - 1))
                 return;
-            clipRef.Clip.Length = frame - clipRef.Clip.StartFrame + 1;
-            var track = view.Asset.FindTrack(clipRef.Clip.TrackID);
-            TrackUtil.UpdateClipTrackIndex(track);
+            clipRef.Clip.Length = Mathf.Max(frame - clipRef.Clip.StartFrame + 1, 1);
         }
 
         public static void PasteClips(this FrameLineView view)

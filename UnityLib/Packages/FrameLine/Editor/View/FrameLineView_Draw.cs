@@ -83,7 +83,11 @@ namespace FrameLine
                             bool mouseInView = trackViewRect.Contains(mousePos);
                             if (mouseInView || dragOperate != null)
                             {
-                                rePaint |= OnFrameClipsEvent(e);
+                                if (OnFrameClipsEvent(e))
+                                {
+                                    e.Use();
+                                    rePaint = true;
+                                }
                             }
                             DrawFrameClips(mouseInView, mousePos);
                         }

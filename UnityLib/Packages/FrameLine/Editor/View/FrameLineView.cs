@@ -5,6 +5,7 @@ namespace FrameLine
 {
     public enum FrameClipHitPartType
     {
+        None,
         Normal,
         LeftCtrl,
         RightCtrl,
@@ -56,28 +57,27 @@ namespace FrameLine
                     preTrackCount += subTrakCount;
                     if (hitSubIndex >= subTrakCount)
                         continue;
-                    foreach (var clipRef in track.Clips)
-                    {
-                        var clip = clipRef.Clip;
-                        if (clip.StartFrame >= hitFrame)
-                        {
-                            int endFrame = clip.StartFrame + clip.Length - 1;
-                            if (clip.Length <= 0 || endFrame >= FrameCount)
-                                endFrame = FrameCount - 1;
 
-                            if (endFrame >= hitFrame)
+                    var clip = track.Clips[hitSubIndex].Clip;
+                    if (clip.StartFrame <= hitFrame)
+                    {
+                        int endFrame = ClipUtil.GetClipEndFrame(Asset, clip);
+                        if (endFrame >= hitFrame)
+                        {
+                            float frameOffset = point.x % ViewStyles.FrameWidth;
+                            if (frameOffset <= ViewStyles.ClipCtrlWidth && clip.StartFrame == hitFrame)
                             {
-                                float frameOffset = point.x % ViewStyles.FrameWidth;
-                                if (frameOffset <= ViewStyles.ClipCtrlWidth && clip.StartFrame == hitFrame)
-                                {
-                                    result.HitPart = FrameClipHitPartType.LeftCtrl;
-                                }
-                                else if (endFrame == hitFrame && (frameOffset >= (ViewStyles.FrameWidth - ViewStyles.ClipCtrlWidth)))
-                                {
-                                    result.HitPart = FrameClipHitPartType.RightCtrl;
-                                }
-                                break;
+                                result.HitPart = FrameClipHitPartType.LeftCtrl;
                             }
+                            else if (endFrame == hitFrame && (frameOffset >= (ViewStyles.FrameWidth - ViewStyles.ClipCtrlWidth)))
+                            {
+                                result.HitPart = FrameClipHitPartType.RightCtrl;
+                            }
+                            else
+                            {
+                                result.HitPart = FrameClipHitPartType.Normal;
+                            }
+                            result.Clip = clip;
                         }
                     }
                     if (result.Clip)
@@ -97,6 +97,11 @@ namespace FrameLine
             Undo.RegisterCompleteObjectUndo(this, name);
             Undo.RegisterCompleteObjectUndo(Window, name);
             EditorUtility.SetDirty(Asset);
+        }
+
+        protected virtual void OnFrameBarMenue(GenericMenu menu)
+        {
+
         }
 
         public virtual void OnBeforeSerialize()
