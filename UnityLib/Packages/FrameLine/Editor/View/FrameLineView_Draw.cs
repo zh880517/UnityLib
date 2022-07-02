@@ -140,7 +140,7 @@ namespace FrameLine
                     if (trackIndex + trackVisableCount <= VisableTrackStart)
                         break;
                     int startIndex = Mathf.Clamp(trackIndex, VisableTrackStart, VisableTrackEnd) - trackIndex;
-                    int endIndex = Mathf.Clamp(trackIndex + trackVisableCount, VisableFrameStart, VisableTrackEnd) - trackIndex;
+                    int endIndex = Mathf.Clamp(trackIndex + trackVisableCount - 1, VisableFrameStart, VisableTrackEnd) - trackIndex;
                     FrameLineRender.DrawTrack(this, track, trackIndex, startIndex, endIndex, mouseInView, mousePos);
                 } while (false);
                 trackIndex += trackVisableCount;

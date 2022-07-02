@@ -54,6 +54,14 @@ public class ActionEditorWinow : EditorWindow
             {
                 Repaint();
             }
+            else
+            {
+                var type = Event.current.type;
+                if (type == EventType.KeyDown || type == EventType.KeyUp)
+                {
+                    Repaint();
+                }
+            }
         }
     }
 }
