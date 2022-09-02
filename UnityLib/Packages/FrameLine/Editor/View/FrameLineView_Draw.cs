@@ -81,7 +81,7 @@ namespace FrameLine
                             var e = Event.current;
                             Vector2 mousePos = e.mousePosition;
                             bool mouseInView = trackViewRect.Contains(mousePos);
-                            if (mouseInView || dragOperate != null)
+                            if (mouseInView || DragOperate != null)
                             {
                                 if (OnFrameClipsEvent(e))
                                 {

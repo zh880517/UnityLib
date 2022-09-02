@@ -15,5 +15,13 @@ namespace FrameLine
         {
             view.MoveClipStart(clipRef.Clip, frame);
         }
+        public override FrameClipHitPartType GetDragePart(FrameClipRef clipRef)
+        {
+            if (this.clipRef == clipRef)
+            {
+                return FrameClipHitPartType.LeftCtrl;
+            }
+            return FrameClipHitPartType.None;
+        }
     }
 }

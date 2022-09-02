@@ -5,7 +5,7 @@ namespace FrameLine
 {
     public partial class FrameLineView
     {
-        protected DragOperateBase dragOperate;
+        public DragOperateBase DragOperate;
         private bool OnTrackHeadEvent(Event e)
         {
             return false;
@@ -39,19 +39,19 @@ namespace FrameLine
 
         private bool OnFrameClipsEvent(Event e)
         {
-            if (dragOperate != null && e.button == 0)
+            if (DragOperate != null && e.button == 0)
             {
                 //普通的点击也会触发DragOperate,所以这里不能直接返回
                 if (e.type == EventType.MouseDrag)
                 {
-                    dragOperate.Drag(e.mousePosition);
+                    DragOperate.Drag(e.mousePosition);
                     return true;
                 }
                 else if (e.type == EventType.MouseUp)
                 {
-                    if (dragOperate.HasDraged)
+                    if (DragOperate.HasDraged)
                     {
-                        dragOperate.OnDragEnd();
+                        DragOperate.OnDragEnd();
                     }
                     else
                     {
@@ -69,7 +69,7 @@ namespace FrameLine
                             }
                         }
                     }
-                    dragOperate = null;
+                    DragOperate = null;
                     return true;
                 }
             }
@@ -106,13 +106,13 @@ namespace FrameLine
                                     SelectedClips.Add(hitTest.Clip);
                                 }
                             }
-                            dragOperate = new ClipsDragMoveOperate(this, hitTest.Frame);
+                            DragOperate = new ClipsDragMoveOperate(this, hitTest.Frame);
                             return true;
                         case FrameClipHitPartType.LeftCtrl:
-                            dragOperate = new ClipDragStartOperate(this, hitTest.Clip);
+                            DragOperate = new ClipDragStartOperate(this, hitTest.Clip);
                             return true;
                         case FrameClipHitPartType.RightCtrl:
-                            dragOperate = new ClipDragEndOperate(this, hitTest.Clip);
+                            DragOperate = new ClipDragEndOperate(this, hitTest.Clip);
                             return true;
                         default:
                             break;

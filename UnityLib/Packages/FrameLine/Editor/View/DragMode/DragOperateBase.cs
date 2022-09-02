@@ -35,5 +35,10 @@ namespace FrameLine
                 TrackUtil.UpdateAllTrack(view.Asset);
             }
         }
+
+        public virtual FrameClipHitPartType GetDragePart(FrameClipRef clipRef)
+        {
+            return FrameClipHitPartType.None;
+        }
     }
 }

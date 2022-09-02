@@ -69,7 +69,7 @@ namespace FrameLine
                             {
                                 result.HitPart = FrameClipHitPartType.LeftCtrl;
                             }
-                            else if (endFrame == hitFrame && (frameOffset >= (ViewStyles.FrameWidth - ViewStyles.ClipCtrlWidth)))
+                            else if (clip.Length > 0 && endFrame == hitFrame && (frameOffset >= (ViewStyles.FrameWidth - ViewStyles.ClipCtrlWidth)))
                             {
                                 result.HitPart = FrameClipHitPartType.RightCtrl;
                             }

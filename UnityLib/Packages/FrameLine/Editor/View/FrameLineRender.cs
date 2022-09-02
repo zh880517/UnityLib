@@ -59,7 +59,12 @@ namespace FrameLine
                     frameCount = view.FrameCount - clip.StartFrame;
                 //左侧控制区域
                 Rect clipLeftCtrlRect = new Rect(offsetX, offsetY, ViewStyles.ClipCtrlWidth, ViewStyles.ClipHeight);
-                Color color = mouseInView && clipLeftCtrlRect.Contains(mousePos) ? ViewStyles.ClipSelectCtrlColor : ViewStyles.ClipCtrlColor;
+                FrameClipHitPartType dragPart = FrameClipHitPartType.None;
+                if (view.DragOperate != null)
+                {
+                    dragPart = view.DragOperate.GetDragePart(clip);
+                }
+                Color color = dragPart == FrameClipHitPartType.LeftCtrl ? ViewStyles.ClipSelectCtrlColor : ViewStyles.ClipCtrlColor;
                 GUIRenderHelper.DrawRect(clipLeftCtrlRect, color, ViewStyles.ClipCtrlWidth, BorderType.Left);
                 //右侧
                 int clipEndFrame = clip.StartFrame + frameCount - 1;
@@ -67,8 +72,15 @@ namespace FrameLine
                     offsetY,
                     ViewStyles.ClipCtrlWidth,
                     ViewStyles.ClipHeight);
-                color = mouseInView && clipRightCtrlRect.Contains(mousePos) ? ViewStyles.ClipSelectCtrlColor : ViewStyles.ClipCtrlColor;
-                GUIRenderHelper.DrawRect(clipRightCtrlRect, color, ViewStyles.ClipCtrlWidth, BorderType.Right);
+                if (clip.Length > 0)
+                {
+                    color = dragPart == FrameClipHitPartType.RightCtrl ? ViewStyles.ClipSelectCtrlColor : ViewStyles.ClipCtrlColor;
+                    GUIRenderHelper.DrawRect(clipRightCtrlRect, color, ViewStyles.ClipCtrlWidth, BorderType.Right);
+                }
+                else
+                {
+                    GUIRenderHelper.DrawRect(clipRightCtrlRect, ViewStyles.ClipColor);
+                }
                 //中间区域
                 Rect clipRect = new Rect(clipLeftCtrlRect.xMax, offsetY, clipRightCtrlRect.xMin - clipLeftCtrlRect.xMax, ViewStyles.ClipHeight);
                 GUIRenderHelper.DrawRect(clipRect, ViewStyles.ClipColor);
