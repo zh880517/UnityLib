@@ -39,12 +39,12 @@ public static class SearchableGUI
         var item = list.FirstOrDefault(it => it.Key == selectKey);
         string showText = string.IsNullOrEmpty(item.Value) ? selectKey.ToString() : item.Value;
         int controllId = GetControlID(position);
-        if (GUI.Button(position, selectKey.ToString(), EditorStyles.popup))
+        if (GUI.Button(position, showText, EditorStyles.popup))
         {
             SearchablePopup<int>.ControllId = controllId;
             SearchablePopup<int>.Popup(position, selectKey, list, new SearchablePopup<int>());
         }
-        return SearchablePopup<int>.ControllId == controllId ? SearchablePopup<int>.SelectKey : selectKey;
+        return SearchablePopup<int>.GetSelectKey(selectKey, controllId);
     }
 
 
@@ -53,12 +53,12 @@ public static class SearchableGUI
         var item = list.FirstOrDefault(it => it.Key == selectKey);
         string showText = string.IsNullOrEmpty(item.Value) ? selectKey.ToString() : item.Value;
         int controllId = GetControlID(position);
-        if (GUI.Button(position, selectKey.ToString(), EditorStyles.popup))
+        if (GUI.Button(position, showText, EditorStyles.popup))
         {
             SearchablePopup<string>.ControllId = controllId;
             SearchablePopup<string>.Popup(position, selectKey, list, new SearchablePopup<string>());
         }
-        return SearchablePopup<string>.ControllId == controllId ? SearchablePopup<string>.SelectKey : selectKey;
+        return SearchablePopup<string>.GetSelectKey(selectKey, controllId);
     }
 
 
@@ -71,7 +71,16 @@ public static class SearchableGUI
             
             SearchablePopup<int>.Popup(position, System.Convert.ToInt32(selectKey), EnumValueName<T>.KeyValues, new SearchablePopup<int>());
         }
-        return SearchablePopup<int>.ControllId == controllId ? (T)System.Enum.ToObject(typeof(T), SearchablePopup<int>.SelectKey) : selectKey; ;
+        if (SearchablePopup<int>.ControllId == controllId && SearchablePopup<int>.IsClosed)
+        {
+            SearchablePopup<int>.ControllId = 0;
+            if (SearchablePopup<int>.SelectKey != System.Convert.ToInt32(selectKey))
+            {
+                GUI.changed = true;
+            }
+            return (T)System.Enum.ToObject(typeof(T), SearchablePopup<int>.SelectKey);
+        }
+        return selectKey;
     }
 
 }

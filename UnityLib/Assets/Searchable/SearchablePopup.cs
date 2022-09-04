@@ -14,6 +14,7 @@ public class SearchablePopup<TKey> : PopupWindowContent
 
     public static TKey SelectKey;
     public static int ControllId;
+    public static bool IsClosed = true;
 
     private Vector2 scrollPos;
     private int hoverIndex;
@@ -26,7 +27,23 @@ public class SearchablePopup<TKey> : PopupWindowContent
         instance.searchContent = "";
         SelectKey = selectKey;
         instance.Filter("");
+        IsClosed = false;
         PopupWindow.Show(activatorRect, instance);
+    }
+
+    public static TKey GetSelectKey(TKey key, int controllId)
+    {
+        if (controllId == ControllId && IsClosed)
+        {
+            if (!key.Equals(SelectKey))
+            {
+                GUI.changed = true;
+                key = SelectKey;
+            }
+            ControllId = 0;
+            SelectKey = default;
+        }
+        return key;
     }
 
     public void Filter(string search)
@@ -71,13 +88,13 @@ public class SearchablePopup<TKey> : PopupWindowContent
     public override Vector2 GetWindowSize()
     {
         return new Vector2(base.GetWindowSize().x,
-            Mathf.Min(600, filterList.Count * ROW_HEIGHT +
+            Mathf.Min(600, filterList.Count * ROW_HEIGHT + 5 +
             EditorStyles.toolbar.fixedHeight));
     }
     public override void OnGUI(Rect rect)
     {
         Rect searchRect = new Rect(0, 0, rect.width, EditorStyles.toolbar.fixedHeight);
-        Rect scrollRect = Rect.MinMaxRect(0, searchRect.yMax, rect.xMax, rect.yMax);
+        Rect scrollRect = Rect.MinMaxRect(0, searchRect.yMax + 5, rect.xMax, rect.yMax);
         HandleKeyboard();
         DrawSearch(searchRect);
         DrawSelectionArea(scrollRect);
@@ -106,8 +123,7 @@ public class SearchablePopup<TKey> : PopupWindowContent
             {
                 if (hoverIndex >= 0 && hoverIndex < filterList.Count)
                 {
-                    SelectKey = filterList[hoverIndex].Key;
-                    EditorWindow.focusedWindow.Close();
+                    DoSelect(filterList[hoverIndex].Key);
                 }
             }
             if (Event.current.keyCode == KeyCode.Escape)
@@ -162,7 +178,7 @@ public class SearchablePopup<TKey> : PopupWindowContent
         Rect contentRect = new Rect(0, 0,
                 scrollRect.width - GUI.skin.verticalScrollbar.fixedWidth,
                 filterList.Count * ROW_HEIGHT);
-        using(var scroll = new GUI.ScrollViewScope(scrollRect, scrollPos, scrollRect))
+        using(var scroll = new GUI.ScrollViewScope(scrollRect, scrollPos, contentRect))
         {
             scrollPos = scroll.scrollPosition;
             Rect rowRect = new Rect(0, 0, scrollRect.width, ROW_HEIGHT);
@@ -185,8 +201,7 @@ public class SearchablePopup<TKey> : PopupWindowContent
                         hoverIndex = i;
                     if (Event.current.type == EventType.MouseDown)
                     {
-                        SelectKey = filterList[i].Key;
-                        EditorWindow.focusedWindow.Close();
+                        DoSelect(filterList[i].Key);
                     }
                 }
                 var item = filterList[i];
@@ -194,6 +209,13 @@ public class SearchablePopup<TKey> : PopupWindowContent
                 rowRect.y = rowRect.yMax;
             }
         }
+    }
+
+    private void DoSelect(TKey key)
+    {
+        SelectKey = key;
+        IsClosed = true;
+        EditorWindow.focusedWindow.Close();
     }
 
     private void DrawRow(Rect rowRect, string content, bool isSelect, bool isHover)
