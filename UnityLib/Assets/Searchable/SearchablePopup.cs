@@ -168,6 +168,7 @@ public class SearchablePopup<TKey> : PopupWindowContent
             GUI.Box(searchRect, GUIContent.none, DisabledCancelButton);
         else if (GUI.Button(searchRect, "x", CancelButton))
         {
+            searchContent = "";
             Filter(searchContent);
             scrollPos = Vector2.zero;
         }
