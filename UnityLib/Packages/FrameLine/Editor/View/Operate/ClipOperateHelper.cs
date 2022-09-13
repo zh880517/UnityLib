@@ -1,38 +1,38 @@
-﻿using UnityEngine;
+using UnityEngine;
 namespace FrameLine
 {
     public static class ClipOperateHelper
     {
-        public static void AddClip(this FrameLineView view, System.Type type)
+        public static void AddClip(this FrameLineGUI gui, System.Type type)
         {
 
         }
 
-        public static void RemoveSelectedClip(this FrameLineView view)
+        public static void RemoveSelectedClip(this FrameLineGUI gui)
         {
-            view.RegistUndo("remove clips");
-            foreach (var clipRef in view.SelectedClips)
+            gui.RegistUndo("remove clips");
+            foreach (var clipRef in gui.SelectedClips)
             {
-                view.Asset.RemoveClip(clipRef);
+                gui.Asset.RemoveClip(clipRef);
             }
-            view.SelectedClips.Clear();
+            gui.SelectedClips.Clear();
         }
 
-        public static void MoveSelectedClip(this FrameLineView view, int offsetFrame)
+        public static void MoveSelectedClip(this FrameLineGUI gui, int offsetFrame)
         {
-            foreach (var clipRef in view.SelectedClips)
+            foreach (var clipRef in gui.SelectedClips)
             {
                 int startFrame = clipRef.Clip.StartFrame - offsetFrame;
-                startFrame = Mathf.Clamp(startFrame, 0, view.FrameCount - 1);
+                startFrame = Mathf.Clamp(startFrame, 0, gui.FrameCount - 1);
                 clipRef.Clip.StartFrame = startFrame;
             }
         }
 
-        public static void MoveClipStart(this FrameLineView view, FrameClipRef clipRef, int frame)
+        public static void MoveClipStart(this FrameLineGUI gui, FrameClipRef clipRef, int frame)
         {
             if (frame < 0)
                 return;
-            int endFrame = ClipUtil.GetClipEndFrame(view.Asset, clipRef);
+            int endFrame = ClipUtil.GetClipEndFrame(gui.Asset, clipRef);
             if (frame > endFrame)
                 return;
             int lastStart = clipRef.Clip.StartFrame;
@@ -44,16 +44,16 @@ namespace FrameLine
             }
         }
 
-        public static void MoveClipEnd(this FrameLineView view, FrameClipRef clipRef, int frame)
+        public static void MoveClipEnd(this FrameLineGUI gui, FrameClipRef clipRef, int frame)
         {
-            if (frame >= view.FrameCount || frame < clipRef.Clip.StartFrame)
+            if (frame >= gui.FrameCount || frame < clipRef.Clip.StartFrame)
                 return;
-            if (clipRef.Clip.Length <= 0 && frame == (view.FrameCount - 1))
+            if (clipRef.Clip.Length <= 0 && frame == (gui.FrameCount - 1))
                 return;
             clipRef.Clip.Length = Mathf.Max(frame - clipRef.Clip.StartFrame + 1, 1);
         }
 
-        public static void PasteClips(this FrameLineView view)
+        public static void PasteClips(this FrameLineGUI gui)
         {
 
         }

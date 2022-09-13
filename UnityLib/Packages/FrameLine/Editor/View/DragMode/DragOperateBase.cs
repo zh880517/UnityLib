@@ -1,16 +1,16 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace FrameLine
 {
     public abstract class DragOperateBase
     {
-        protected FrameLineView view;
+        protected FrameLineGUI GUI;
         protected int lastFrame;
         protected bool hasModify { get; private set; }
         public bool HasDraged { get; private set; }
-        public DragOperateBase(FrameLineView view)
+        public DragOperateBase(FrameLineGUI gui)
         {
-            this.view = view;
+            GUI = gui;
         }
         public void Drag(Vector2 pos)
         {
@@ -20,7 +20,7 @@ namespace FrameLine
             {
                 if (!hasModify)
                 {
-                    view.RegistUndo("drag clip start");
+                    GUI.RegistUndo("drag clip start");
                     hasModify = true;
                 }
                 OnDrag(pos, frame);
@@ -32,7 +32,7 @@ namespace FrameLine
         {
             if (hasModify)
             {
-                TrackUtil.UpdateAllTrack(view.Asset);
+                TrackUtil.UpdateAllTrack(GUI.Asset);
             }
         }
 

@@ -1,11 +1,11 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace FrameLine
 {
     public class ClipDragStartOperate : DragOperateBase
     {
         private FrameClipRef clipRef;
-        public ClipDragStartOperate(FrameLineView view, FrameClipRef clipRef) : base(view)
+        public ClipDragStartOperate(FrameLineGUI gui, FrameClipRef clipRef) : base(gui)
         {
             this.clipRef = clipRef;
             lastFrame = clipRef.Clip.StartFrame;
@@ -13,7 +13,7 @@ namespace FrameLine
 
         protected override void OnDrag(Vector2 pos, int frame)
         {
-            view.MoveClipStart(clipRef.Clip, frame);
+            GUI.MoveClipStart(clipRef.Clip, frame);
         }
         public override FrameClipHitPartType GetDragePart(FrameClipRef clipRef)
         {

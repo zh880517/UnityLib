@@ -1,10 +1,80 @@
-﻿using UnityEditor;
+using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEditor;
 namespace FrameLine
 {
-    public partial class FrameLineView
+    public enum FrameClipHitPartType
     {
+        None,
+        Normal,
+        LeftCtrl,
+        RightCtrl,
+    }
+    public struct FrameClipHitResult
+    {
+        public Vector2 ClickPos;
+        public FrameClipRef Clip;
+        public FrameClipHitPartType HitPart;
+        public int Frame;
+    }
+    public class FrameLineGUI : ScriptableObject, ISerializationCallbackReceiver
+    {
+
+        public FrameLineAsset Asset;
+        public EditorWindow Window;
+        public FrameLineGUIEvent Event;
+        public List<FrameClipRef> SelectedClips = new List<FrameClipRef>();
+        public int CurrentFrame;
+        public Vector2 ScrollPos;
+        public int FrameCount => Asset.FrameCount;
+
+        //滚动区域看见信息
+        public int VisableFrameStart { get; private set; }
+        public int VisableFrameEnd { get; private set; }
+        public int VisableTrackStart { get; private set; }
+        public int VisableTrackEnd { get; private set; }
+
+        private void OnEnable()
+        {
+            if (Event == null)
+                Event = new FrameLineGUIEvent(this);
+        }
+
+        public bool IsSlecected(FrameClipRef clipRef)
+        {
+            return SelectedClips.Contains(clipRef);
+        }
+
+        protected virtual void DrawToolBar()
+        {
+        }
+
+        public virtual void RegistUndo(string name)
+        {
+            Undo.RegisterCompleteObjectUndo(Asset, name);
+            Undo.RegisterCompleteObjectUndo(this, name);
+            Undo.RegisterCompleteObjectUndo(Window, name);
+            EditorUtility.SetDirty(Asset);
+        }
+
+        public virtual void OnFrameBarMenue(GenericMenu menu)
+        {
+
+        }
+
+        public virtual void OnBeforeSerialize()
+        {
+        }
+
+        public virtual void OnAfterDeserialize()
+        {
+            //反序列化处理
+            for (int i = 0; i < SelectedClips.Count; ++i)
+            {
+                var clipRef = SelectedClips[i];
+                clipRef.Clip = Asset.Find(clipRef.ID);
+            }
+        }
 
         public bool OnDraw(Vector2 size)
         {
@@ -40,13 +110,12 @@ namespace FrameLine
                     Rect viewRect = new Rect(0, -yOffset, trackHeadRect.width, frameHeight);
                     using (new GUILayout.AreaScope(viewRect))
                     {
-                        var e = Event.current;
+                        var e = UnityEngine.Event.current;
                         if (viewRect.Contains(e.mousePosition))
                         {
-                            rePaint |= OnTrackHeadEvent(e);
+                            rePaint |= Event.OnTrackHeadEvent(e);
                         }
-
-                        DrawTrackHead();
+                        FrameLineDrawer.DrawTrackHead(this);
                     }
                 }
             }
@@ -64,12 +133,12 @@ namespace FrameLine
                 //帧长度区域|<-所有帧->|，水平滚动区域
                 using (new GUILayout.AreaScope(new Rect(-xOffset, 0, framWidth, frameRect.height)))
                 {
-                    DrawFrameLineBackGround(new Rect(new Vector2(xOffset, 0), frameRect.size));
+                    FrameLineDrawer.DrawFrameLineBackGround(this, new Rect(new Vector2(xOffset, 0), frameRect.size));
                     {
-                        var e = Event.current;
+                        var e = UnityEngine.Event.current;
                         if (e.mousePosition.y < ViewStyles.FrameBarHeight)
                         {
-                            rePaint |= OnFrameBarEvent(e);
+                            rePaint |= Event.OnFrameBarEvent(e);
                         }
                     }
                     //轨道条区域
@@ -78,18 +147,18 @@ namespace FrameLine
                         Rect trackViewRect = new Rect(0, -yOffset, framWidth, frameHeight);
                         using (new GUILayout.AreaScope(trackViewRect))
                         {
-                            var e = Event.current;
+                            var e = UnityEngine.Event.current;
                             Vector2 mousePos = e.mousePosition;
                             bool mouseInView = trackViewRect.Contains(mousePos);
-                            if (mouseInView || DragOperate != null)
+                            if (mouseInView)
                             {
-                                if (OnFrameClipsEvent(e))
+                                if (Event.OnFrameClipsEvent(e))
                                 {
                                     e.Use();
                                     rePaint = true;
                                 }
                             }
-                            DrawFrameClips(mouseInView, mousePos);
+                            FrameLineDrawer.DrawFrameClips(this, mouseInView, mousePos);
                         }
                     }
                 }
@@ -101,71 +170,6 @@ namespace FrameLine
             float hSize = Mathf.Clamp01(trackAreaInViewSize.x / trackAreaSize.x);
             ScrollPos.x = GUI.HorizontalScrollbar(hBarRect, ScrollPos.x, hSize, 0, 1);
             return rePaint;
-        }
-
-        private void DrawTrackHead()
-        {
-            int trackIndex = 0;
-            foreach (var track in Asset.Tracks)
-            {
-                if (track.Count == 0)
-                    continue;
-                if (trackIndex > VisableTrackEnd)
-                    return;
-                int trackVisableCount = (track.Foldout ? track.Count : 1);
-                do
-                {
-                    if (trackIndex + trackVisableCount <= VisableTrackStart)
-                        break;
-                    int startIndex = Mathf.Clamp(trackIndex, VisableFrameStart, VisableTrackEnd) - trackIndex;
-                    int endIndex = Mathf.Clamp(trackIndex + trackVisableCount, VisableFrameStart, VisableTrackEnd) - trackIndex;
-                    FrameLineRender.DrawTrackHead(this, track, trackIndex, startIndex, endIndex);
-                } while (false);
-                trackIndex += trackVisableCount;
-            }
-        }
-
-        private void DrawFrameClips(bool mouseInView, Vector2 mousePos)
-        {
-            int trackIndex = 0;
-            foreach (var track in Asset.Tracks)
-            {
-                if (track.Count == 0)
-                    continue;
-                if (trackIndex > VisableTrackEnd)
-                    return;
-                int trackVisableCount = (track.Foldout ? track.Count : 1);
-                do
-                {
-                    if (trackIndex + trackVisableCount <= VisableTrackStart)
-                        break;
-                    int startIndex = Mathf.Clamp(trackIndex, VisableTrackStart, VisableTrackEnd) - trackIndex;
-                    int endIndex = Mathf.Clamp(trackIndex + trackVisableCount - 1, VisableFrameStart, VisableTrackEnd) - trackIndex;
-                    FrameLineRender.DrawTrack(this, track, trackIndex, startIndex, endIndex, mouseInView, mousePos);
-                } while (false);
-                trackIndex += trackVisableCount;
-            }
-        }
-
-        private void DrawFrameLineBackGround(Rect showRect)
-        {
-            using (new Handles.DrawingScope(new Color(0.5f, 0.5f, 0.5f, 0.5f)))
-            {
-                int startIndex = Mathf.Clamp(VisableFrameStart, 0, Asset.FrameCount);
-                int endIndex = Mathf.Clamp(VisableFrameEnd, 0, Asset.FrameCount);
-                for (int i = startIndex; i <= endIndex; ++i)
-                {
-                    float xPos = i * ViewStyles.FrameWidth;
-                    Handles.DrawLine(new Vector2(xPos, showRect.yMin), new Vector2(xPos, showRect.yMax));
-                    if (i != endIndex)
-                        GUI.Label(new Rect(xPos, 0, ViewStyles.FrameWidth, ViewStyles.FrameBarHeight), i.ToString(), ViewStyles.FrameNumStyle);
-                }
-            }
-            if (CurrentFrame >= VisableFrameStart && CurrentFrame <= VisableFrameEnd)
-            {
-                Rect rect = new Rect(CurrentFrame * ViewStyles.FrameWidth, 0, ViewStyles.FrameWidth, showRect.height);
-                GUIRenderHelper.DrawRect(rect, ViewStyles.SelectFrameBackGroundColor, 5, BorderType.Top);
-            }
         }
     }
 }

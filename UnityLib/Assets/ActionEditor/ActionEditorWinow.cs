@@ -7,7 +7,7 @@ public class ActionEditorWinow : EditorWindow
     [SerializeField]
     private ActionAsset asset;
     [SerializeField]
-    public FrameLineView view;
+    public FrameLineGUI view;
 
     public static void Open(ActionAsset action)
     {
@@ -15,7 +15,7 @@ public class ActionEditorWinow : EditorWindow
         if (window.asset != action || window.view == null)
         {
             window.asset = action;
-            window.view = CreateInstance<FrameLineView>();
+            window.view = CreateInstance<FrameLineGUI>();
             window.view.hideFlags = HideFlags.HideAndDontSave;//防止重启虚拟机的时候丢失
             window.view.Window = window;
             window.view.Asset = action;
