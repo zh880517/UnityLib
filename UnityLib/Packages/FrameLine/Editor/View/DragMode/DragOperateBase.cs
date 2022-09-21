@@ -32,7 +32,7 @@ namespace FrameLine
         {
             if (hasModify)
             {
-                TrackUtil.UpdateAllTrack(GUI.Asset);
+                TrackUtil.UpdateAllTrack(GUI);
             }
         }
 

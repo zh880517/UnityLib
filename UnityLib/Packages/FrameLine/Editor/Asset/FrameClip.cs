@@ -6,8 +6,6 @@ namespace FrameLine
     public class FrameClip : UnityEngine.ISerializationCallbackReceiver
     {
         public ulong ID;
-        public ulong TrackID;
-        //public int SubTrackIndex;
         public int StartFrame;
         public int Length = 1;
         public string Name;

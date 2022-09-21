@@ -24,11 +24,13 @@ namespace FrameLine
         public EditorWindow Window;
         public FrameLineGUIEvent Event;
         public List<FrameClipRef> SelectedClips = new List<FrameClipRef>();
+        public List<FrameLineTrack> Tracks = new List<FrameLineTrack>();
+
         public int CurrentFrame;
         public Vector2 ScrollPos;
         public int FrameCount => Asset.FrameCount;
-
-        //滚动区域看见信息
+        private string AssetLoadTime;
+        //滚动区域可见信息
         public int VisableFrameStart { get; private set; }
         public int VisableFrameEnd { get; private set; }
         public int VisableTrackStart { get; private set; }
@@ -74,11 +76,52 @@ namespace FrameLine
                 var clipRef = SelectedClips[i];
                 clipRef.Clip = Asset.Find(clipRef.ID);
             }
+            foreach (var track in Tracks)
+            {
+                track.OnAfterDeserialize(Asset);
+            }
+        }
+
+        public FrameLineTrack OnAddClip(FrameClip clip)
+        {
+            var track = GetTrack(clip.TypeGUID);
+            if (track.Name == null)
+            {
+                track.Name = clip.Data.GetType().Name;
+            }
+            track.Add(clip);
+            return track;
+        }
+        public void OnRemoveClip(FrameClipRef clip)
+        {
+            foreach (var track in Tracks)
+            {
+                if (track.Remove(clip))
+                    break;
+            }
+        }
+        protected FrameLineTrack GetTrack(string typeGUID)
+        {
+            var track = Tracks.Find(it => it.TypeGUID == typeGUID);
+            if (track == null)
+            {
+                track = new FrameLineTrack()
+                {
+                    TypeGUID = typeGUID,
+                };
+                Tracks.Add(track);
+            }
+            return track;
         }
 
         public bool OnDraw(Vector2 size)
         {
-            int showTrackCount = TrackUtil.GetVisableTrackCount(Asset);
+            if (AssetLoadTime != Asset.LoadTime)
+            {
+                this.RebuildTrack();
+                AssetLoadTime = Asset.LoadTime;
+            }
+            int showTrackCount = Asset.Clips.Count;
             float frameHeight = showTrackCount * (ViewStyles.ClipHeight + ViewStyles.ClipVInterval) + ViewStyles.ClipVInterval;
             float framWidth = Asset.FrameCount * ViewStyles.FrameWidth + 10;
 

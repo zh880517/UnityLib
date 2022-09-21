@@ -28,7 +28,7 @@ namespace FrameLine
         public static void DrawTrackHead(FrameLineGUI gui)
         {
             int trackIndex = 0;
-            foreach (var track in gui.Asset.Tracks)
+            foreach (var track in gui.Tracks)
             {
                 if (track.Count == 0)
                     continue;
@@ -50,7 +50,7 @@ namespace FrameLine
         public static void DrawFrameClips(FrameLineGUI gui, bool mouseInView, Vector2 mousePos)
         {
             int trackIndex = 0;
-            foreach (var track in gui.Asset.Tracks)
+            foreach (var track in gui.Tracks)
             {
                 if (track.Count == 0)
                     continue;

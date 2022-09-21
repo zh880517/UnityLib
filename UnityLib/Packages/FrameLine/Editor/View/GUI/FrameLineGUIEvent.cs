@@ -30,9 +30,9 @@ namespace FrameLine
             {
                 int hitTrackIndex = Mathf.FloorToInt(point.y / ViewStyles.TrackHeight);
                 int preTrackCount = 0;
-                for (int i = 0; i < GUI.Asset.Tracks.Count; ++i)
+                for (int i = 0; i < GUI.Tracks.Count; ++i)
                 {
-                    var track = GUI.Asset.Tracks[i];
+                    var track = GUI.Tracks[i];
                     int hitSubIndex = hitTrackIndex - preTrackCount;
                     if (hitSubIndex < 0)
                         break;

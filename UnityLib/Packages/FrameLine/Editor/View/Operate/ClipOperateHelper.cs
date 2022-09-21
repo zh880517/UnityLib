@@ -14,6 +14,7 @@ namespace FrameLine
             foreach (var clipRef in gui.SelectedClips)
             {
                 gui.Asset.RemoveClip(clipRef);
+                gui.OnRemoveClip(clipRef);
             }
             gui.SelectedClips.Clear();
         }
