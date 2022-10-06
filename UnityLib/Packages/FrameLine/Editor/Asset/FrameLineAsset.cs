@@ -13,6 +13,7 @@ namespace FrameLine
 
         public IReadOnlyList<FrameClip> Clips => clips;
         public string LoadTime { get; private set; }
+        public ulong KeyIndex => keyIndex;
         protected virtual void OnEnable()
         {
             //文件被修改重新加载，会调用这里
@@ -51,6 +52,13 @@ namespace FrameLine
         public FrameClip Find(ulong id)
         {
             return clips.Find(it => it.ID == id);
+        }
+
+        public virtual FrameLineScene CreateScene()
+        {
+            var scene = CreateInstance<FrameLineScene>();
+            scene.hideFlags = HideFlags.HideAndDontSave;
+            return scene;
         }
 
         public virtual void OnBeforeSerialize()
