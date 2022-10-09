@@ -38,7 +38,7 @@ public class ActionEditorWinow : EditorWindow
             {
                 if (GUILayout.Button("测试"))
                 {
-                    var clip = asset.AddClip(0, new TestAction());
+                    var clip = asset.AddClip(0, 0, new TestAction());
                     view.OnAddClip(clip);
                     view.SelectedClips.Clear();
                     view.SelectedClips.Add(clip);

@@ -7,6 +7,7 @@ namespace FrameLine
     {
         public FrameLineAsset Asset;
         public ulong LastKeyIndex;
+        public int GroupId;
         [SerializeField]
         private List<FrameClipPlayable> Playables = new List<FrameClipPlayable>();
         [SerializeField]
@@ -23,7 +24,8 @@ namespace FrameLine
             if (LastKeyIndex != Asset.KeyIndex)
             {
                 LastKeyIndex = Asset.KeyIndex;
-                foreach (var clip in Asset.Clips)
+                var group = Asset.FindGroup(GroupId);
+                foreach (var clip in group.Clips)
                 {
                     if (Playables.Exists(it => it.ClipId == clip.ID))
                         continue;
@@ -47,6 +49,7 @@ namespace FrameLine
                     continue;
                 }
                 bool isActive = frameIndex <= clip.StartFrame && (clip.Length <= 0 || clip.StartFrame + clip.Length < frameIndex);
+                isActive |= ((int)(playable.ClipId >> 32) == GroupId);
                 if (isActive)
                 {
                     playable.OnSceneGUI(clip.Data, frameIndex);
@@ -69,6 +72,7 @@ namespace FrameLine
                     continue;
                 }
                 bool isActive = frameIndex <= clip.StartFrame && (clip.Length <= 0 || clip.StartFrame + clip.Length < frameIndex);
+                isActive |= ((int)(playable.ClipId >> 32) == GroupId);
                 if (isActive != playable.Active)
                 {
                     playable.Active = isActive;

@@ -1,17 +1,14 @@
-using System.Collections.Generic;
 using UnityEngine;
 namespace FrameLine
 {
-    public class FrameLineAsset : ScriptableObject, ISerializationCallbackReceiver
+    public abstract class FrameLineAsset : ScriptableObject
     {
         public string Comment;
         public int FrameCount;
         [SerializeField, HideInInspector]
-        private ulong keyIndex;
+        private uint keyIndex;
         [SerializeField, HideInInspector]
-        protected List<FrameClip> clips = new List<FrameClip>();
-
-        public IReadOnlyList<FrameClip> Clips => clips;
+        private uint groupIndex;
         public string LoadTime { get; private set; }
         public ulong KeyIndex => keyIndex;
         protected virtual void OnEnable()
@@ -21,27 +18,37 @@ namespace FrameLine
             LoadTime = System.DateTime.Now.ToString();
         }
 
-        public FrameClip AddClip(int frame, IFrameLineClipData data)
+
+        public FrameClip AddClip(int groupId, int frame, IFrameLineClipData data)
         {
+            var group = FindGroup(groupId);
+            if (group == null) 
+                return null;
             FrameClip clip = new FrameClip
             {
-                ID = ++keyIndex,
+                ID = ++keyIndex & (ulong)(groupId << 32),
                 StartFrame = frame,
                 Name = GetTypeShowName(data.GetType())
             };
             clip.SetData(data);
-            clips.Add(clip);
+            group.Clips.Add(clip);
             return clip;
         }
 
         public bool RemoveClip(FrameClipRef clip)
         {
-            var index = clips.FindIndex(it => it.ID == clip.ID);
-            if (index >= 0)
+            int groupId = (int)(clip.ID >> 32);
+            var group = FindGroup(groupId);
+            if (group != null)
             {
-                clips.RemoveAt(index);
-                return true;
+                var index = group.Clips.FindIndex(it => it.ID == clip.ID);
+                if (index >= 0)
+                {
+                    group.Clips.RemoveAt(index);
+                    return true;
+                }
             }
+
             return false;
         }
         public static string GetTypeShowName(System.Type type)
@@ -51,22 +58,20 @@ namespace FrameLine
 
         public FrameClip Find(ulong id)
         {
-            return clips.Find(it => it.ID == id);
+            int groupId = (int)(id >> 32);
+            var group = FindGroup(groupId);
+            if (group != null)
+                return group.Clips.Find(it => it.ID == id);
+            return null;
         }
+
+        public abstract FrameClipGroup FindGroup(int id);
 
         public virtual FrameLineScene CreateScene()
         {
             var scene = CreateInstance<FrameLineScene>();
             scene.hideFlags = HideFlags.HideAndDontSave;
             return scene;
-        }
-
-        public virtual void OnBeforeSerialize()
-        {
-        }
-
-        public virtual void OnAfterDeserialize()
-        {
         }
     }
 }

@@ -23,6 +23,8 @@ namespace FrameLine
         public FrameLineAsset Asset;
         public EditorWindow Window;
         public FrameLineGUIEvent Event;
+        public int GroupId;
+        public FrameClipGroup Group { get; set; }
         public List<FrameClipRef> SelectedClips = new List<FrameClipRef>();
         public List<FrameLineTrack> Tracks = new List<FrameLineTrack>();
 
@@ -80,6 +82,7 @@ namespace FrameLine
             {
                 track.OnAfterDeserialize(Asset);
             }
+            Group = Asset.FindGroup(GroupId);
         }
 
         public FrameLineTrack OnAddClip(FrameClip clip)
@@ -121,7 +124,7 @@ namespace FrameLine
                 this.RebuildTrack();
                 AssetLoadTime = Asset.LoadTime;
             }
-            int showTrackCount = Asset.Clips.Count;
+            int showTrackCount = Group.Clips.Count;
             float frameHeight = showTrackCount * (ViewStyles.ClipHeight + ViewStyles.ClipVInterval) + ViewStyles.ClipVInterval;
             float framWidth = Asset.FrameCount * ViewStyles.FrameWidth + 10;
 
