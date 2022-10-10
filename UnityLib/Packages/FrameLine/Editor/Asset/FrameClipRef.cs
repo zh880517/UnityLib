@@ -7,6 +7,7 @@ namespace FrameLine
     public struct FrameClipRef : IEquatable<FrameClipRef>
     {
         public ulong ID;
+        public int GroupId => (int)ID >> 32;
         public FrameClip Clip { get; set; }
         public static FrameClipRef Empty = new FrameClipRef();
         public override int GetHashCode()

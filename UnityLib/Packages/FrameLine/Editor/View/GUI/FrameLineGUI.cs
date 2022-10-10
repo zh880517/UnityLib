@@ -87,6 +87,8 @@ namespace FrameLine
 
         public FrameLineTrack OnAddClip(FrameClip clip)
         {
+            if (clip.GroupId != GroupId)
+                return null;
             var track = GetTrack(clip.TypeGUID);
             if (track.Name == null)
             {
@@ -97,6 +99,8 @@ namespace FrameLine
         }
         public void OnRemoveClip(FrameClipRef clip)
         {
+            if (clip.GroupId != GroupId)
+                return;
             foreach (var track in Tracks)
             {
                 if (track.Remove(clip))
@@ -119,6 +123,9 @@ namespace FrameLine
 
         public bool OnDraw(Vector2 size)
         {
+            Group = Asset.FindGroup(GroupId);
+            if (Group == null)
+                return false;
             if (AssetLoadTime != Asset.LoadTime)
             {
                 this.RebuildTrack();

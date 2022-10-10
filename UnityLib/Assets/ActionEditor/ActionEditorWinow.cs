@@ -38,6 +38,10 @@ public class ActionEditorWinow : EditorWindow
             {
                 if (GUILayout.Button("测试"))
                 {
+                    if (asset.Groups.Count == 0)
+                    {
+                        asset.CreateGroup();
+                    }
                     var clip = asset.AddClip(0, 0, new TestAction());
                     view.OnAddClip(clip);
                     view.SelectedClips.Clear();

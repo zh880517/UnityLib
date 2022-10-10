@@ -16,8 +16,7 @@ namespace FrameLine
             {
                 track.Clips.Clear();
             }
-            var group = gui.Asset.FindGroup(gui.GroupId);
-            foreach (var clip in group.Clips)
+            foreach (var clip in gui.Group.Clips)
             {
                 gui.OnAddClip(clip);
             }

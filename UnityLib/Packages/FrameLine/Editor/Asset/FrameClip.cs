@@ -10,6 +10,9 @@ namespace FrameLine
         public int Length = 1;
         public string Name;
         public string Comment;
+
+        public int GroupId => (int)ID >> 32;
+
         [UnityEngine.SerializeField]
         private SerializationData serializeData;
         [NonSerialized]

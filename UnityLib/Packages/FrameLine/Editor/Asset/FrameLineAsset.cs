@@ -7,8 +7,6 @@ namespace FrameLine
         public int FrameCount;
         [SerializeField, HideInInspector]
         private uint keyIndex;
-        [SerializeField, HideInInspector]
-        private uint groupIndex;
         public string LoadTime { get; private set; }
         public ulong KeyIndex => keyIndex;
         protected virtual void OnEnable()
@@ -24,9 +22,12 @@ namespace FrameLine
             var group = FindGroup(groupId);
             if (group == null) 
                 return null;
+            ulong id = (uint)groupId;
+            id <<= 32;
+            id |= ++keyIndex;
             FrameClip clip = new FrameClip
             {
-                ID = ++keyIndex & (ulong)(groupId << 32),
+                ID = id,
                 StartFrame = frame,
                 Name = GetTypeShowName(data.GetType())
             };
@@ -37,7 +38,7 @@ namespace FrameLine
 
         public bool RemoveClip(FrameClipRef clip)
         {
-            int groupId = (int)(clip.ID >> 32);
+            int groupId = clip.GroupId;
             var group = FindGroup(groupId);
             if (group != null)
             {
