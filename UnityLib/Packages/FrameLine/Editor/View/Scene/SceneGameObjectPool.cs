@@ -23,38 +23,61 @@ namespace FrameLine
         }
         public List<SceneGameObject> Objects = new List<SceneGameObject>();
 
-        public int Load(string path, bool active)
+        public int Load(string path, int key = 0)
         {
-            var obj = AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (obj == null)
-                return -1;
-
-            SceneGameObject sceneObject = new SceneGameObject { Path = path, Original = obj, Active = active };
-            for (int i = 0; i < Objects.Count; ++i)
+            if (key > 0 && key < Objects.Count)
             {
-                if (Objects[i] == null)
+                var sceneObject = Objects[key-1];
+                if (sceneObject.Path != path)
                 {
-                    Objects[i] = sceneObject;
-                    return i;
+                    if (sceneObject.Instance)
+                        Object.DestroyImmediate(sceneObject.Instance);
+
+                    var obj = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                    if (obj == null)
+                    {
+                        Objects[key - 1] = null;
+                        return 0;
+                    }
+                    sceneObject.Path = path;
+                    sceneObject.Original = obj;
+                    sceneObject.Instance = null;
                 }
+                return key;
             }
-            Objects.Add(sceneObject);
-            return Objects.Count - 1;
+            else
+            {
+                var obj = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (obj == null)
+                    return 0;
+
+                SceneGameObject sceneObject = new SceneGameObject { Path = path, Original = obj };
+                for (int i = 0; i < Objects.Count; ++i)
+                {
+                    if (Objects[i] == null)
+                    {
+                        Objects[i] = sceneObject;
+                        return i - 1;
+                    }
+                }
+                Objects.Add(sceneObject);
+                return Objects.Count;
+            }
         }
-        public void SetAcive(int index, bool active)
+        public void SetAcive(int key, bool active)
         {
-            var item = Get(index);
+            var item = Get(key);
             if (item != null)
             {
                 item.SetActive(active);
             }
         }
-        public void SetParent(int index, int parentIndex, string node)
+        public void SetParent(int key, int parentKey, string node)
         {
-            var item = Get(index);
-            if (item != null && (parentIndex != item.ParentIndex || item.ParentNodeName != node))
+            var item = Get(key);
+            if (item != null && (parentKey != item.ParentKey || item.ParentNodeName != node))
             {
-                item.ParentIndex = parentIndex;
+                item.ParentKey = parentKey;
                 item.ParentNodeName = node;
                 LoadCheck(item);
                 AttachToParent(item);
@@ -70,15 +93,15 @@ namespace FrameLine
             }
             return null;
         }
-        public void Remove(int index)
+        public void Remove(int key)
         {
-            if (index >= 0 && index < Objects.Count)
+            if (key > 0 && key <= Objects.Count)
             {
-                var item = Objects[index];
+                var item = Objects[key - 1];
                 if (item != null)
                 {
-                    Objects[index] = null;
-                    OnRemove(index);
+                    Objects[key - 1] = null;
+                    OnRemove(key);
                     if (item != null && item.Instance)
                     {
                         Object.DestroyImmediate(item.Instance);
@@ -86,9 +109,9 @@ namespace FrameLine
                 }
             }
         }
-        public void Simulate(int index, float passTime)
+        public void Simulate(int key, float passTime)
         {
-            var item = Get(index);
+            var item = Get(key);
             if (item != null && item.Active)
             {
                 LoadCheck(item);
@@ -108,11 +131,11 @@ namespace FrameLine
                 Object.DestroyImmediate(root);
             }
         }
-        protected SceneGameObject Get(int index)
+        protected SceneGameObject Get(int key)
         {
-            if (index >= 0 && index < Objects.Count)
+            if (key > 0 && key <= Objects.Count)
             {
-                return Objects[index];
+                return Objects[key-1];
             }
             return null;
         }
@@ -140,11 +163,11 @@ namespace FrameLine
             }
             return true;
         }
-        private void OnRemove(int index)
+        private void OnRemove(int key)
         {
             for (int i = 0; i < Objects.Count; ++i)
             {
-                if (Objects[i] != null && Objects[i].ParentIndex == index)
+                if (Objects[i] != null && Objects[i].ParentKey == (key - 1))
                 {
                     Remove(i);
                 }
@@ -163,9 +186,9 @@ namespace FrameLine
         }
         protected void AttachToParent(SceneGameObject item)
         {
-            if (item.ParentIndex < 0 || item.ParentIndex >= Objects.Count || !item.Instance)
+            if (item.ParentKey <= 0 || item.ParentKey > Objects.Count || !item.Instance)
                 return;
-            var parentItem = Objects[item.ParentIndex];
+            var parentItem = Objects[item.ParentKey - 1];
             if (parentItem == null)
             {
                 LoadCheck(parentItem);

@@ -9,7 +9,7 @@ namespace FrameLine
     public class SceneGameObject
     {
         public string Path;
-        public int ParentIndex = -1;
+        public int ParentKey = -1;
         public string ParentNodeName;
         public GameObject Original;
         public GameObject Instance;
