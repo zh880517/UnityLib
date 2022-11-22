@@ -15,16 +15,16 @@ namespace FrameLine
             GUI = gui;
         }
 
-        public FrameClipHitPartType GetDragePart(FrameClipRef clipRef)
+        public FrameActionHitPartType GetDragePart(FrameActionRef actionRef)
         {
             if (dragOperate != null)
-                return dragOperate.GetDragePart(clipRef);
-            return FrameClipHitPartType.None;
+                return dragOperate.GetDragePart(actionRef);
+            return FrameActionHitPartType.None;
         }
-        public FrameClipHitResult HitTest(Vector2 point)
+        public FrameActionHitResult HitTest(Vector2 point)
         {
-            int hitFrame = FrameUtil.PosToFrame(point.x);
-            FrameClipHitResult result = new FrameClipHitResult() { Frame = hitFrame, ClickPos = point };
+            int hitFrame = FrameLineUtil.PosToFrame(point.x);
+            FrameActionHitResult result = new FrameActionHitResult() { Frame = hitFrame, ClickPos = point };
 
             if (hitFrame < GUI.FrameCount && hitFrame >= 0)
             {
@@ -41,24 +41,24 @@ namespace FrameLine
                     if (hitSubIndex >= subTrakCount)
                         continue;
 
-                    var clip = track.Clips[hitSubIndex].Clip;
+                    var clip = track.Actions[hitSubIndex].Action;
                     if (clip.StartFrame <= hitFrame)
                     {
-                        int endFrame = ClipUtil.GetClipEndFrame(GUI.Asset, clip);
+                        int endFrame = FrameActionUtil.GetClipEndFrame(GUI.Asset, clip);
                         if (endFrame >= hitFrame)
                         {
                             float frameOffset = point.x % ViewStyles.FrameWidth;
                             if (frameOffset <= ViewStyles.ClipCtrlWidth && clip.StartFrame == hitFrame)
                             {
-                                result.HitPart = FrameClipHitPartType.LeftCtrl;
+                                result.HitPart = FrameActionHitPartType.LeftCtrl;
                             }
                             else if (clip.Length > 0 && endFrame == hitFrame && (frameOffset >= (ViewStyles.FrameWidth - ViewStyles.ClipCtrlWidth)))
                             {
-                                result.HitPart = FrameClipHitPartType.RightCtrl;
+                                result.HitPart = FrameActionHitPartType.RightCtrl;
                             }
                             else
                             {
-                                result.HitPart = FrameClipHitPartType.Normal;
+                                result.HitPart = FrameActionHitPartType.Normal;
                             }
                             result.Clip = clip;
                         }
@@ -80,7 +80,7 @@ namespace FrameLine
             if (e.button == 0 && (e.type == EventType.MouseDown || e.type == EventType.MouseDrag))
             {
                 int selectFrame = Mathf.FloorToInt(e.mousePosition.x / ViewStyles.FrameWidth);
-                if (selectFrame >= 0 && selectFrame < GUI.Asset.FrameCount)
+                if (selectFrame >= 0 && selectFrame < GUI.Group.FrameCount)
                 {
                     GUI.CurrentFrame = selectFrame;
                 }
@@ -123,12 +123,12 @@ namespace FrameLine
                         if (!isMultSelect)
                         {
                             var hitTest = HitTest(e.mousePosition);
-                            if (hitTest.HitPart == FrameClipHitPartType.Normal || hitTest.HitPart == FrameClipHitPartType.None)
+                            if (hitTest.HitPart == FrameActionHitPartType.Normal || hitTest.HitPart == FrameActionHitPartType.None)
                             {
-                                GUI.SelectedClips.Clear();
+                                GUI.SelectedActions.Clear();
                                 if (hitTest.Clip)
                                 {
-                                    GUI.SelectedClips.Add(hitTest.Clip);
+                                    GUI.SelectedActions.Add(hitTest.Clip);
                                 }
                             }
                         }
@@ -145,38 +145,38 @@ namespace FrameLine
                     var hitTest = HitTest(e.mousePosition);
                     switch (hitTest.HitPart)
                     {
-                        case FrameClipHitPartType.None:
+                        case FrameActionHitPartType.None:
                             if (!isMultSelect)
-                                GUI.SelectedClips.Clear();
+                                GUI.SelectedActions.Clear();
                             return true;
-                        case FrameClipHitPartType.Normal:
+                        case FrameActionHitPartType.Normal:
                             if (isMultSelect)
                             {
-                                int selectedIdx = GUI.SelectedClips.IndexOf(hitTest.Clip);
+                                int selectedIdx = GUI.SelectedActions.IndexOf(hitTest.Clip);
                                 if (selectedIdx >= 0)
                                 {
-                                    GUI.SelectedClips.RemoveAt(selectedIdx);
+                                    GUI.SelectedActions.RemoveAt(selectedIdx);
                                 }
                                 else
                                 {
-                                    GUI.SelectedClips.Add(hitTest.Clip);
+                                    GUI.SelectedActions.Add(hitTest.Clip);
                                 }
                             }
                             else
                             {
-                                if (!GUI.SelectedClips.Contains(hitTest.Clip))
+                                if (!GUI.SelectedActions.Contains(hitTest.Clip))
                                 {
-                                    GUI.SelectedClips.Clear();
-                                    GUI.SelectedClips.Add(hitTest.Clip);
+                                    GUI.SelectedActions.Clear();
+                                    GUI.SelectedActions.Add(hitTest.Clip);
                                 }
                             }
-                            dragOperate = new ClipsDragMoveOperate(GUI, hitTest.Frame);
+                            dragOperate = new ActionsDragMoveOperate(GUI, hitTest.Frame);
                             return true;
-                        case FrameClipHitPartType.LeftCtrl:
-                            dragOperate = new ClipDragStartOperate(GUI, hitTest.Clip);
+                        case FrameActionHitPartType.LeftCtrl:
+                            dragOperate = new ActionDragStartOperate(GUI, hitTest.Clip);
                             return true;
-                        case FrameClipHitPartType.RightCtrl:
-                            dragOperate = new ClipDragEndOperate(GUI, hitTest.Clip);
+                        case FrameActionHitPartType.RightCtrl:
+                            dragOperate = new ActionDragEndOperate(GUI, hitTest.Clip);
                             return true;
                         default:
                             break;

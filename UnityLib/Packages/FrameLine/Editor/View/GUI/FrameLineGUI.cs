@@ -3,18 +3,18 @@ using UnityEngine;
 using UnityEditor;
 namespace FrameLine
 {
-    public enum FrameClipHitPartType
+    public enum FrameActionHitPartType
     {
         None,
         Normal,
         LeftCtrl,
         RightCtrl,
     }
-    public struct FrameClipHitResult
+    public struct FrameActionHitResult
     {
         public Vector2 ClickPos;
-        public FrameClipRef Clip;
-        public FrameClipHitPartType HitPart;
+        public FrameActionRef Clip;
+        public FrameActionHitPartType HitPart;
         public int Frame;
     }
     public class FrameLineGUI : ScriptableObject, ISerializationCallbackReceiver
@@ -24,13 +24,13 @@ namespace FrameLine
         public EditorWindow Window;
         public FrameLineGUIEvent Event;
         public int GroupId;
-        public FrameClipGroup Group { get; set; }
-        public List<FrameClipRef> SelectedClips = new List<FrameClipRef>();
+        public FrameActionGroup Group { get; set; }
+        public List<FrameActionRef> SelectedActions = new List<FrameActionRef>();
         public List<FrameLineTrack> Tracks = new List<FrameLineTrack>();
 
         public int CurrentFrame;
         public Vector2 ScrollPos;
-        public int FrameCount => Asset.FrameCount;
+        public int FrameCount => Group.FrameCount;
         private string AssetLoadTime;
         //滚动区域可见信息
         public int VisableFrameStart { get; private set; }
@@ -44,9 +44,9 @@ namespace FrameLine
                 Event = new FrameLineGUIEvent(this);
         }
 
-        public bool IsSlecected(FrameClipRef clipRef)
+        public bool IsSlecected(FrameActionRef clipRef)
         {
-            return SelectedClips.Contains(clipRef);
+            return SelectedActions.Contains(clipRef);
         }
 
         protected virtual void DrawToolBar()
@@ -73,10 +73,10 @@ namespace FrameLine
         public virtual void OnAfterDeserialize()
         {
             //反序列化处理
-            for (int i = 0; i < SelectedClips.Count; ++i)
+            for (int i = 0; i < SelectedActions.Count; ++i)
             {
-                var clipRef = SelectedClips[i];
-                clipRef.Clip = Asset.Find(clipRef.ID);
+                var clipRef = SelectedActions[i];
+                clipRef.Action = Asset.Find(clipRef.ID);
             }
             foreach (var track in Tracks)
             {
@@ -85,7 +85,7 @@ namespace FrameLine
             Group = Asset.FindGroup(GroupId);
         }
 
-        public FrameLineTrack OnAddClip(FrameClip clip)
+        public FrameLineTrack OnAddClip(FrameAction clip)
         {
             if (clip.GroupId != GroupId)
                 return null;
@@ -97,7 +97,7 @@ namespace FrameLine
             track.Add(clip);
             return track;
         }
-        public void OnRemoveClip(FrameClipRef clip)
+        public void OnRemoveClip(FrameActionRef clip)
         {
             if (clip.GroupId != GroupId)
                 return;
@@ -131,9 +131,9 @@ namespace FrameLine
                 this.RebuildTrack();
                 AssetLoadTime = Asset.LoadTime;
             }
-            int showTrackCount = Group.Clips.Count;
+            int showTrackCount = Group.Actions.Count;
             float frameHeight = showTrackCount * (ViewStyles.ClipHeight + ViewStyles.ClipVInterval) + ViewStyles.ClipVInterval;
-            float framWidth = Asset.FrameCount * ViewStyles.FrameWidth + 10;
+            float framWidth = Group.FrameCount * ViewStyles.FrameWidth + 10;
 
             //滚动位置
             float xOffset = ScrollPos.x * framWidth;

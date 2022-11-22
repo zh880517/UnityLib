@@ -8,7 +8,6 @@ public static class ActionMenue
         public override void Action(int instanceId, string pathName, string resourceFile)
         {
             ActionAsset asset = CreateInstance<ActionAsset>();
-            asset.FrameCount = 100;
             AssetDatabase.CreateAsset(asset, pathName);
             ProjectWindowUtil.ShowCreatedAsset(asset);
         }

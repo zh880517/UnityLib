@@ -8,8 +8,8 @@ namespace FrameLine
         {
             using (new Handles.DrawingScope(new Color(0.5f, 0.5f, 0.5f, 0.5f)))
             {
-                int startIndex = Mathf.Clamp(gui.VisableFrameStart, 0, gui.Asset.FrameCount);
-                int endIndex = Mathf.Clamp(gui.VisableFrameEnd, 0, gui.Asset.FrameCount);
+                int startIndex = Mathf.Clamp(gui.VisableFrameStart, 0, gui.Group.FrameCount);
+                int endIndex = Mathf.Clamp(gui.VisableFrameEnd, 0, gui.Group.FrameCount);
                 for (int i = startIndex; i <= endIndex; ++i)
                 {
                     float xPos = i * ViewStyles.FrameWidth;
@@ -97,7 +97,7 @@ namespace FrameLine
                 //画被折叠的轨道
                 for (int i = 1; i < track.Count; ++i)
                 {
-                    var clip = track.Clips[i].Clip;
+                    var clip = track.Actions[i].Action;
                     if (clip.StartFrame > gui.VisableFrameEnd || (clip.Length > 0 && clip.StartFrame + clip.Length < gui.VisableFrameStart))
                         continue;
                     float offsetY = viewOffsetY;
@@ -111,7 +111,7 @@ namespace FrameLine
             }
             for (int i = 0; i < track.Count; ++i)
             {
-                var clip = track.Clips[i].Clip;
+                var clip = track.Actions[i].Action;
                 if (i < startSubIndex || i > endSubIndex)
                     continue;
                 if (clip.StartFrame > gui.VisableFrameEnd || (clip.Length > 0 && clip.StartFrame + clip.Length < gui.VisableFrameStart))
@@ -123,8 +123,8 @@ namespace FrameLine
                     frameCount = gui.FrameCount - clip.StartFrame;
                 //左侧控制区域
                 Rect clipLeftCtrlRect = new Rect(offsetX, offsetY, ViewStyles.ClipCtrlWidth, ViewStyles.ClipHeight);
-                FrameClipHitPartType dragPart = gui.Event.GetDragePart(clip);
-                Color color = dragPart == FrameClipHitPartType.LeftCtrl ? ViewStyles.ClipSelectCtrlColor : ViewStyles.ClipCtrlColor;
+                FrameActionHitPartType dragPart = gui.Event.GetDragePart(clip);
+                Color color = dragPart == FrameActionHitPartType.LeftCtrl ? ViewStyles.ClipSelectCtrlColor : ViewStyles.ClipCtrlColor;
                 GUIRenderHelper.DrawRect(clipLeftCtrlRect, color, ViewStyles.ClipCtrlWidth, BorderType.Left);
                 //右侧
                 int clipEndFrame = clip.StartFrame + frameCount - 1;
@@ -134,7 +134,7 @@ namespace FrameLine
                     ViewStyles.ClipHeight);
                 if (clip.Length > 0)
                 {
-                    color = dragPart == FrameClipHitPartType.RightCtrl ? ViewStyles.ClipSelectCtrlColor : ViewStyles.ClipCtrlColor;
+                    color = dragPart == FrameActionHitPartType.RightCtrl ? ViewStyles.ClipSelectCtrlColor : ViewStyles.ClipCtrlColor;
                     GUIRenderHelper.DrawRect(clipRightCtrlRect, color, ViewStyles.ClipCtrlWidth, BorderType.Right);
                 }
                 else

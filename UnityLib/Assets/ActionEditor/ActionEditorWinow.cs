@@ -40,12 +40,12 @@ public class ActionEditorWinow : EditorWindow
                 {
                     if (asset.Groups.Count == 0)
                     {
-                        asset.CreateGroup();
+                        asset.CreateGroup().FrameCount = 100;
                     }
                     var clip = asset.AddClip(0, 0, new TestAction());
                     view.OnAddClip(clip);
-                    view.SelectedClips.Clear();
-                    view.SelectedClips.Add(clip);
+                    view.SelectedActions.Clear();
+                    view.SelectedActions.Add(clip);
                     EditorUtility.SetDirty(asset);
                 }
                 GUILayout.FlexibleSpace();

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace FrameLine
 {
@@ -10,25 +9,25 @@ namespace FrameLine
         public string Comment;
         public string TypeGUID;
         public bool Foldout = true;//未被折叠
-        public List<FrameClipRef> Clips = new List<FrameClipRef>();
+        public List<FrameActionRef> Actions = new List<FrameActionRef>();
 
-        public int Count => Clips.Count;
+        public int Count => Actions.Count;
 
-        public void Add(FrameClipRef clip)
+        public void Add(FrameActionRef action)
         {
-            if (!Clips.Contains(clip))
+            if (!Actions.Contains(action))
             {
-                Clips.Add(clip);
+                Actions.Add(action);
             }
         }
 
-        public bool Remove(FrameClipRef clip)
+        public bool Remove(FrameActionRef action)
         {
-            for (int i =0; i< Clips.Count; ++i)
+            for (int i =0; i< Actions.Count; ++i)
             {
-                if (Clips[i] == clip)
+                if (Actions[i] == action)
                 {
-                    Clips.RemoveAt(i);
+                    Actions.RemoveAt(i);
                     return true;
                 }
             }
@@ -38,17 +37,17 @@ namespace FrameLine
 
         public void Sort()
         {
-            Clips.Sort(ClipUtil.SortByStartFrame);
+            Actions.Sort(FrameActionUtil.SortByStartFrame);
         }
 
 
         public void OnAfterDeserialize(FrameLineAsset asset)
         {
-            for (int i=0; i< Clips.Count; ++i)
+            for (int i=0; i< Actions.Count; ++i)
             {
-                var clipRef = Clips[i];
-                clipRef.Clip = asset.Find(clipRef.ID);
-                Clips[i] = clipRef;
+                var actionRef = Actions[i];
+                actionRef.Action = asset.Find(actionRef.ID);
+                Actions[i] = actionRef;
             }
         }
     }

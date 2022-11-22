@@ -15,7 +15,7 @@ namespace FrameLine
         public void Drag(Vector2 pos)
         {
             HasDraged = true;
-            int frame = FrameUtil.PosToFrame(pos.x);
+            int frame = FrameLineUtil.PosToFrame(pos.x);
             if (frame != lastFrame)
             {
                 if (!hasModify)
@@ -32,13 +32,13 @@ namespace FrameLine
         {
             if (hasModify)
             {
-                TrackUtil.UpdateAllTrack(GUI);
+                FrameTrackUtil.UpdateAllTrack(GUI);
             }
         }
 
-        public virtual FrameClipHitPartType GetDragePart(FrameClipRef clipRef)
+        public virtual FrameActionHitPartType GetDragePart(FrameActionRef actionRef)
         {
-            return FrameClipHitPartType.None;
+            return FrameActionHitPartType.None;
         }
     }
 }

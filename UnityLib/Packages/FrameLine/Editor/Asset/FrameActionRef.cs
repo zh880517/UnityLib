@@ -4,37 +4,37 @@ namespace FrameLine
 {
 
     [Serializable]
-    public struct FrameClipRef : IEquatable<FrameClipRef>
+    public struct FrameActionRef : IEquatable<FrameActionRef>
     {
         public ulong ID;
         public int GroupId => (int)ID >> 32;
-        public FrameClip Clip { get; set; }
-        public static FrameClipRef Empty = new FrameClipRef();
+        public FrameAction Action { get; set; }
+        public static FrameActionRef Empty = new FrameActionRef();
         public override int GetHashCode()
         {
             return ID.GetHashCode();
         }
-        public bool Equals(FrameClipRef other)
+        public bool Equals(FrameActionRef other)
         {
             return other.ID == ID;
         }
         public override bool Equals(object obj)
         {
-            if (obj is FrameClipRef clipRef)
+            if (obj is FrameActionRef actionRef)
             {
-                return Equals(clipRef);
+                return Equals(actionRef);
             }
             return false;
         }
-        public static bool operator ==(FrameClipRef lhs, FrameClipRef rhs)
+        public static bool operator ==(FrameActionRef lhs, FrameActionRef rhs)
         {
             return lhs.Equals(rhs);
         }
-        public static bool operator !=(FrameClipRef lhs, FrameClipRef rhs)
+        public static bool operator !=(FrameActionRef lhs, FrameActionRef rhs)
         {
             return !lhs.Equals(rhs);
         }
-        public static implicit operator bool(FrameClipRef exists)
+        public static implicit operator bool(FrameActionRef exists)
         {
             return exists.ID != 0;
         }

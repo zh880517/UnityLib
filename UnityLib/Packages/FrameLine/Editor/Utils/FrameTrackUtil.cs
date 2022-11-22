@@ -1,6 +1,6 @@
 namespace FrameLine
 {
-    public static class TrackUtil
+    public static class FrameTrackUtil
     {
         public static void UpdateAllTrack(this FrameLineGUI gui)
         {
@@ -14,9 +14,9 @@ namespace FrameLine
         {
             foreach (var track in gui.Tracks)
             {
-                track.Clips.Clear();
+                track.Actions.Clear();
             }
-            foreach (var clip in gui.Group.Clips)
+            foreach (var clip in gui.Group.Actions)
             {
                 gui.OnAddClip(clip);
             }

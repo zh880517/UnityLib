@@ -7,29 +7,29 @@ namespace FrameLine
         public FrameLineScene Scene;
         public ulong ClipId;
         public bool Active = true;
-        public virtual void OnCreate(IFrameLineClipData clipData) { }
-        public virtual void OnActive(IFrameLineClipData clipData) { }
-        public virtual void OnDeActive(IFrameLineClipData clipData) { }
-        public virtual void OnSimatle(IFrameLineClipData clipData, int clipFrame) { }
-        public virtual void OnSceneGUI(IFrameLineClipData clipData, int clipFrame) { }
+        public virtual void OnCreate(IFrameActionData clipData) { }
+        public virtual void OnActive(IFrameActionData clipData) { }
+        public virtual void OnDeActive(IFrameActionData clipData) { }
+        public virtual void OnSimatle(IFrameActionData clipData, int clipFrame) { }
+        public virtual void OnSceneGUI(IFrameActionData clipData, int clipFrame) { }
         protected virtual void OnDestroy() { }
     }
 
-    public abstract class FrameClipPlayableT<T> : FrameClipPlayable where  T : class, IFrameLineClipData
+    public abstract class FrameClipPlayableT<T> : FrameClipPlayable where  T : class, IFrameActionData
     {
-        public override void OnActive(IFrameLineClipData clipData)
+        public override void OnActive(IFrameActionData clipData)
         {
             OnClipActive(clipData as T);
         }
-        public override void OnDeActive(IFrameLineClipData clipData)
+        public override void OnDeActive(IFrameActionData clipData)
         {
             OnClipDeActive(clipData as T);
         }
-        public override void OnSimatle(IFrameLineClipData clipData, int clipFrame)
+        public override void OnSimatle(IFrameActionData clipData, int clipFrame)
         {
             OnSimatleUnpte(clipData as T, clipFrame);
         }
-        public override void OnSceneGUI(IFrameLineClipData clipData, int clipFrame)
+        public override void OnSceneGUI(IFrameActionData clipData, int clipFrame)
         {
             OnClipSceneGUI(clipData as T, clipFrame);
         }

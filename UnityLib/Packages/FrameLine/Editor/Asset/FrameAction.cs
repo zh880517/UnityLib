@@ -3,7 +3,7 @@ using System;
 namespace FrameLine
 {
     [Serializable]
-    public class FrameClip : UnityEngine.ISerializationCallbackReceiver
+    public class FrameAction : UnityEngine.ISerializationCallbackReceiver
     {
         public ulong ID;
         public int StartFrame;
@@ -16,14 +16,14 @@ namespace FrameLine
         [UnityEngine.SerializeField]
         private SerializationData serializeData;
         [NonSerialized]
-        private IFrameLineClipData data;
-        public IFrameLineClipData Data
+        private IFrameActionData data;
+        public IFrameActionData Data
         {
             get
             {
                 if (data == null)
                 {
-                    data = SerializerHelper.Deserialize(serializeData) as IFrameLineClipData;
+                    data = SerializerHelper.Deserialize(serializeData) as IFrameActionData;
                 }
                 return data;
             }
@@ -31,7 +31,7 @@ namespace FrameLine
 
         public string TypeGUID => serializeData.TypeGUID;
 
-        public void SetData(IFrameLineClipData clipData)
+        public void SetData(IFrameActionData clipData)
         {
             data = clipData;
             OnBeforeSerialize();
@@ -48,11 +48,11 @@ namespace FrameLine
                 serializeData = SerializerHelper.Serialize(data);
         }
 
-        public static implicit operator FrameClipRef(FrameClip exists)
+        public static implicit operator FrameActionRef(FrameAction exists)
         {
             if (exists == null)
-                return FrameClipRef.Empty;
-            return new FrameClipRef() {ID = exists.ID,  Clip = exists};
+                return FrameActionRef.Empty;
+            return new FrameActionRef() {ID = exists.ID,  Action = exists};
         }
     }
 

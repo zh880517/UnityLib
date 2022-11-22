@@ -25,7 +25,7 @@ namespace FrameLine
             {
                 LastKeyIndex = Asset.KeyIndex;
                 var group = Asset.FindGroup(GroupId);
-                foreach (var clip in group.Clips)
+                foreach (var clip in group.Actions)
                 {
                     if (Playables.Exists(it => it.ClipId == clip.ID))
                         continue;
@@ -40,19 +40,19 @@ namespace FrameLine
             for (int i = 0; i < Playables.Count; ++i)
             {
                 var playable = Playables[i];
-                FrameClip clip = Asset.Find(playable.ClipId);
-                if (clip != null)
+                FrameAction action = Asset.Find(playable.ClipId);
+                if (action != null)
                 {
                     DestroyImmediate(playable);
                     Playables.RemoveAt(i);
                     --i;
                     continue;
                 }
-                bool isActive = frameIndex <= clip.StartFrame && (clip.Length <= 0 || clip.StartFrame + clip.Length < frameIndex);
+                bool isActive = frameIndex <= action.StartFrame && (action.Length <= 0 || action.StartFrame + action.Length < frameIndex);
                 isActive |= ((int)(playable.ClipId >> 32) == GroupId);
                 if (isActive)
                 {
-                    playable.OnSceneGUI(clip.Data, frameIndex);
+                    playable.OnSceneGUI(action.Data, frameIndex);
                 }
             }
         }
@@ -63,32 +63,32 @@ namespace FrameLine
             for (int i=0;i< Playables.Count; ++i)
             {
                 var playable = Playables[i];
-                FrameClip clip = Asset.Find(playable.ClipId);
-                if (clip == null)
+                FrameAction action = Asset.Find(playable.ClipId);
+                if (action == null)
                 {
                     DestroyImmediate(playable);
                     Playables.RemoveAt(i);
                     --i;
                     continue;
                 }
-                bool isActive = frameIndex <= clip.StartFrame && (clip.Length <= 0 || clip.StartFrame + clip.Length < frameIndex);
+                bool isActive = frameIndex <= action.StartFrame && (action.Length <= 0 || action.StartFrame + action.Length < frameIndex);
                 isActive |= ((int)(playable.ClipId >> 32) == GroupId);
                 if (isActive != playable.Active)
                 {
                     playable.Active = isActive;
                     if (isActive)
-                        playable.OnActive(clip.Data);
+                        playable.OnActive(action.Data);
                     else
-                        playable.OnDeActive(clip.Data);
+                        playable.OnDeActive(action.Data);
                 }
                 if (isActive)
-                    playable.OnSimatle(clip.Data, frameIndex - clip.StartFrame);
+                    playable.OnSimatle(action.Data, frameIndex - action.StartFrame);
             }
         }
 
-        private void OnClipAdd(FrameClip clip, int frameIndex)
+        private void OnClipAdd(FrameAction action, int frameIndex)
         {
-            var type = GetPlayableType(clip.Data.GetType());
+            var type = GetPlayableType(action.Data.GetType());
             if (type == null)
                 return;
             var playable = CreateInstance(type) as FrameClipPlayable;
@@ -96,15 +96,15 @@ namespace FrameLine
                 return;
             playable.hideFlags = HideFlags.HideAndDontSave;
             playable.Scene = this;
-            playable.ClipId = clip.ID;
+            playable.ClipId = action.ID;
             Playables.Add(playable);
-            playable.OnCreate(clip.Data);
-            bool isActive = frameIndex <= clip.StartFrame && (clip.Length <= 0 || clip.StartFrame + clip.Length < frameIndex);
+            playable.OnCreate(action.Data);
+            bool isActive = frameIndex <= action.StartFrame && (action.Length <= 0 || action.StartFrame + action.Length < frameIndex);
             playable.Active = isActive;
             if (isActive)
-                playable.OnActive(clip.Data);
+                playable.OnActive(action.Data);
             else
-                playable.OnDeActive(clip.Data);
+                playable.OnDeActive(action.Data);
         }
 
         protected virtual System.Type GetPlayableType(System.Type clipType)

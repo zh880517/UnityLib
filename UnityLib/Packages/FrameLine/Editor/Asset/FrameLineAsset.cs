@@ -4,7 +4,6 @@ namespace FrameLine
     public abstract class FrameLineAsset : ScriptableObject
     {
         public string Comment;
-        public int FrameCount;
         [SerializeField, HideInInspector]
         private uint keyIndex;
         public string LoadTime { get; private set; }
@@ -17,7 +16,7 @@ namespace FrameLine
         }
 
 
-        public FrameClip AddClip(int groupId, int frame, IFrameLineClipData data)
+        public FrameAction AddClip(int groupId, int frame, IFrameActionData data)
         {
             var group = FindGroup(groupId);
             if (group == null) 
@@ -25,27 +24,27 @@ namespace FrameLine
             ulong id = (uint)groupId;
             id <<= 32;
             id |= ++keyIndex;
-            FrameClip clip = new FrameClip
+            FrameAction clip = new FrameAction
             {
                 ID = id,
                 StartFrame = frame,
                 Name = GetTypeShowName(data.GetType())
             };
             clip.SetData(data);
-            group.Clips.Add(clip);
+            group.Actions.Add(clip);
             return clip;
         }
 
-        public bool RemoveClip(FrameClipRef clip)
+        public bool RemoveClip(FrameActionRef clip)
         {
             int groupId = clip.GroupId;
             var group = FindGroup(groupId);
             if (group != null)
             {
-                var index = group.Clips.FindIndex(it => it.ID == clip.ID);
+                var index = group.Actions.FindIndex(it => it.ID == clip.ID);
                 if (index >= 0)
                 {
-                    group.Clips.RemoveAt(index);
+                    group.Actions.RemoveAt(index);
                     return true;
                 }
             }
@@ -57,22 +56,16 @@ namespace FrameLine
             return type.Name;
         }
 
-        public FrameClip Find(ulong id)
+        public FrameAction Find(ulong id)
         {
             int groupId = (int)(id >> 32);
             var group = FindGroup(groupId);
             if (group != null)
-                return group.Clips.Find(it => it.ID == id);
+                return group.Actions.Find(it => it.ID == id);
             return null;
         }
 
-        public abstract FrameClipGroup FindGroup(int id);
+        public abstract FrameActionGroup FindGroup(int id);
 
-        public virtual FrameLineScene CreateScene()
-        {
-            var scene = CreateInstance<FrameLineScene>();
-            scene.hideFlags = HideFlags.HideAndDontSave;
-            return scene;
-        }
     }
 }
