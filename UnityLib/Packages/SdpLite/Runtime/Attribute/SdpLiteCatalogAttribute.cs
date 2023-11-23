@@ -7,14 +7,18 @@ using System;
 * {SdpLiteCatalog Type名}Packer : SdpLitePacker
 * {SdpLiteCatalog Type名}UnPacker : SdpLiteUnPacker
 */
+
+public enum SdpLitePackType
+{
+    Normal = 1,
+    Param = 2,
+    All = 3,
+}
+
 [AttributeUsage(AttributeTargets.Struct | AttributeTargets.Class, Inherited= true, AllowMultiple = true)]
 public abstract class SdpLiteCatalogAttribute : Attribute
 {
-    //是否生成序列化和反序列化接口
-    public bool SerializeFunction { get; private set; }
     public abstract string GenerateRooPath { get; }//生成代码的根目录
-    public SdpLiteCatalogAttribute(bool serializeFunction)
-    {
-        SerializeFunction = serializeFunction;
-    }
+    public abstract string NameSpace { get; }//生成的代码的命名空间
+    public virtual SdpLitePackType PackType=>SdpLitePackType.Normal;//生成的代码类型
 }

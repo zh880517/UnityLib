@@ -51,7 +51,7 @@ public static class SdpLiteGeneratorUtils
             var elType = ToType(type.GetElementType());
             if (elType == SdpLiteStructType.Vector || elType == SdpLiteStructType.Map)
             {
-                Error($"不支持数据容器类型数组, {type.FullName}");
+                Error($"不支持数组嵌套容器, {type.FullName}");
                 return SdpLiteStructType.Nonsupport;
             }
             return SdpLiteStructType.Vector;

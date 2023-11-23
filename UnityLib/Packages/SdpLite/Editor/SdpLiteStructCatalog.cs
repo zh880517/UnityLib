@@ -8,6 +8,14 @@ public class SdpLiteStructCatalog
     private Dictionary<Type, SdpLiteStruct> sdpStructs = new Dictionary<Type, SdpLiteStruct>();
     public IReadOnlyDictionary<Type, SdpLiteStruct> Structs => sdpStructs;
 
+    public Type CatalogType { get; private set; }
+    public Type BaseCatalog { get; private set; }
+
+    public string OutPutPath { get; private set; }
+    public string NameSpace { get; private set; }
+    public SdpLitePackType PackType { get; private set; }
+
+
     private SdpLiteStruct AddStruct(Type type)
     {
         var structType = SdpLiteGeneratorUtils.ToType(type);
@@ -69,7 +77,7 @@ public class SdpLiteStructCatalog
                 if (catalog != null)
                 {
                     var sdpStruct = AddStruct(type);
-                    sdpStruct.GenSerializeFunction = catalog.SerializeFunction;
+                    sdpStruct.GenSerializeFunction = type.GetCustomAttribute<SdpLiteSerializeFunctionAttribute>() != null;
                 }
             }
         }
