@@ -29,6 +29,7 @@ public class SdpLiteStruct
     public List<SdpLiteFieldInfo> Fields = new List<SdpLiteFieldInfo>();
     public bool IsBuiltIn;
     public bool GenSerializeFunction;
+    public Type PolymorphismBase;
 
     public bool IsEmpty()
     {

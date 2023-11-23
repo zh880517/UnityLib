@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-public class SdpLiteStructCollector
+public class SdpLiteStructCatalog
 {
     private Dictionary<Type, SdpLiteStruct> sdpStructs = new Dictionary<Type, SdpLiteStruct>();
     public IReadOnlyDictionary<Type, SdpLiteStruct> Structs => sdpStructs;
@@ -29,7 +29,31 @@ public class SdpLiteStructCollector
         {
             AddStruct(f.Info.FieldType);
         }
+        PolymorphismCheck(sdpStruct);
         return sdpStruct;
+    }
+
+    private void PolymorphismCheck(SdpLiteStruct sdpStruct)
+    {
+        var baseType = sdpStruct.Type.BaseType;
+        while (baseType != null && baseType.IsClass && baseType != typeof(object))
+        {
+            if (baseType.GetCustomAttribute<SpdLitePolymorphismAttribute>() != null)
+            {
+                if (Structs.ContainsKey(baseType))
+                {
+                    sdpStruct.PolymorphismBase = baseType;
+                }
+            }
+            baseType = baseType.BaseType;
+        }
+        if (sdpStruct.PolymorphismBase == null)
+        {
+            if(sdpStruct.Type.GetCustomAttribute<SpdLitePolymorphismAttribute>() != null)
+            {
+                sdpStruct.PolymorphismBase = sdpStruct.Type;
+            }
+        }
     }
 
 

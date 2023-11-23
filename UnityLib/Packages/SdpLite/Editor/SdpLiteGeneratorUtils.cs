@@ -199,9 +199,9 @@ public static class SdpLiteGeneratorUtils
     }
 
 
-    public static SdpLiteStructCollector Generate<T>(string exportPath, string nameSpace, ISdpLiteCodeGenerator packer, ISdpLiteCodeGenerator unPacker) where T : SdpLiteCatalogAttribute
+    public static SdpLiteStructCatalog Generate<T>(string exportPath, string nameSpace, ISdpLiteCodeGenerator packer, ISdpLiteCodeGenerator unPacker) where T : SdpLiteCatalogAttribute
     {
-        SdpLiteStructCollector collector = new SdpLiteStructCollector();
+        SdpLiteStructCatalog collector = new SdpLiteStructCatalog();
         collector.CollectType<T>();
         string className = typeof(T).Name;
         className = className.Replace("Attribute", "");
@@ -220,9 +220,9 @@ public static class SdpLiteGeneratorUtils
         return collector;
     }
 
-    public static SdpLiteStructCollector Generate<T>(string exportPath, string nameSpace, SdpLiteGenerateStrategy strategy) where T : SdpLiteCatalogAttribute
+    public static SdpLiteStructCatalog Generate<T>(string exportPath, string nameSpace, SdpLiteGenerateStrategy strategy) where T : SdpLiteCatalogAttribute
     {
-        SdpLiteStructCollector collector = new SdpLiteStructCollector();
+        SdpLiteStructCatalog collector = new SdpLiteStructCatalog();
         collector.CollectType<T>();
         string className = typeof(T).Name;
         className = className.Replace("Attribute", "");
