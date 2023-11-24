@@ -199,55 +199,31 @@ public static class SdpLiteGeneratorUtils
     }
 
 
-    public static SdpLiteStructCatalog Generate<T>(string exportPath, string nameSpace, ISdpLiteCodeGenerator packer, ISdpLiteCodeGenerator unPacker) where T : SdpLiteCatalogAttribute
+    public static void Generate(SdpLiteStructCatalog catalog)
     {
-        SdpLiteStructCatalog collector = new SdpLiteStructCatalog();
-        collector.CollectType<T>();
-        string className = typeof(T).Name;
-        className = className.Replace("Attribute", "");
-        var builtInStructs = collector.Structs.Where(it => it.Value.IsBuiltIn).Select(it => it.Value);
-        var customStructs = collector.Structs.Where(it => !it.Value.IsBuiltIn).Select(it => it.Value);
+        var builtInStructs = catalog.Structs.Where(it => it.Value.IsBuiltIn).Select(it => it.Value);
+        var customStructs = catalog.Structs.Where(it => !it.Value.IsBuiltIn).Select(it => it.Value);
+        var pack = new SdpLitePackGenerator();
+        var unpack = new SdpLiteUnPackGenerator();
+        var paramPack = new SdpLiteParamPackGenerator();
+        string builtInPackFile = Path.Combine(catalog.OutPutPath, $"{catalog.ClassName}Pack_Builtin.cs");
+        GeneratorUtils.WriteToFile(builtInPackFile, pack.GenerateCode(builtInStructs, catalog.NameSpace, catalog.ClassName));
+        string builtInUnPackFile = Path.Combine(catalog.OutPutPath, $"{catalog.ClassName}UnPack_Builtin.cs");
+        GeneratorUtils.WriteToFile(builtInUnPackFile, unpack.GenerateCode(builtInStructs, catalog.NameSpace, catalog.ClassName));
 
-        string builtInPackFile = Path.Combine(exportPath, $"{className}Pack_Builtin.cs");
-        GeneratorUtils.WriteToFile(builtInPackFile, packer.GenerateCode(builtInStructs, nameSpace, className));
-        string builtInUnPackFile = Path.Combine(exportPath, $"{className}UnPack_Builtin.cs");
-        GeneratorUtils.WriteToFile(builtInUnPackFile, unPacker.GenerateCode(builtInStructs, nameSpace, className));
+        if ((catalog.PackType & SdpLitePackType.Normal) == SdpLitePackType.Normal)
+        {
+            string customPackFile = Path.Combine(catalog.OutPutPath, $"{catalog.ClassName}Pack_Custom.cs");
+            GeneratorUtils.WriteToFile(customPackFile, pack.GenerateCode(customStructs, catalog.NameSpace, catalog.ClassName));
+        }
+        if ((catalog.PackType & SdpLitePackType.Param) == SdpLitePackType.Param)
+        {
+            string customPackFile = Path.Combine(catalog.OutPutPath, $"{catalog.ClassName}ParamPack_Custom.cs");
+            GeneratorUtils.WriteToFile(customPackFile, paramPack.GenerateCode(customStructs, catalog.NameSpace, catalog.ClassName));
+        }
 
-        string customPackFile = Path.Combine(exportPath, $"{className}Pack_Custom.cs");
-        GeneratorUtils.WriteToFile(customPackFile, packer.GenerateCode(customStructs, nameSpace, className));
-        string customUnPackFile = Path.Combine(exportPath, $"{className}UnPack_Custom.cs");
-        GeneratorUtils.WriteToFile(customUnPackFile, unPacker.GenerateCode(customStructs, nameSpace, className));
-        return collector;
+        string customUnPackFile = Path.Combine(catalog.OutPutPath, $"{catalog.ClassName}UnPack_Custom.cs");
+        GeneratorUtils.WriteToFile(customUnPackFile, unpack.GenerateCode(customStructs, catalog.NameSpace, catalog.ClassName));
     }
 
-    public static SdpLiteStructCatalog Generate<T>(string exportPath, string nameSpace, SdpLiteGenerateStrategy strategy) where T : SdpLiteCatalogAttribute
-    {
-        SdpLiteStructCatalog collector = new SdpLiteStructCatalog();
-        collector.CollectType<T>();
-        string className = typeof(T).Name;
-        className = className.Replace("Attribute", "");
-        var builtInStructs = collector.Structs.Where(it => it.Value.IsBuiltIn).Select(it => it.Value);
-        var customStructs = collector.Structs.Where(it => !it.Value.IsBuiltIn).Select(it => it.Value);
-        if (strategy.BuildInPack != null)
-        {
-            string builtInPackFile = Path.Combine(exportPath, $"{className}Pack_Builtin.cs");
-            GeneratorUtils.WriteToFile(builtInPackFile, strategy.BuildInPack.GenerateCode(builtInStructs, nameSpace, className));
-        }
-        if (strategy.BuildInUnPack != null)
-        {
-            string builtInUnPackFile = Path.Combine(exportPath, $"{className}UnPack_Builtin.cs");
-            GeneratorUtils.WriteToFile(builtInUnPackFile, strategy.BuildInUnPack.GenerateCode(builtInStructs, nameSpace, className));
-        }
-        if (strategy.CustomPack != null)
-        {
-            string customPackFile = Path.Combine(exportPath, $"{className}Pack_Custom.cs");
-            GeneratorUtils.WriteToFile(customPackFile, strategy.CustomPack.GenerateCode(customStructs, nameSpace, className));
-        }
-        if (strategy.CustomUnPack != null)
-        {
-            string customUnPackFile = Path.Combine(exportPath, $"{className}UnPack_Custom.cs");
-            GeneratorUtils.WriteToFile(customUnPackFile, strategy.CustomUnPack.GenerateCode(customStructs, nameSpace, className));
-        }
-        return collector;
-    }
 }

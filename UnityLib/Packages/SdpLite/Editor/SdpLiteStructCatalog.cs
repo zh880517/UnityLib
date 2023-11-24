@@ -14,7 +14,22 @@ public class SdpLiteStructCatalog
     public string OutPutPath { get; private set; }
     public string NameSpace { get; private set; }
     public SdpLitePackType PackType { get; private set; }
+    public string ClassName { get; private set; }
 
+
+    public SdpLiteStructCatalog(Type catalogType)
+    {
+        CatalogType = catalogType;
+        if (catalogType.BaseType != null && catalogType.BaseType != typeof(SdpLiteCatalogAttribute))
+        {
+            BaseCatalog = catalogType.BaseType;
+        }
+        var instance = Activator.CreateInstance(catalogType) as SdpLiteCatalogAttribute;
+        OutPutPath = instance.GenerateRooPath;
+        NameSpace = instance.NameSpace;
+        PackType = instance.PackType;
+        ClassName = catalogType.Name.Replace("Attribute", "");
+    }
 
     private SdpLiteStruct AddStruct(Type type)
     {
@@ -29,6 +44,9 @@ public class SdpLiteStructCatalog
         var currentStruct = sdpStruct;
         while (baseType != null && baseType != typeof(ValueType) && baseType != typeof(object))
         {
+            //如果父类和当前不在一个分组，就不再继续向上查找
+            if (baseType.GetCustomAttribute(CatalogType) == null)
+                break;
             currentStruct.BaseClass = SdpLiteGeneratorUtils.ToStruct(baseType);
             currentStruct = currentStruct.BaseClass;
             baseType = baseType.BaseType;
@@ -65,7 +83,7 @@ public class SdpLiteStructCatalog
     }
 
 
-    public void CollectType<T>() where T : SdpLiteCatalogAttribute
+    public void CollectType()
     {
         foreach (var assemble in AppDomain.CurrentDomain.GetAssemblies())
         {
@@ -73,7 +91,7 @@ public class SdpLiteStructCatalog
             {
                 if (type.IsInterface)
                     continue;
-                var catalog = type.GetCustomAttribute<T>();
+                var catalog = type.GetCustomAttribute(CatalogType);
                 if (catalog != null)
                 {
                     var sdpStruct = AddStruct(type);

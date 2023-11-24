@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-public class SdpLiteUnPackGenerator : ISdpLiteCodeGenerator
+public struct SdpLiteUnPackGenerator : ISdpLiteCodeGenerator
 {
     public static void WriteUnPack(CSharpCodeWriter writer, SdpLiteStruct sdpStruct, IEnumerable<SdpLiteStruct> structs)
     {

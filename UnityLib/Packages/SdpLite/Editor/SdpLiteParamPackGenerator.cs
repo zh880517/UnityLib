@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-public class SdpLiteParamPackGenerator : ISdpLiteCodeGenerator
+public struct SdpLiteParamPackGenerator : ISdpLiteCodeGenerator
 {
     public static void WritePackField(CSharpCodeWriter writer, SdpLiteFieldInfo field)
     {
