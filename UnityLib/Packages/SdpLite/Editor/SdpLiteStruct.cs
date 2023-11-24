@@ -18,7 +18,10 @@ public class SdpLiteFieldInfo
 {
     public uint Index;
     public FieldInfo Info;
+    public bool IsDynamic;//多态支持
     public SdpLiteStructType FieldType;
+    public Type Extern1;
+    public Type Extern2;
     public SdpLiteStructType ExternType1;
     public SdpLiteStructType ExternType2;
 }
@@ -30,6 +33,7 @@ public class SdpLiteStruct
     public bool IsBuiltIn;
     public bool GenSerializeFunction;
     public Type PolymorphismBase;
+    public bool NeedDynamicUnPack;//需要生成多态Unpack接口
 
     public bool IsEmpty()
     {

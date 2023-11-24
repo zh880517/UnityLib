@@ -3,13 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+public class SdpLitePolymorphismGroup
+{
+    public SdpLiteStruct Base;
+    public List<SdpLiteStruct> SubClass = new List<SdpLiteStruct>();
+}
+
 public class SdpLiteStructCatalog
 {
-    private Dictionary<Type, SdpLiteStruct> sdpStructs = new Dictionary<Type, SdpLiteStruct>();
+    private readonly Dictionary<Type, SdpLiteStruct> sdpStructs = new Dictionary<Type, SdpLiteStruct>();
+    private readonly List<SdpLitePolymorphismGroup> polymorphism = new List<SdpLitePolymorphismGroup>();
     public IReadOnlyDictionary<Type, SdpLiteStruct> Structs => sdpStructs;
 
     public Type CatalogType { get; private set; }
-    public Type BaseCatalog { get; private set; }
+    public SdpLiteStructCatalog ParentCatalog { get; private set; }
 
     public string OutPutPath { get; private set; }
     public string NameSpace { get; private set; }
@@ -20,15 +27,16 @@ public class SdpLiteStructCatalog
     public SdpLiteStructCatalog(Type catalogType)
     {
         CatalogType = catalogType;
-        if (catalogType.BaseType != null && catalogType.BaseType != typeof(SdpLiteCatalogAttribute))
-        {
-            BaseCatalog = catalogType.BaseType;
-        }
         var instance = Activator.CreateInstance(catalogType) as SdpLiteCatalogAttribute;
         OutPutPath = instance.GenerateRooPath;
         NameSpace = instance.NameSpace;
         PackType = instance.PackType;
         ClassName = catalogType.Name.Replace("Attribute", "");
+    }
+
+    public void SetParent(SdpLiteStructCatalog parent)
+    {
+        ParentCatalog = parent;
     }
 
     private SdpLiteStruct AddStruct(Type type)
@@ -78,6 +86,70 @@ public class SdpLiteStructCatalog
             if(sdpStruct.Type.GetCustomAttribute<SpdLitePolymorphismAttribute>() != null)
             {
                 sdpStruct.PolymorphismBase = sdpStruct.Type;
+            }
+        }
+    }
+
+    private SdpLiteStruct FindByType(Type type)
+    {
+        if (Structs.TryGetValue(type, out var sdpStruct))
+            return sdpStruct;
+        return ParentCatalog?.FindByType(type);
+    }
+
+    public void BuildPolymorphism()
+    {
+        foreach (var kv in sdpStructs)
+        {
+            if (kv.Key == kv.Value.PolymorphismBase)
+            {
+                var children = sdpStructs.Where(s => s.Value.PolymorphismBase == kv.Key).Select(s => s.Value).ToList();
+                if (children.Count > 0)
+                {
+                    SdpLitePolymorphismGroup group = new SdpLitePolymorphismGroup
+                    {
+                        Base = kv.Value
+                    };
+                    group.SubClass.AddRange(children);
+                    polymorphism.Add(group);
+                }
+                else
+                {
+                    //如果没有子类，即使标识了多态，不再生成多态相关的接口
+                    kv.Value.PolymorphismBase = null;
+                }
+            }
+        }
+    }
+
+    public void UpdateDynamicField()
+    {
+        foreach (var kv in Structs)
+        {
+            foreach (var field in kv.Value.Fields)
+            {
+                if (field.IsDynamic)
+                {
+                    Type fieldRealType = field.Info.FieldType;
+                    switch (field.FieldType)
+                    {
+                        case SdpLiteStructType.Vector:
+                            fieldRealType = field.Extern1;
+                            break;
+                        case SdpLiteStructType.Map:
+                            fieldRealType = field.Extern2;
+                            break;
+                    }
+                    var fieldStruct = FindByType(fieldRealType);
+                    if (fieldStruct == null || fieldStruct.PolymorphismBase == null)
+                    {
+                        field.IsDynamic = false;
+                    }
+                    else
+                    {
+                        fieldStruct.NeedDynamicUnPack = true;
+                    }
+                }
             }
         }
     }

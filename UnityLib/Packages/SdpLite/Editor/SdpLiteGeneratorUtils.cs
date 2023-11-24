@@ -113,25 +113,30 @@ public static class SdpLiteGeneratorUtils
         {
             Index = index,
             Info = info,
+            IsDynamic = info.GetCustomAttribute<SdpLiteDynamicFieldAttribute>() !=null,
             FieldType = type,
         };
         if (type == SdpLiteStructType.Vector)
         {
             if (info.FieldType.IsArray)
             {
-                field.ExternType1 = ToType(info.FieldType.GetElementType());
+                field.Extern1 = info.FieldType.GetElementType();
             }
             else
             {
-                field.ExternType1 = ToType(info.FieldType.GetGenericArguments()[0]);
+                field.Extern1 = info.FieldType.GetGenericArguments()[0];
             }
         }
         else if (type == SdpLiteStructType.Map)
         {
             var genericArguments = info.FieldType.GetGenericArguments();
-            field.ExternType1 = ToType(genericArguments[0]);
-            field.ExternType1 = ToType(genericArguments[1]);
+            field.Extern1 = genericArguments[0];
+            field.Extern2 = genericArguments[1];
         }
+        if (field.Extern1 != null)
+            field.ExternType1 = ToType(field.Extern1);
+        if (field.Extern2 != null)
+            field.ExternType1 = ToType(field.Extern2);
         return field;
     }
 
