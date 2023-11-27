@@ -30,6 +30,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.kyle.flowscript": {
+      "version": "file:FlowScript",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.kyle.frameline": {
       "version": "file:FrameLine",
       "depth": 0,
@@ -56,6 +62,12 @@
     },
     "com.kyle.planeengine": {
       "version": "file:PlaneEngine",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.kyle.spdlite": {
+      "version": "file:SdpLite",
       "depth": 0,
       "source": "embedded",
       "dependencies": {}
