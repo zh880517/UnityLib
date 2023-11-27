@@ -115,7 +115,7 @@ public class SdpLiteStructCatalog
                 }
                 else
                 {
-                    //如果没有子类，即使标识了多态，不再生成多态相关的接口
+                    //如果没有子类，即使标识了多态，也不再生成多态相关的接口
                     kv.Value.PolymorphismBase = null;
                 }
             }
