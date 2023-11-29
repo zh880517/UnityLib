@@ -12,18 +12,11 @@ namespace Flow
     {
         public List<FlowNode> Nodes = new List<FlowNode>();
         public List<FlowSubGraph> SubGraphs = new List<FlowSubGraph>();
-        public List<FlowNodeViewData> NodeViews = new List<FlowNodeViewData>();
         public List<SubGraphBind> GraphBinds = new List<SubGraphBind>();
-        public List<FlowEdgeData> Edges = new List<FlowEdgeData>();
 
         public FlowNode FindNode(string guid)
         {
             return Nodes.Find(it => it.GUID == guid);
-        }
-
-        public bool HasNode(string guid)
-        {
-            return Nodes.Exists(it => it.GUID == guid);
         }
 
         public FlowSubGraph FindSubGraph(string guid)
@@ -40,6 +33,10 @@ namespace Flow
                 }
             }
             return null;
+        }
+        public bool HasNode(string guid)
+        {
+            return Nodes.Exists(it => it.GUID == guid);
         }
     }
 }

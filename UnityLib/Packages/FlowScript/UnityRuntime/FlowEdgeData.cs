@@ -5,10 +5,10 @@ namespace Flow
     public class FlowEdgeData
     {
         public string GUID;
-        public string FromNode;
-        public int FromPort;
+        public string FromeNode;
+        public int OutPort;
         public string ToNode;
-        public int ToPort;
+        public int InPort;
     }
 
     //[System.Serializable]

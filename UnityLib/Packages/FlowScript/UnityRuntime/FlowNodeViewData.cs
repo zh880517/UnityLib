@@ -6,7 +6,7 @@ namespace Flow
     public class FlowNodeViewData
     {
         public string NodeGUID;
-        public Rect Positon;
+        public Rect Position;
         public bool Expanded;
     }
 }

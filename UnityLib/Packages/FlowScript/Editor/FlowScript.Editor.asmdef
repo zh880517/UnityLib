@@ -2,6 +2,7 @@
     "name": "FlowScript.Editor",
     "rootNamespace": "",
     "references": [
+        "FlowScript.Runtime",
         "FlowScript.UnityRuntime"
     ],
     "includePlatforms": [
